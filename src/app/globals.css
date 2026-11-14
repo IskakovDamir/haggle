@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+/* Haggle: warm paper, near-black ink, a lime highlighter. Green means money kept. */
+:root {
+  --paper: #f6f5f1;
+  --card: #ffffff;
+  --ink: #141414;
+  --muted: #5e5d58;
+  --line: #e3e1da;
+  --green: #17804f;
+  --green-soft: #e2f2e9;
+  --lime: #c9f26b;
+  --leak: #b4441c;
+  --leak-soft: #fbeae3;
+  --alarm: #bf2c19;
+  --alarm-soft: #fbe7e2;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-green: var(--green);
+  --color-green-soft: var(--green-soft);
+  --color-lime: var(--lime);
+  --color-leak: var(--leak);
+  --color-leak-soft: var(--leak-soft);
+  --color-alarm: var(--alarm);
+  --color-alarm-soft: var(--alarm-soft);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-instrument), ui-serif, Georgia, serif;
+}
+
+html {
+  background: var(--paper);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Headings are heavy sans; <em> inside them switches to the italic serif. */
+h1,
+h2 {
+  letter-spacing: -0.03em;
+}
+
+h1 em,
+h2 em,
+.font-display {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm tsc --noEmit)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm vitest run*)",
+      "Bash(pnpm seed)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ],
+    "ask": ["Bash(git push *)"],
+    "deny": ["Read(./.env)", "Read(./.env.local)", "Read(./.env.production)"]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "[ -f tsconfig.json ] || exit 0; pnpm tsc --noEmit 1>&2 || exit 2" }
+        ]
+      }
+    ]
+  }
+}
