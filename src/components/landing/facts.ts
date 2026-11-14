@@ -44,17 +44,17 @@ export const HERO_FACTS: Fact[] = [
   ASK_SUCCESS,
   {
     value: `${formatPoints(EXPECTED_APR_CUT_BPS)} pts`,
-    claim: "average APR cut for those who asked",
+    claim: "average APR cut for those who got one",
     source: SOURCES.lendingTree,
   },
   {
-    value: "< 1 in 4",
-    claim: "cardholders ask at all",
+    value: "23%",
+    claim: "of cardholders asked at all in the past year",
     source: SOURCES.lendingTree,
   },
   {
     value: "$1.29T",
-    claim: "in US credit card debt, a record",
+    claim: "in US credit card balances, Q3 2026",
     source: SOURCES.newYorkFed,
   },
 ];
