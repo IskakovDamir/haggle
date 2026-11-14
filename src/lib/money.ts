@@ -15,6 +15,20 @@ export function formatDollars(cents: number): string {
   return `${sign}$${Math.round(Math.abs(cents) / 100).toLocaleString("en-US")}`;
 }
 
+/** 128_500_000_000_000 -> "$1.285 trillion". For market-sized totals. */
+export function formatDollarsCompact(cents: number): string {
+  const dollars = cents / 100;
+  const steps: [number, string][] = [
+    [1e12, "trillion"],
+    [1e9, "billion"],
+    [1e6, "million"],
+  ];
+  for (const [size, word] of steps) {
+    if (Math.abs(dollars) >= size) return `$${Number((dollars / size).toFixed(3))} ${word}`;
+  }
+  return formatDollars(cents);
+}
+
 /** "$110" when whole, "$9.99" when not. For short copy. */
 export function formatShort(cents: number): string {
   return cents % 100 === 0 ? formatDollars(cents) : formatCents(cents);

@@ -1,5 +1,6 @@
 // "Your bank is one call away from yes" and the footer row: Figma node 7:276 on "Haggle — Landing · Desktop 1440".
 import Image from "next/image";
+import Link from "next/link";
 import { HgButton, HgLogo, HgSection } from "./ui";
 import { Reveal } from "@/components/motion/reveal";
 
@@ -70,7 +71,9 @@ export function Closing() {
       <footer className="flex flex-col items-center gap-4 px-6 pt-6 pb-2 text-center lg:flex-row lg:justify-between lg:text-left">
         <HgLogo />
         <p className={caption}>Haggle isn’t a credit repair organization and never promises a specific score</p>
-        <p className={`${caption} whitespace-nowrap`}>© 2026 Haggle</p>
+        <p className={`${caption} whitespace-nowrap`}>
+          <Link href="/insights" className="mr-4 hover:text-hg-blue">Insights</Link>© 2026 Haggle
+        </p>
       </footer>
     </HgSection>
   );
