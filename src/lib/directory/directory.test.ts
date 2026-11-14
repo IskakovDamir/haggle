@@ -49,7 +49,7 @@ describe("phone directory helpers", () => {
   it("sorts A to Z and keeps the card line first", () => {
     const names = issuersAtoZ().map((i) => i.name);
     expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
-    for (const issuer of ISSUERS) expect(mainLine(issuer).label.toLowerCase(), issuer.slug).toMatch(/card|member/);
+    for (const issuer of ISSUERS) expect(mainLine(issuer).label.toLowerCase(), issuer.slug).toMatch(/card|member|credit/);
   });
 
   it("every FAQ answer names the issuer's real number or carries a label", () => {
@@ -59,5 +59,33 @@ describe("phone directory helpers", () => {
       expect(answerText(faq[0].answer)).toContain(mainLine(issuer).display);
       for (const item of faq) expect(answerText(item.answer).length, item.question).toBeGreaterThan(20);
     }
+  });
+});
+
+describe("store cards", () => {
+  it("every store card names its group and links to its own source domain", () => {
+    const stores = ISSUERS.filter((i) => i.group === "store");
+    expect(stores.length).toBeGreaterThanOrEqual(8);
+    for (const issuer of stores) expect(new URL(issuer.source.url).hostname.endsWith(issuer.domain), issuer.slug).toBe(true);
+  });
+
+  it("banks and store cards do not share a slug", () => {
+    const banks = new Set(ISSUERS.filter((i) => i.group === "bank").map((i) => i.slug));
+    for (const issuer of ISSUERS.filter((i) => i.group === "store")) expect(banks.has(issuer.slug), issuer.slug).toBe(false);
+  });
+});
+
+describe("spanish directory", () => {
+  it("every issuer has a Spanish version of every displayed string", async () => {
+    const { localizeIssuer } = await import("./locale");
+    for (const issuer of ISSUERS) expect(() => localizeIssuer(issuer, "es"), issuer.slug).not.toThrow();
+  });
+
+  it("builds Spanish paths and names", async () => {
+    const { phonePath, serviceNameFor } = await import("./locale");
+    expect(phonePath({ slug: "chase" }, "es")).toBe("/es/telefonos/chase");
+    expect(phonePath({ slug: "chase" }, "en")).toBe("/phone/chase");
+    expect(serviceNameFor({ name: "Chase" }, "es")).toBe("Servicio al cliente de tarjetas de crédito Chase");
+    expect(serviceNameFor({ name: "Apple Card" }, "es")).toBe("Servicio al cliente de Apple Card");
   });
 });

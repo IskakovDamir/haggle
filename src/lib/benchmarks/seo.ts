@@ -3,14 +3,15 @@ import { answerText, type FaqItem } from "./faq";
 import { BANKS, DATASET_AS_OF, MARKET_STATS } from "./data";
 import { siteUrl } from "./site";
 
-export function faqJsonLd(items: FaqItem[]) {
+export function faqJsonLd(items: FaqItem[], language: "en" | "es" = "en") {
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
+    inLanguage: language === "es" ? "es-US" : "en-US",
     mainEntity: items.map((item) => ({
       "@type": "Question",
       name: item.question,
-      acceptedAnswer: { "@type": "Answer", text: answerText(item.answer) },
+      acceptedAnswer: { "@type": "Answer", text: answerText(item.answer, language) },
     })),
   };
 }

@@ -12,15 +12,3 @@ export function siteUrl(): string {
     return FALLBACK;
   }
 }
-
-/** Every insights path, in the order they appear in the index. */
-export const INSIGHTS_PATHS = [
-  "/insights",
-  "/insights/missed-payment",
-  "/insights/lower-apr",
-  "/insights/chase",
-  "/insights/capital-one",
-  "/insights/citi",
-  "/insights/amex",
-  "/insights/discover",
-] as const;

@@ -30,10 +30,10 @@ export function todayIso(now: Date = new Date()): IsoDate {
   return `${y}-${m}-${d}`;
 }
 
-/** "2026-11-14" -> "Nov 14, 2026". The date is treated as a calendar day, never shifted by timezone. */
-export function formatDate(iso: IsoDate): string {
+/** "2026-11-14" -> "Nov 14, 2026" ("14 nov 2026" in Spanish). The date is a calendar day, never shifted by timezone. */
+export function formatDate(iso: IsoDate, language: "en" | "es" = "en"): string {
   const [y, m, d] = iso.split("-").map(Number);
-  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(
+  return new Intl.DateTimeFormat(language === "es" ? "es-US" : "en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(
     new Date(Date.UTC(y, m - 1, d)),
   );
 }
@@ -53,11 +53,12 @@ export function daysBetween(from: IsoDate, to: IsoDate): number {
   return Math.round((parse(to) - parse(from)) / 86_400_000);
 }
 
-/** 280 -> "23 years 4 months", 14 -> "1 year 2 months", 9 -> "9 months". */
-export function formatDuration(months: number): string {
+/** 280 -> "23 years 4 months", 14 -> "1 year 2 months", 9 -> "9 months" ("23 años 4 meses" in Spanish). */
+export function formatDuration(months: number, language: "en" | "es" = "en"): string {
   const years = Math.floor(months / 12);
   const rest = months % 12;
-  const y = years === 0 ? "" : `${years} ${years === 1 ? "year" : "years"}`;
-  const m = rest === 0 ? "" : `${rest} ${rest === 1 ? "month" : "months"}`;
-  return [y, m].filter(Boolean).join(" ") || "0 months";
+  const [year, yearsWord, month, monthsWord] = language === "es" ? ["año", "años", "mes", "meses"] : ["year", "years", "month", "months"];
+  const y = years === 0 ? "" : `${years} ${years === 1 ? year : yearsWord}`;
+  const m = rest === 0 ? "" : `${rest} ${rest === 1 ? month : monthsWord}`;
+  return [y, m].filter(Boolean).join(" ") || `0 ${monthsWord}`;
 }

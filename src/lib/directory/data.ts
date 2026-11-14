@@ -26,6 +26,7 @@ export const ISSUERS: Issuer[] = [
         asOf: "2026-11-04",
       },
     ],
+    group: "bank",
     insights: "chase",
   },
   {
@@ -41,6 +42,7 @@ export const ISSUERS: Issuer[] = [
       { label: "Small business cards customer service", display: "1-800-492-3344", hours: "24/7" },
     ],
     menu: [],
+    group: "bank",
     insights: "amex",
   },
   {
@@ -57,6 +59,7 @@ export const ISSUERS: Issuer[] = [
       { label: "Billing questions", display: "1-866-266-0212" },
     ],
     menu: [],
+    group: "bank",
   },
   {
     slug: "barclays",
@@ -71,6 +74,7 @@ export const ISSUERS: Issuer[] = [
       { label: "Calling from outside the US (collect)", display: "1-302-255-8888" },
     ],
     menu: [],
+    group: "bank",
   },
   {
     slug: "capital-one",
@@ -85,6 +89,7 @@ export const ISSUERS: Issuer[] = [
       { label: "Credit card online account support", display: "1-866-750-0873" },
     ],
     menu: [],
+    group: "bank",
     insights: "capital-one",
   },
   {
@@ -99,6 +104,7 @@ export const ISSUERS: Issuer[] = [
     checkedOn: "2026-11-15",
     lines: [{ label: "Credit card customer service, including lost or stolen cards", display: "1-800-950-5114" }],
     menu: [],
+    group: "bank",
     insights: "citi",
   },
   {
@@ -113,6 +119,7 @@ export const ISSUERS: Issuer[] = [
       { label: "Calling from outside the US", display: "1-224-888-7777" },
     ],
     menu: [],
+    group: "bank",
     insights: "discover",
   },
   {
@@ -127,6 +134,7 @@ export const ISSUERS: Issuer[] = [
       { label: "Collections", display: "1-800-336-3767", hours: "Mon to Fri 8 am to 9 pm ET, Sat 9 am to 5:30 pm ET" },
     ],
     menu: [],
+    group: "bank",
   },
   {
     slug: "pnc",
@@ -140,6 +148,7 @@ export const ISSUERS: Issuer[] = [
       { label: "Business credit card", display: "1-800-474-2101" },
     ],
     menu: [],
+    group: "bank",
   },
   {
     slug: "synchrony",
@@ -157,6 +166,7 @@ export const ISSUERS: Issuer[] = [
       { label: "CareCredit account help", display: "1-866-893-7864" },
     ],
     menu: [],
+    group: "bank",
   },
   {
     slug: "us-bank",
@@ -171,6 +181,7 @@ export const ISSUERS: Issuer[] = [
       { label: "Rewards center", display: "1-888-229-8864" },
     ],
     menu: [],
+    group: "bank",
   },
   {
     slug: "apple-card",
@@ -187,6 +198,128 @@ export const ISSUERS: Issuer[] = [
       },
     ],
     menu: [],
+    group: "bank",
+  },
+
+  // Store and payment brand cards. Each number is from the retailer's own help page or the issuing bank's page for that card.
+  {
+    slug: "amazon",
+    name: "Amazon",
+    aliases: ["Amazon Store Card", "Amazon Prime Visa", "Amazon Secured Card"],
+    domain: "amazon.com",
+    source: { name: "amazon.com", url: "https://www.amazon.com/gp/help/customer/display.html?nodeId=202029400" },
+    checkedOn: "2026-11-15",
+    lines: [
+      { label: "Amazon Store Card (Synchrony Bank)", display: "1-866-634-8379", hours: "24/7" },
+      { label: "Amazon Prime Visa (Chase)", display: "1-888-247-4080", hours: "24/7" },
+      { label: "Amazon Secured Card (Synchrony Bank)", display: "1-855-597-4891", hours: "24/7" },
+    ],
+    menu: [],
+    group: "store",
+    issuedBy: "Synchrony Bank (Store Card and Secured Card) and Chase (Prime Visa)",
+  },
+  {
+    slug: "best-buy",
+    name: "Best Buy",
+    aliases: ["Best Buy Credit Card", "My Best Buy Visa"],
+    domain: "citi.com",
+    source: { name: "citi.com", url: "https://www.citi.com/credit-cards/citi-best-buy-credit-cards" },
+    checkedOn: "2026-11-15",
+    lines: [{ label: "Best Buy credit cards", display: "1-888-574-1301", hours: "24/7", note: "TTY: dial 711." }],
+    menu: [],
+    group: "store",
+    issuedBy: "Citibank",
+  },
+  {
+    slug: "costco",
+    name: "Costco",
+    aliases: ["Costco Anywhere Visa", "Costco Citi card"],
+    domain: "costco.com",
+    source: {
+      name: "costco.com",
+      url: "https://customerservice.costco.com/app/answers/answer_view/a_id/1459/~/my-information-is-wrong-on-my-costco-anywhere-visa%C2%AE-card-by-citi,-what-do-i-do",
+    },
+    checkedOn: "2026-11-15",
+    lines: [
+      { label: "Costco Anywhere Visa card, Citi customer service", display: "1-855-378-6467" },
+      { label: "Costco Member Services", display: "1-800-774-2678", note: "Costco points here for errors on the back of the card." },
+    ],
+    menu: [],
+    group: "store",
+    issuedBy: "Citi",
+  },
+  {
+    slug: "kohls",
+    name: "Kohl's",
+    aliases: ["Kohl's Card", "Kohls credit card"],
+    domain: "kohls.com",
+    source: { name: "kohls.com", url: "https://www.kohls.com/faq/article/623" },
+    checkedOn: "2026-11-15",
+    lines: [
+      { label: "Kohl's Card and payment questions", display: "1-844-463-7013", hours: "24/7" },
+      { label: "Kohls.com and order questions", display: "1-855-564-5705" },
+    ],
+    menu: [],
+    group: "store",
+  },
+  {
+    slug: "lowes",
+    name: "Lowe's",
+    aliases: ["MyLowe's Rewards Credit Card", "Lowe's Advantage Card"],
+    domain: "synchrony.com",
+    source: { name: "synchrony.com", url: "https://www.synchrony.com/partner/lowes" },
+    checkedOn: "2026-11-15",
+    lines: [{ label: "MyLowe's Rewards Credit Card", display: "1-800-444-1408" }],
+    menu: [],
+    group: "store",
+    issuedBy: "Synchrony Bank",
+  },
+  {
+    slug: "macys",
+    name: "Macy's",
+    aliases: ["Macy's Card", "Macy's American Express"],
+    domain: "macys.com",
+    source: { name: "macys.com", url: "https://www.macys.com/customer-service/articles/contact-credit-customer-service" },
+    checkedOn: "2026-11-15",
+    lines: [
+      { label: "Macy's Credit Customer Care", display: "1-888-257-6757", note: "TTY: dial 711." },
+      { label: "Macy's Customer Care (orders and stores)", display: "1-800-289-6229" },
+    ],
+    menu: [],
+    group: "store",
+  },
+  {
+    slug: "paypal",
+    name: "PayPal",
+    aliases: ["PayPal Credit", "PayPal Cashback Mastercard"],
+    domain: "paypal.com",
+    source: {
+      name: "paypal.com",
+      url: "https://www.paypal.com/us/cshelp/article/what-kind-of-customer-support-is-available-for-the-paypal-credit-card-paypal-credit-digital-line-paypal-cashback-mastercard-and-smart-connect-help643",
+    },
+    checkedOn: "2026-11-15",
+    lines: [
+      { label: "PayPal Credit Card", display: "1-844-209-7457" },
+      { label: "PayPal Credit digital line", display: "1-844-373-4961" },
+      { label: "PayPal Cashback Mastercard", display: "1-855-938-3684" },
+    ],
+    menu: [],
+    group: "store",
+    issuedBy: "Synchrony Bank",
+  },
+  {
+    slug: "target",
+    name: "Target",
+    aliases: ["Target Circle Card", "Target RedCard", "Target Mastercard"],
+    domain: "target.com",
+    source: { name: "target.com", url: "https://contactus.target.com/ContactUs/?selection=Target+Circle+Credit+%26+Debit" },
+    checkedOn: "2026-11-15",
+    lines: [
+      { label: "Target Credit Card and Target Mastercard", display: "1-800-424-6888", note: "TTY: dial 711." },
+      { label: "Target Mastercard, calling from outside the US", display: "1-612-815-9922" },
+    ],
+    menu: [],
+    group: "store",
   },
 ];
 
@@ -206,6 +339,8 @@ export const issuerSchema = z
       .min(1),
     menu: z.array(z.object({ id: z.string(), text: z.string(), kind: z.literal("cited"), source: z.object({ name: z.string(), url: z.url() }), asOf: z.string() })),
     insights: z.enum(["chase", "capital-one", "citi", "amex", "discover"]).optional(),
+    group: z.enum(["bank", "store"]),
+    issuedBy: z.string().min(1).optional(),
   })
   .refine((issuer) => new URL(issuer.source.url).hostname.endsWith(issuer.domain), { message: "The source must be on the issuer's own domain" });
 

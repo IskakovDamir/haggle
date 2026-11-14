@@ -5,9 +5,9 @@ import type { Issuer, PhoneLine } from "./types";
 export { DIRECTORY_AS_OF, ISSUERS };
 export type * from "./types";
 
-/** Issuers in A to Z order, for the index. */
-export function issuersAtoZ(): Issuer[] {
-  return [...ISSUERS].sort((a, b) => a.name.localeCompare(b.name));
+/** Issuers in A to Z order, for the index. Pass a group to list only banks or only store cards. */
+export function issuersAtoZ(group?: Issuer["group"]): Issuer[] {
+  return ISSUERS.filter((issuer) => !group || issuer.group === group).sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export function getIssuer(slug: string): Issuer | undefined {
@@ -25,9 +25,4 @@ export function telHref(display: string): string {
 
 export function directoryPath(issuer: Pick<Issuer, "slug">): string {
   return `/phone/${issuer.slug}`;
-}
-
-/** "Chase credit card customer service", but "Apple Card customer service" when the name already says card. */
-export function serviceName(issuer: Pick<Issuer, "name">): string {
-  return /\bcard\b/i.test(issuer.name) ? `${issuer.name} customer service` : `${issuer.name} credit card customer service`;
 }
