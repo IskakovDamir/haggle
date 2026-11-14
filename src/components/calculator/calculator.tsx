@@ -153,7 +153,7 @@ export function Calculator() {
 
   return (
     <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]">
-      <form className="flex flex-col gap-6 rounded-[32px] bg-hg-surface p-6 sm:p-8" onSubmit={(e) => e.preventDefault()} aria-label="Your card">
+      <form className="flex flex-col gap-6 self-start rounded-[32px] bg-hg-surface p-6 sm:p-8" onSubmit={(e) => e.preventDefault()} aria-label="Your card">
         <Field label="Card balance" prefix="$" value={fields.balance} onChange={set("balance")} error={errors.balance} hint="What you owe on the card today." />
         <Field
           label="Your APR"
