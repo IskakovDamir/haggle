@@ -24,9 +24,9 @@ export const SAMPLE_STATEMENTS: SampleStatement[] = [
     blurb: "$3,100 at 29.99%, with a $95 annual fee on this statement",
   },
   {
-    id: "james-citi",
-    file: "/samples/james-citi.pdf",
-    label: "James's Citi card",
-    blurb: "$5,250 on a 0% promo that ends in 41 days, plus a late fee",
+    id: "maria-citi",
+    file: "/samples/maria-citi.pdf",
+    label: "Maria's Citi card",
+    blurb: "$5,250 on a 0% promo that ends Dec 25, plus a late fee",
   },
 ];

@@ -59,10 +59,10 @@ const PRINTED: Record<string, string[]> = {
     formatCents(monthlyInterestCents(310_000, 2999)),
     formatCents(minimumPaymentCents(310_000, 2999)),
   ],
-  "james-citi": [
+  "maria-citi": [
     "Citi",
     "Simplicity credit card statement",
-    "JAMES CARTER",
+    "MARIA LOPEZ",
     "$5,250.00",
     "0.00%",
     "Dec 25, 2026",

@@ -18,6 +18,9 @@ import { formatCents } from "@/lib/money";
 import { SAMPLE_STATEMENTS } from "@/lib/statement/samples";
 import type { Bps, Cents, IsoDate } from "@/lib/types";
 
+/** One made-up cardholder with three cards at three banks, for the multi-bank demo. */
+const MARIA_ADDRESS = ["100 Example Street, Apt 4", "Columbus, OH 43215"];
+
 const SAMPLE_NOTICE = "SAMPLE DATA, NOT A REAL STATEMENT";
 const OUTPUT_DIR = path.join(process.cwd(), "public", "samples");
 
@@ -60,7 +63,7 @@ const SAMPLES: SampleInput[] = [
     issuerName: "Chase",
     cardName: "Freedom Unlimited",
     holderName: "MARIA LOPEZ",
-    addressLines: ["100 Example Street, Apt 4", "Columbus, OH 43215"],
+    addressLines: MARIA_ADDRESS,
     maskedAccount: "XXXX XXXX XXXX 4417",
     memberSinceYear: 2020,
     latePaymentsLast12m: 0,
@@ -86,7 +89,7 @@ const SAMPLES: SampleInput[] = [
     issuerName: "Capital One",
     cardName: "Quicksilver",
     holderName: "MARIA LOPEZ",
-    addressLines: ["100 Example Street, Apt 4", "Columbus, OH 43215"],
+    addressLines: MARIA_ADDRESS,
     maskedAccount: "XXXX XXXX XXXX 8062",
     memberSinceYear: null,
     latePaymentsLast12m: null,
@@ -108,11 +111,11 @@ const SAMPLES: SampleInput[] = [
     yearToDate: { feesCents: 9500, interestCents: 74_219 },
   },
   {
-    id: "james-citi",
+    id: "maria-citi",
     issuerName: "Citi",
     cardName: "Simplicity",
-    holderName: "JAMES CARTER",
-    addressLines: ["200 Example Avenue", "Austin, TX 78701"],
+    holderName: "MARIA LOPEZ",
+    addressLines: MARIA_ADDRESS,
     maskedAccount: "XXXX XXXX XXXX 2291",
     memberSinceYear: null,
     latePaymentsLast12m: 1,
@@ -125,8 +128,8 @@ const SAMPLES: SampleInput[] = [
     promo: { aprBps: 0, endsOn: "2026-12-25" },
     payment: { on: "2026-11-06", description: "PAYMENT RECEIVED, THANK YOU", cents: 5500 },
     purchases: [
-      { on: "2026-10-15", description: "HARDWARE DEPOT AUSTIN TX", cents: 4725 },
-      { on: "2026-10-24", description: "CORNER CAFE AUSTIN TX", cents: 3650 },
+      { on: "2026-10-15", description: "HARDWARE DEPOT COLUMBUS OH", cents: 4725 },
+      { on: "2026-10-24", description: "CORNER CAFE COLUMBUS OH", cents: 3650 },
     ],
     fees: [{ on: "2026-11-05", description: "LATE FEE", cents: 4100 }],
     annualFeeCents: 0,
