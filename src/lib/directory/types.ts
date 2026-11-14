@@ -30,4 +30,8 @@ export type Issuer = {
   menu: Fact[];
   /** The matching /insights bank page, when there is one. */
   insights?: BankSlug;
+  /** "bank" for card issuers, "store" for retail and payment brand cards. */
+  group: "bank" | "store";
+  /** The bank behind a store card, only when the source page names it. */
+  issuedBy?: string;
 };
