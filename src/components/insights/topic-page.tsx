@@ -5,7 +5,8 @@ import type { FaqItem } from "@/lib/benchmarks/faq";
 import { faqJsonLd } from "@/lib/benchmarks/seo";
 import type { BankMetric, Topic } from "@/lib/benchmarks/types";
 import { cn } from "@/lib/utils";
-import { HgButton, HgSection } from "@/components/landing-v2/ui";
+import { HgSection } from "@/components/landing-v2/ui";
+import { ProductButton } from "./product-button";
 import { BankTable, FaqList, JsonLd, METRIC_LABEL } from "./blocks";
 import { CtaBand, PageIntro, SectionTitle, sectionPad } from "./chrome";
 import { StatFigure } from "./provenance";
@@ -66,9 +67,9 @@ export function TopicPage({
           lead={`${top.name} comes first on this measure. The highlighted column is the one the table is sorted by, and each column header says where its numbers come from.`}
         />
         <BankTable banks={banks} metrics={metrics} highlight={topic.sortBy} label={`Banks sorted by ${METRIC_LABEL[topic.sortBy].toLowerCase()}`} />
-        <HgButton href={topic.ctaPath} arrow className="self-start whitespace-normal text-center">
+        <ProductButton path={topic.ctaPath} className="self-start">
           {topic.ctaLabel}
-        </HgButton>
+        </ProductButton>
       </HgSection>
 
       {children}

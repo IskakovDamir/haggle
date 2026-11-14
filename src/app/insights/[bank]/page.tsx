@@ -6,11 +6,13 @@ import { Suspense } from "react";
 import { FaqList, JsonLd, Timeline } from "@/components/insights/blocks";
 import { CtaBand, PageIntro, SectionTitle, sectionPad } from "@/components/insights/chrome";
 import { InlineStat, SourceLink, StatFigure } from "@/components/insights/provenance";
-import { HgButton, HgSection } from "@/components/landing-v2/ui";
+import { ProductButton } from "@/components/insights/product-button";
+import { HgSection } from "@/components/landing-v2/ui";
 import { BANKS, DATASET_AS_OF, MISSED_PAYMENT_TIMELINE, getBank, getMarketStat } from "@/lib/benchmarks";
 import { bankFaq } from "@/lib/benchmarks/faq";
 import { faqJsonLd } from "@/lib/benchmarks/seo";
 import type { Bank } from "@/lib/benchmarks/types";
+import { ISSUERS, directoryPath, mainLine } from "@/lib/directory";
 import { cn } from "@/lib/utils";
 
 export function generateStaticParams() {
@@ -75,6 +77,7 @@ async function BankView({ params }: { params: PageProps<"/insights/[bank]">["par
   const bank = getBank((await params).bank);
   if (!bank) notFound();
   const name = bank.shortName;
+  const issuer = ISSUERS.find((i) => i.insights === bank.slug);
   const faq = bankFaq(bank);
   const others = BANKS.filter((b) => b.slug !== bank.slug);
   const missedHref = `/missed?bank=${bank.slug}`;
@@ -111,9 +114,7 @@ async function BankView({ params }: { params: PageProps<"/insights/[bank]">["par
               {fact.text} <span className="text-[13px]">(<SourceLink source={fact.source} />{fact.note ? `. ${fact.note}` : ""})</span>
             </p>
           ))}
-          <HgButton href={missedHref} arrow className="whitespace-normal text-center">
-            Have Haggle call {name} about a missed payment
-          </HgButton>
+          <ProductButton path={missedHref}>Have Haggle call {name} about a missed payment</ProductButton>
         </aside>
       </HgSection>
 
@@ -129,13 +130,23 @@ async function BankView({ params }: { params: PageProps<"/insights/[bank]">["par
           <StatFigure stat={bank.stats.typicalAprCut} />
           <StatFigure stat={getMarketStat("market-average-apr")} />
         </div>
-        <HgButton href={startHref} tone="dark" arrow className="self-start whitespace-normal text-center">
+        <ProductButton path={startHref} tone="dark" className="self-start">
           Have Haggle ask {name} for a lower rate
-        </HgButton>
+        </ProductButton>
       </HgSection>
 
       <HgSection className={cn("flex flex-col gap-6 py-12", sectionPad)}>
         <SectionTitle id="phone" title={`Calling ${name}`} />
+        {issuer && (
+          <p className="text-[16px] leading-[26px] font-medium text-hg-ink-2">
+            {name}&rsquo;s card line is <span className="font-semibold text-hg-ink tabular-nums">{mainLine(issuer).display}</span>, from{" "}
+            <SourceLink source={issuer.source} />.{" "}
+            <Link href={directoryPath(issuer)} className="font-semibold text-hg-ink-2 underline decoration-hg-ink-2/30 underline-offset-[3px] hover:text-hg-blue">
+              See every {name} number and what to say
+            </Link>
+            .
+          </p>
+        )}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="flex flex-col gap-4 rounded-[28px] bg-hg-surface p-7">
             <p className="text-[17px] leading-6 font-semibold tracking-[-0.01em] text-hg-ink">What the phone menu asks for</p>

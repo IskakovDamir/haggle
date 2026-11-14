@@ -1,6 +1,7 @@
-// GET /llms.txt: a plain summary of Haggle and its insights pages for AI search (llmstxt.org format).
+// GET /llms.txt: a plain summary of Haggle, its insights pages and the phone directory for AI search (llmstxt.org format).
 import { BANKS, DATASET_AS_OF, formatStatValue, getMarketStat, provenanceText } from "@/lib/benchmarks";
 import { siteUrl } from "@/lib/benchmarks/site";
+import { directoryPath, issuersAtoZ, mainLine, serviceName } from "@/lib/directory";
 
 function line(id: string): string {
   const stat = getMarketStat(id);
@@ -18,7 +19,7 @@ Haggle covers two use cases:
 - Missed a payment: Haggle calls the bank to ask for the late fee back and for the old rate, if the bank raised it. Start at ${base}/missed
 - Rate too high: Haggle reads your statement, works out what a lower rate is worth, and calls the bank to ask for it. Start at ${base}/start
 
-In the current demo build, calls are practice calls: the visitor plays the bank's representative. Calls to real banks are the next step.
+Haggle is not open to the public yet. The pages below are free to read and do not need an account.
 
 Data on the insights pages was checked against its sources on ${DATASET_AS_OF}. Each number is labelled as cited from a public source or as a Haggle estimate. Key cited figures:
 
@@ -33,6 +34,17 @@ Data on the insights pages was checked against its sources on ${DATASET_AS_OF}. 
 - [Missed a credit card payment](${base}/insights/missed-payment): what happens after a missed payment and which banks refund late fees most often.
 - [Lower credit card APR](${base}/insights/lower-apr): how often asking for a lower rate works and how big a cut each bank tends to give.
 ${BANKS.map((bank) => `- [${bank.name}](${base}/insights/${bank.slug}): late fees, refunds, rate cuts, wait times and the phone menu at ${bank.name}.`).join("\n")}
+
+## Credit card phone numbers
+
+Official customer service numbers, each read from the issuer's own website on the date shown. Index: ${base}/phone
+
+${issuersAtoZ()
+  .map((issuer) => {
+    const main = mainLine(issuer);
+    return `- [${serviceName(issuer)}](${base}${directoryPath(issuer)}): ${main.display}${main.hours ? `, ${main.hours}` : ""} (checked ${issuer.checkedOn} on ${issuer.source.url})`;
+  })
+  .join("\n")}
 
 ## Optional
 
