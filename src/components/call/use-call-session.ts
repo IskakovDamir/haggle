@@ -53,6 +53,30 @@ const msSinceStart = (call: CallRecord) => Math.max(0, Date.now() - Date.parse(c
 const PHONE_POLL_MS = 2000;
 const PHONE_GIVE_UP_MS = 9 * 60_000;
 
+/** The few sentences this hook says itself, in the call's language. */
+const SESSION_COPY = {
+  en: {
+    noBankWords: "That call ended before the bank said anything, so there was no result to read.",
+    noConnect: "The phone call did not connect.",
+    unanswered: {
+      "Nobody picked up.": "Nobody picked up.",
+      "The line was busy.": "The line was busy.",
+      "The call went to voicemail, so the agent hung up.": "The call went to voicemail, so the agent hung up.",
+      "The call could not be connected.": "The call could not be connected.",
+    } as Record<string, string>,
+  },
+  es: {
+    noBankWords: "La llamada terminó antes de que el banco dijera algo, así que no hay resultado que leer.",
+    noConnect: "La llamada no se conectó.",
+    unanswered: {
+      "Nobody picked up.": "Nadie contestó.",
+      "The line was busy.": "La línea estaba ocupada.",
+      "The call went to voicemail, so the agent hung up.": "La llamada se fue al buzón de voz, así que el agente colgó.",
+      "The call could not be connected.": "No se pudo conectar la llamada.",
+    } as Record<string, string>,
+  },
+};
+
 const sameTurns = (a: Turn[], b: Turn[]) =>
   a.length === b.length && a.every((turn, index) => turn.role === b[index].role && turn.text === b[index].text);
 const bankSpoke = (call: CallRecord) => call.turns.some((turn) => turn.role === "bank");
@@ -121,7 +145,7 @@ export function useCallSession(input: {
       setCall(null);
       update((stored) => (stored ? { ...stored, calls: stored.calls.filter((kept) => kept.id !== current.id) } : stored));
       setPhase("briefing");
-      setNotice("That call ended before the bank said anything, so there was no result to read.");
+      setNotice(SESSION_COPY[brief.language ?? "en"].noBankWords);
       return;
     }
 
@@ -200,7 +224,8 @@ export function useCallSession(input: {
           const current = latest.current;
           if (current && !sameTurns(current.turns, turns)) commit({ ...current, turns });
           if (status === "failed") {
-            dropCall(reason ?? "The phone call did not connect.");
+            const copy = SESSION_COPY[brief.language ?? "en"];
+            dropCall(reason ? (copy.unanswered[reason] ?? reason) : copy.noConnect);
             return;
           }
           if (status === "done") break;
@@ -211,7 +236,7 @@ export function useCallSession(input: {
       stopPolling();
       void close();
     },
-    [close, commit, dropCall, stopPolling],
+    [brief.language, close, commit, dropCall, stopPolling],
   );
 
   async function ringPhone(toNumber: string, voiceId?: string) {
