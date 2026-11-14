@@ -5,9 +5,9 @@ import type { BankSlug, Fact, Source } from "@/lib/benchmarks/types";
 export type PhoneLine = {
   /** "Credit card customer service" */
   label: string;
-  /** Exactly as the issuer prints it, for example "1-800-432-3117". */
+  /** In one format for every issuer, "1-800-432-3117". Letter numbers such as 1-800-CAPITAL go in `note`. */
   display: string;
-  /** Hours exactly as the issuer prints them. Absent when the official page lists none. */
+  /** Hours as the issuer states them on the source page. Absent when that page lists none. */
   hours?: string;
   note?: string;
 };

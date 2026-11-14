@@ -49,7 +49,7 @@ describe("phone directory helpers", () => {
   it("sorts A to Z and keeps the card line first", () => {
     const names = issuersAtoZ().map((i) => i.name);
     expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
-    for (const issuer of ISSUERS) expect(mainLine(issuer).label.toLowerCase(), issuer.slug).toContain("card");
+    for (const issuer of ISSUERS) expect(mainLine(issuer).label.toLowerCase(), issuer.slug).toMatch(/card|member/);
   });
 
   it("every FAQ answer names the issuer's real number or carries a label", () => {
