@@ -8,7 +8,7 @@ import { ProductButton } from "@/components/insights/product-button";
 import { InlineStat, SourceLink } from "@/components/insights/provenance";
 import { HgSection } from "@/components/landing-v2/ui";
 import { getBank, getMarketStat } from "@/lib/benchmarks";
-import { calculatorPath, insightsBankPath, insightsTopicPath } from "@/lib/benchmarks/locale";
+import { aprGuidePath, calculatorPath, insightsBankPath, insightsTopicPath } from "@/lib/benchmarks/locale";
 import { faqJsonLd } from "@/lib/benchmarks/seo";
 import { issuersAtoZ, mainLine } from "@/lib/directory";
 import { issuerFaq } from "@/lib/directory/faq";
@@ -60,6 +60,7 @@ type PageCopy = {
   questions: (name: string) => string;
   moreOn: (name: string) => string;
   moreOnLink: (name: string) => string;
+  guideLink: (name: string) => string;
   read: [string, string, string, string, string, string];
   others: string;
   disclaimer: (name: string) => string;
@@ -121,6 +122,7 @@ const COPY: Copy<PageCopy> = {
     questions: (name) => `Questions about calling ${name}`,
     moreOn: (name) => `More on ${name}: `,
     moreOnLink: (name) => `late fees, refunds and rate cuts at ${name}`,
+    guideLink: (name) => `how to ask ${name} for a lower APR`,
     read: ["Read how to ", "get a late fee back", " and how to ", "ask for a lower APR", ", or ", "see what a lower rate would save you"],
     others: ". Other issuers: ",
     disclaimer: (name) => `Haggle is not affiliated with ${name}. The numbers above are ${name}'s own, read from its site on the date shown.`,
@@ -184,6 +186,7 @@ const COPY: Copy<PageCopy> = {
     questions: (name) => `Preguntas sobre llamar a ${name}`,
     moreOn: (name) => `Más sobre ${name}: `,
     moreOnLink: (name) => `cargos, devoluciones y reducciones de tasa en ${name}`,
+    guideLink: (name) => `cómo pedirle a ${name} un APR más bajo`,
     read: ["Lee cómo ", "recuperar un cargo por pago atrasado", " y cómo ", "pedir un APR más bajo", ", o ", "mira cuánto te ahorraría una tasa más baja"],
     others: ". Otros emisores: ",
     disclaimer: (name) => `Haggle no tiene relación con ${name}. Los números de arriba son los de ${name}, tomados de su sitio en la fecha indicada.`,
@@ -343,6 +346,10 @@ export function IssuerPageBody({ issuer: raw, lang }: { issuer: Issuer; lang: Lo
             {t.moreOn(bank.shortName)}
             <Link href={insightsBankPath(bank.slug, lang)} className={link}>
               {t.moreOnLink(bank.name)}
+            </Link>
+            {", "}
+            <Link href={aprGuidePath(bank.slug, lang)} className={link}>
+              {t.guideLink(bank.shortName)}
             </Link>
             .
           </p>

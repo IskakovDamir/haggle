@@ -35,6 +35,7 @@ Data on the insights pages was checked against its sources on ${DATASET_AS_OF}. 
 - [Missed a credit card payment](${base}/insights/missed-payment): what happens after a missed payment and which banks refund late fees most often.
 - [Lower credit card APR](${base}/insights/lower-apr): how often asking for a lower rate works and how big a cut each bank tends to give.
 ${BANKS.map((bank) => `- [${bank.name}](${base}/insights/${bank.slug}): late fees, refunds, rate cuts, wait times and the phone menu at ${bank.name}.`).join("\n")}
+${BANKS.map((bank) => `- [How to ask ${bank.shortName} for a lower APR](${base}/insights/${bank.slug}/lower-apr): what to say, what to do if they say no, and what a cut is worth.`).join("\n")}
 
 ## Tools
 
