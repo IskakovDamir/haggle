@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 const STEPS = [
   { href: "/start", label: "Statement" },
   { href: "/plan", label: "Plan" },
-  { href: "/call", label: "Call" },
+  { href: "/calls", label: "Calls" },
   { href: "/dashboard", label: "Wins" },
 ];
 
@@ -34,7 +34,7 @@ export function SiteShell({ children, wide = false }: { children: React.ReactNod
                 href={step.href}
                 className={cn(
                   "rounded-full px-3 py-1.5 whitespace-nowrap transition-colors",
-                  pathname.startsWith(step.href) ? "bg-ink text-paper" : "text-muted hover:text-ink",
+                  (pathname.startsWith(step.href) || (step.href === "/calls" && pathname === "/call")) ? "bg-ink text-paper" : "text-muted hover:text-ink",
                 )}
               >
                 {step.label}
