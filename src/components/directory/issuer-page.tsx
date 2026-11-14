@@ -8,6 +8,7 @@ import { ProductButton } from "@/components/insights/product-button";
 import { InlineStat, SourceLink } from "@/components/insights/provenance";
 import { HgSection } from "@/components/landing-v2/ui";
 import { getBank, getMarketStat } from "@/lib/benchmarks";
+import { calculatorPath, insightsBankPath, insightsTopicPath } from "@/lib/benchmarks/locale";
 import { faqJsonLd } from "@/lib/benchmarks/seo";
 import { issuersAtoZ, mainLine } from "@/lib/directory";
 import { issuerFaq } from "@/lib/directory/faq";
@@ -182,8 +183,8 @@ const COPY: Copy<PageCopy> = {
     worth: ["Por qué vale la pena pedirlo: al ", " de quienes lo pidieron les quitaron el cargo por pago atrasado, y el ", " de quienes pidieron una tasa más baja la consiguieron."],
     questions: (name) => `Preguntas sobre llamar a ${name}`,
     moreOn: (name) => `Más sobre ${name}: `,
-    moreOnLink: (name) => `cargos, devoluciones y reducciones de tasa en ${name} (en inglés)`,
-    read: ["Lee (en inglés) cómo ", "recuperar un cargo por pago atrasado", " y cómo ", "pedir un APR más bajo", ", o ", "mira cuánto te ahorraría una tasa más baja"],
+    moreOnLink: (name) => `cargos, devoluciones y reducciones de tasa en ${name}`,
+    read: ["Lee cómo ", "recuperar un cargo por pago atrasado", " y cómo ", "pedir un APR más bajo", ", o ", "mira cuánto te ahorraría una tasa más baja"],
     others: ". Otros emisores: ",
     disclaimer: (name) => `Haggle no tiene relación con ${name}. Los números de arriba son los de ${name}, tomados de su sitio en la fecha indicada.`,
   },
@@ -340,7 +341,7 @@ export function IssuerPageBody({ issuer: raw, lang }: { issuer: Issuer; lang: Lo
         {bank && (
           <p className="text-[15px] leading-6 font-medium text-hg-muted">
             {t.moreOn(bank.shortName)}
-            <Link href={`/insights/${bank.slug}`} className={link}>
+            <Link href={insightsBankPath(bank.slug, lang)} className={link}>
               {t.moreOnLink(bank.name)}
             </Link>
             .
@@ -348,15 +349,15 @@ export function IssuerPageBody({ issuer: raw, lang }: { issuer: Issuer; lang: Lo
         )}
         <p className="text-[15px] leading-6 font-medium text-hg-muted">
           {t.read[0]}
-          <Link href="/insights/missed-payment" className={link}>
+          <Link href={insightsTopicPath("missed-payment", lang)} className={link}>
             {t.read[1]}
           </Link>
           {t.read[2]}
-          <Link href="/insights/lower-apr" className={link}>
+          <Link href={insightsTopicPath("lower-apr", lang)} className={link}>
             {t.read[3]}
           </Link>
           {t.read[4]}
-          <Link href="/tools/credit-card-interest-calculator" className={link}>
+          <Link href={calculatorPath(lang)} className={link}>
             {t.read[5]}
           </Link>
           {t.others}

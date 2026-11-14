@@ -78,29 +78,32 @@ export function parsePercentToBps(input: string): Bps | null {
   return Number(whole) * 100 + Number(frac.padEnd(2, "0"));
 }
 
-export type FieldErrors = Partial<Record<"balance" | "apr" | "cut", string>>;
+export type FieldError = "balance-format" | "balance-max" | "apr-format" | "apr-max" | "cut-format" | "cut-over-apr";
+export type FieldErrors = Partial<Record<"balance" | "apr" | "cut", FieldError>>;
 
-/** Read the three fields, or say plainly which one is wrong. */
+/** Read the three fields, or say which one is wrong. The page turns the code into a sentence in its language. */
 export function readInput(fields: { balance: string; apr: string; cut: string }): { input: CalculatorInput | null; errors: FieldErrors } {
   const errors: FieldErrors = {};
   const balanceCents = parseDollarsToCents(fields.balance);
   const aprBps = parsePercentToBps(fields.apr);
   const cutBps = parsePercentToBps(fields.cut);
 
-  if (balanceCents === null || balanceCents <= 0) errors.balance = "Enter your balance in dollars, for example 5000.";
-  else if (balanceCents > LIMITS.maxBalanceCents) errors.balance = "Enter a balance under $1,000,000.";
-  if (aprBps === null || aprBps <= 0) errors.apr = "Enter your APR as a percent, for example 24.99.";
-  else if (aprBps > LIMITS.maxAprBps) errors.apr = "Enter an APR of 40% or less.";
-  if (cutBps === null) errors.cut = "Enter the cut in percentage points, for example 6.3.";
-  else if (aprBps !== null && cutBps > aprBps) errors.cut = "The cut cannot be bigger than your APR.";
+  if (balanceCents === null || balanceCents <= 0) errors.balance = "balance-format";
+  else if (balanceCents > LIMITS.maxBalanceCents) errors.balance = "balance-max";
+  if (aprBps === null || aprBps <= 0) errors.apr = "apr-format";
+  else if (aprBps > LIMITS.maxAprBps) errors.apr = "apr-max";
+  if (cutBps === null) errors.cut = "cut-format";
+  else if (aprBps !== null && cutBps > aprBps) errors.cut = "cut-over-apr";
 
   if (Object.keys(errors).length > 0 || balanceCents === null || aprBps === null || cutBps === null) return { input: null, errors };
   return { input: { balanceCents, aprBps, cutBps }, errors };
 }
 
 /** The rule the payoff uses, in words, from the engine's own constants. */
-export function minimumPaymentRule(): string {
+export function minimumPaymentRule(lang: "en" | "es" = "en"): string {
   const pct = MIN_PAYMENT.percentOfBalanceBps / 100;
   const floor = MIN_PAYMENT.floorCents / 100;
-  return `${pct}% of the balance plus that month's interest, at least $${floor}`;
+  return lang === "es"
+    ? `${pct}% del saldo más los intereses de ese mes, con un mínimo de $${floor}`
+    : `${pct}% of the balance plus that month's interest, at least $${floor}`;
 }

@@ -121,3 +121,29 @@ describe("benchmark helpers", () => {
     expect(provenanceText(getStat("market-average-apr")!)).toBe("Source: Federal Reserve G.19");
   });
 });
+
+describe("spanish benchmarks", () => {
+  it("every stat, fact, timeline step and topic has Spanish text", async () => {
+    const { localizeBank, localizeStat, localizedTimeline, localizedTopics } = await import("./locale");
+    for (const stat of allStats()) expect(() => localizeStat(stat, "es"), stat.id).not.toThrow();
+    for (const bank of BANKS) expect(() => localizeBank(bank, "es"), bank.slug).not.toThrow();
+    expect(localizedTimeline("es")).toHaveLength(MISSED_PAYMENT_TIMELINE.length);
+    for (const topic of localizedTopics("es")) expect(topic.title).not.toMatch(/credit card/i);
+  });
+
+  it("keeps numbers and sources identical across languages", async () => {
+    const { localizeStat } = await import("./locale");
+    for (const stat of allStats()) {
+      const es = localizeStat(stat, "es");
+      expect([es.value, es.unit, es.kind, es.source, es.asOf]).toEqual([stat.value, stat.unit, stat.kind, stat.source, stat.asOf]);
+    }
+  });
+
+  it("builds Spanish paths", async () => {
+    const { calculatorPath, insightsBankPath, insightsTopicPath } = await import("./locale");
+    expect(insightsBankPath("chase", "es")).toBe("/es/datos/chase");
+    expect(insightsTopicPath("missed-payment", "es")).toBe("/es/datos/pago-atrasado");
+    expect(insightsTopicPath("lower-apr", "en")).toBe("/insights/lower-apr");
+    expect(calculatorPath("es")).toBe("/es/herramientas/calculadora-de-intereses");
+  });
+});

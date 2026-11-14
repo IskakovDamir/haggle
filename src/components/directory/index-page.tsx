@@ -8,6 +8,7 @@ import { HgSection } from "@/components/landing-v2/ui";
 import { getMarketStat } from "@/lib/benchmarks";
 import { DIRECTORY_AS_OF, issuersAtoZ } from "@/lib/directory";
 import { localizeIssuer, phoneIndexPath } from "@/lib/directory/locale";
+import { insightsIndexPath } from "@/lib/benchmarks/locale";
 import { breadcrumbJsonLd, directoryListJsonLd } from "@/lib/directory/seo";
 import type { Copy, Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
@@ -56,7 +57,7 @@ const COPY: Copy<IndexCopy> = {
     stores: "Tarjetas de tiendas y de pago",
     storesLead: "Las tarjetas de tiendas las maneja un banco, así que la línea de la tarjeta suele ser distinta del servicio al cliente de la tienda.",
     worth: ["¿Llamas por un pago atrasado o una tasa alta? Casi siempre funciona: al ", " de quienes lo pidieron les quitaron el cargo por pago atrasado. Mira ", "."],
-    compareLink: "cómo se comparan los grandes bancos (en inglés)",
+    compareLink: "cómo se comparan los grandes bancos",
     ctaTitle: "¿Prefieres no esperar en línea?",
     ctaLead: "Haggle llama al emisor de tu tarjeta, espera en línea y pide que te devuelvan el cargo o te bajen la tasa. Pagas solo si el banco dice que sí.",
     ctaMissed: "Que Haggle llame por un pago atrasado",
@@ -103,7 +104,7 @@ export function DirectoryIndexBody({ lang }: { lang: Locale }) {
           {t.worth[0]}
           <InlineStat stat={getMarketStat("market-late-fee-waived")} lang={lang} />
           {t.worth[1]}
-          <Link href="/insights" className="font-semibold text-hg-ink-2 underline decoration-hg-ink-2/30 underline-offset-[3px] hover:text-hg-blue">
+          <Link href={insightsIndexPath(lang)} className="font-semibold text-hg-ink-2 underline decoration-hg-ink-2/30 underline-offset-[3px] hover:text-hg-blue">
             {t.compareLink}
           </Link>
           {t.worth[2]}

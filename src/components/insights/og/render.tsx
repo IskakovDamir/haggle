@@ -22,8 +22,8 @@ async function fonts() {
 }
 
 /** "Source: Federal Reserve G.19 · Nov 6, 2026" or "Estimate". */
-function provenanceLine(stat: Stat): string {
-  return stat.kind === "estimate" ? "Estimate" : `${provenanceText(stat)} · ${formatDate(stat.asOf)}`;
+function provenanceLine(stat: Stat, lang: "en" | "es" = "en"): string {
+  return stat.kind === "estimate" ? provenanceText(stat, lang) : `${provenanceText(stat, lang)} · ${formatDate(stat.asOf, lang)}`;
 }
 
 function Logo({ light = false }: { light?: boolean }) {
@@ -53,7 +53,7 @@ function Logo({ light = false }: { light?: boolean }) {
 export const PAGE_IMAGE_SIZE = { width: 1200, height: 630 };
 
 /** A page preview: title on the landing's pale blue wash, then up to three numbers with their labels. */
-export async function renderPageImage({ eyebrow, title, stats }: { eyebrow: string; title: string; stats: Stat[] }) {
+export async function renderPageImage({ eyebrow, title, stats, lang = "en" }: { eyebrow: string; title: string; stats: Stat[]; lang?: "en" | "es" }) {
   return new ImageResponse(
     (
       <div
@@ -81,7 +81,7 @@ export async function renderPageImage({ eyebrow, title, stats }: { eyebrow: stri
             >
               <div style={{ display: "flex", fontSize: 50, fontWeight: 800, letterSpacing: -1.6, color: INK }}>{formatStatValue(stat)}</div>
               <div style={{ display: "flex", fontSize: 19, lineHeight: 1.3, fontWeight: 600, color: INK_2 }}>{stat.label}</div>
-              <div style={{ display: "flex", fontSize: 16, fontWeight: 600, color: MUTED }}>{provenanceLine(stat)}</div>
+              <div style={{ display: "flex", fontSize: 16, fontWeight: 600, color: MUTED }}>{provenanceLine(stat, lang)}</div>
             </div>
           ))}
         </div>
