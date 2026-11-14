@@ -1,6 +1,8 @@
 // "Almost everyone who asks wins": the blue glass bento of survey stats (Figma node 4:18).
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { CountText, GrowBar } from "@/components/motion/grow";
+import { Stagger, StaggerItem } from "@/components/motion/reveal";
 import { HgSection } from "./ui";
 
 const A = "/landing/insight";
@@ -23,7 +25,7 @@ function BigNumber({ value, unit, dark }: { value: string; unit: string; dark?: 
   return (
     <p className="flex items-baseline gap-2 whitespace-nowrap">
       <span className={cn("text-[64px] leading-[68px] font-normal tracking-[-0.04em] sm:text-[80px] sm:leading-[84px]", dark ? "text-white" : "text-hg-ink")}>
-        {value}
+        <CountText value={value} />
       </span>
       <span className={cn("text-[20px] leading-[26px] font-medium", dark ? "text-white/70" : "text-[#5b6475]")}>{unit}</span>
     </p>
@@ -33,7 +35,7 @@ function BigNumber({ value, unit, dark }: { value: string; unit: string; dark?: 
 function Track({ fill, className, fillClassName }: { fill: string; className: string; fillClassName: string }) {
   return (
     <div className={cn("h-4 overflow-hidden rounded-lg", className)}>
-      <div className={cn("h-4 rounded-lg", fillClassName)} style={{ width: fill }} />
+      <GrowBar width={fill} className={cn("h-4 rounded-lg", fillClassName)} />
     </div>
   );
 }
@@ -43,14 +45,14 @@ const card = "relative flex flex-col justify-between rounded-[36px] border p-7 b
 export function Insight() {
   return (
     <HgSection className="flex flex-col items-center gap-8 px-4 pt-10 pb-8 font-manrope md:px-10 md:pt-14 md:pb-10">
-      <div className="flex max-w-[1200px] flex-col items-center gap-4 text-center">
-        <h2 className="text-[clamp(32px,4.5vw,48px)] leading-[1.125] font-semibold tracking-[-0.035em] text-hg-ink">
+      <Stagger gap={0.12} amount={0.6} className="flex max-w-[1200px] flex-col items-center gap-4 text-center">
+        <StaggerItem as="h2" className="text-[clamp(32px,4.5vw,48px)] leading-[1.125] font-semibold tracking-[-0.035em] text-hg-ink">
           Almost everyone who asks wins, almost nobody asks
-        </h2>
-        <p className="max-w-[900px] text-[18px] leading-7 font-medium tracking-[-0.01em] text-hg-muted">
+        </StaggerItem>
+        <StaggerItem as="p" className="max-w-[900px] text-[18px] leading-7 font-medium tracking-[-0.01em] text-hg-muted">
           Banks cut the rate for 84% of people who call, yet fewer than one in four cardholders ever pick up the phone
-        </p>
-      </div>
+        </StaggerItem>
+      </Stagger>
 
       <div
         className="relative flex w-full max-w-[1200px] flex-col gap-4 overflow-hidden rounded-[40px] p-4 sm:p-6"
@@ -63,8 +65,8 @@ export function Insight() {
         <Glow src={`${A}/blob-bottom-right.svg`} width={780} height={540} style={{ left: "49.167%", bottom: -218 }} />
 
         {/* Row 1: the cards add up to 1144px inside a 1152px row in Figma, so the row is capped at 1144. */}
-        <div className="relative grid w-full max-w-[1144px] gap-4 lg:grid-cols-[664fr_464fr]">
-          <div
+        <Stagger gap={0.1} className="relative grid w-full max-w-[1144px] gap-4 lg:grid-cols-[664fr_464fr]">
+          <StaggerItem
             className={cn(card, "min-h-[264px] gap-6 border-white/[0.22]")}
             style={{ backgroundImage: "linear-gradient(158.32deg, #2453e6 14.286%, #0f2a9e 85.714%)" }}
           >
@@ -79,9 +81,9 @@ export function Insight() {
               {/* 509 of 608px in Figma */}
               <Track fill="83.7%" className="w-full bg-white/[0.16]" fillClassName="bg-white" />
             </div>
-          </div>
+          </StaggerItem>
 
-          <div className={cn(card, "min-h-[264px] gap-1 border-white/90 bg-white/[0.94]")}>
+          <StaggerItem className={cn(card, "min-h-[264px] gap-1 border-white/90 bg-white/[0.94]")}>
             <CardTitle title="Ever asked for a lower rate" caption="Share of cardholders" />
             <div className="flex flex-1 flex-wrap items-end justify-between gap-x-4 gap-y-3">
               <BigNumber value="<1" unit="in 4" />
@@ -92,11 +94,11 @@ export function Insight() {
                 <div className="h-4 flex-1 rounded-lg bg-hg-blue-tint" />
               </div>
             </div>
-          </div>
-        </div>
+          </StaggerItem>
+        </Stagger>
 
-        <div className="relative grid w-full max-w-[1144px] gap-4 md:grid-cols-[1fr_216px] xl:grid-cols-[520fr_376fr_216px]">
-          <div
+        <Stagger gap={0.1} className="relative grid w-full max-w-[1144px] gap-4 md:grid-cols-[1fr_216px] xl:grid-cols-[520fr_376fr_216px]">
+          <StaggerItem
             className={cn(card, "min-h-[216px] gap-6 overflow-hidden border-white/[0.16] md:col-span-2 xl:col-span-1")}
             style={{ backgroundImage: "linear-gradient(157.44deg, rgba(11,18,32,0.66) 14.286%, rgba(11,18,32,0.44) 85.714%)" }}
           >
@@ -123,9 +125,9 @@ export function Insight() {
                 </div>
               </div>
             </div>
-          </div>
+          </StaggerItem>
 
-          <div className={cn(card, "min-h-[216px] gap-6 border-white/90 bg-gradient-to-b from-[#eaf3fe] to-white")}>
+          <StaggerItem className={cn(card, "min-h-[216px] gap-6 border-white/90 bg-gradient-to-b from-[#eaf3fe] to-white")}>
             <CardTitle title="Carry a balance" caption="Month to month" />
             <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
               <BigNumber value="47" unit="%" />
@@ -133,9 +135,9 @@ export function Insight() {
                 <Track fill="47%" className="w-[168px] bg-hg-blue-tint" fillClassName="bg-hg-blue" />
               </div>
             </div>
-          </div>
+          </StaggerItem>
 
-          <div
+          <StaggerItem
             className={cn(card, "min-h-[216px] gap-6 border-white/50 p-6")}
             style={{ backgroundImage: "linear-gradient(135deg, #3a76ff 14.286%, #1a3fd6 85.714%)" }}
           >
@@ -147,8 +149,8 @@ export function Insight() {
               <p className="text-[14px] leading-5 font-medium tracking-[-0.005em] text-white">Every big bank has one, and it can cut your rate</p>
               <p className="text-[13px] leading-[18px] font-semibold tracking-[-0.002em] text-white/65">Haggle asks for it by name</p>
             </div>
-          </div>
-        </div>
+          </StaggerItem>
+        </Stagger>
       </div>
     </HgSection>
   );

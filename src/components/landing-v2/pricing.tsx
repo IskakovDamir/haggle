@@ -3,6 +3,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { BlobPanel } from "./pricing-panel";
 import { HgButton, HgHeading, HgSection } from "./ui";
+import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 
 const typicalYear = [
   { win: "Lower APR", saved: "$500", fee: "$100" },
@@ -71,16 +72,16 @@ function Bar({ label, value, fill }: { label: string; value: string; fill: strin
 export function Pricing() {
   return (
     <HgSection id="pricing" className="flex flex-col items-center gap-10 px-4 pt-14 pb-10 font-manrope sm:px-8 lg:px-10 xl:px-[104px]">
-      <div className="flex flex-col items-center gap-4">
+      <Reveal amount={0.5} className="flex flex-col items-center gap-4">
         <HgHeading title="Pay only when you save" />
         <p className="max-w-[620px] text-center text-[18px] leading-7 font-medium tracking-[-0.01em] text-hg-muted">
           No win, no charge, your card is billed only after the bank says yes
         </p>
-      </div>
+      </Reveal>
 
       <BlobPanel dir="pricing" angle={155.85} bottoms={{ center: -190, left: -120 }} className="p-3 sm:p-7">
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          <article className="flex flex-col gap-6 overflow-hidden rounded-[34px] border border-white bg-white/92 p-6 sm:p-8">
+        <Stagger gap={0.12} className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <StaggerItem as="article" className="flex flex-col gap-6 overflow-hidden rounded-[34px] border border-white bg-white/92 p-6 sm:p-8">
             <PlanHead title="Pay per win" note="The default for everyone" />
             <Price amount="20%" unit={["of first-year", "savings"]} />
             <hr className="h-px w-full border-0 bg-hg-line" />
@@ -92,9 +93,9 @@ export function Pricing() {
             <HgButton href="/start" tone="dark" arrow className="mt-auto w-full">
               Start with a call
             </HgButton>
-          </article>
+          </StaggerItem>
 
-          <article
+          <StaggerItem as="article"
             className="flex flex-col gap-6 overflow-hidden rounded-[34px] p-6 sm:p-8"
             style={{ backgroundImage: "linear-gradient(127.26deg, #3a76ff 14.286%, #1a3fd6 85.714%)" }}
           >
@@ -109,9 +110,9 @@ export function Pricing() {
             <HgButton href="/start" tone="white" arrow className="mt-auto w-full">
               Go unlimited
             </HgButton>
-          </article>
+          </StaggerItem>
 
-          <article
+          <StaggerItem as="article"
             className="relative isolate flex flex-col gap-5 overflow-hidden rounded-[34px] border border-white/12 p-6 sm:p-8 md:col-span-2 xl:col-span-1"
             style={{ backgroundImage: "linear-gradient(127.41deg, #1a2336 14.286%, #0b1220 85.714%)" }}
           >
@@ -152,8 +153,8 @@ export function Pricing() {
               <Bar label="Saved" value="$1,135" fill="w-[99.5%] bg-white" />
               <Bar label="Paid to Haggle" value="$227" fill="w-[20%] bg-white/45" />
             </div>
-          </article>
-        </div>
+          </StaggerItem>
+        </Stagger>
       </BlobPanel>
     </HgSection>
   );

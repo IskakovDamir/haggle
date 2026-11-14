@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { isSampleCard } from "@/components/start/sample-cards";
 import { analyze } from "@/lib/engine";
 import { todayIso } from "@/lib/format";
@@ -18,10 +19,12 @@ import { PlanSteps } from "./plan-steps";
 
 function Section({ title, lead, children }: { title: React.ReactNode; lead?: string; children: React.ReactNode }) {
   return (
-    <section className="mt-14">
-      <h2 className="text-2xl leading-[1.15] font-extrabold sm:text-3xl">{title}</h2>
-      {lead && <p className="mt-2 max-w-[64ch] text-muted">{lead}</p>}
-      <div className="mt-5">{children}</div>
+    <section className="mt-16 sm:mt-20">
+      <Reveal y={16}>
+        <h2 className="text-[clamp(28px,3.4vw,40px)] leading-[1.125] font-semibold tracking-[-0.035em] text-hg-ink">{title}</h2>
+        {lead && <p className="mt-3 max-w-[64ch] text-[17px] leading-7 font-medium tracking-[-0.01em] text-muted">{lead}</p>}
+      </Reveal>
+      <div className="mt-6">{children}</div>
     </section>
   );
 }
@@ -58,16 +61,18 @@ export function PlanView({ caseFile, onRemoveCard }: { caseFile: CaseFile; onRem
       />
 
       <Section title={caseFile.cards.length === 1 ? "Your card" : "Your cards"}>
-        <div className="space-y-3">
+        <Stagger className="space-y-4">
           {cards.map((card) => {
             const numbers = analysisOf.get(card.id);
             return numbers ? (
-              <CardPanel key={card.id} card={card} analysis={numbers} onRemove={() => onRemoveCard(card.id)} />
+              <StaggerItem key={card.id}>
+                <CardPanel card={card} analysis={numbers} onRemove={() => onRemoveCard(card.id)} />
+              </StaggerItem>
             ) : null;
           })}
-        </div>
-        <Link href="/start" className={buttonVariants({ variant: "outline", className: "mt-4" })}>
-          <Plus className="size-4" aria-hidden />
+        </Stagger>
+        <Link href="/start" className={buttonVariants({ variant: "outline", className: "group mt-5" })}>
+          <Plus className="size-4 transition-transform duration-300 group-hover:rotate-90" aria-hidden />
           Add another card
         </Link>
       </Section>
@@ -95,14 +100,14 @@ export function PlanView({ caseFile, onRemoveCard }: { caseFile: CaseFile; onRem
       </Section>
 
       {analysis.assumptions.length > 0 && (
-        <section className="mt-14 border-t border-line pt-6">
-          <h2 className="text-xs font-bold tracking-widest text-muted uppercase">Behind these numbers</h2>
-          <ul className="mt-3 max-w-[80ch] list-disc space-y-1.5 pl-5 text-sm text-muted">
+        <Reveal as="section" y={12} className="mt-16 rounded-[28px] border border-line/80 bg-hg-surface/70 p-5 sm:mt-20 sm:p-7">
+          <h2 className="text-[13px] leading-[18px] font-semibold tracking-normal text-muted">Behind these numbers</h2>
+          <ul className="mt-3 max-w-[80ch] list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-muted marker:text-hg-blue">
             {analysis.assumptions.map((sentence) => (
               <li key={sentence}>{sentence}</li>
             ))}
           </ul>
-        </section>
+        </Reveal>
       )}
     </div>
   );

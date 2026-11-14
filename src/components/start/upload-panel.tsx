@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { FileUp } from "lucide-react";
+import { EASE } from "@/components/motion/reveal";
 import { cn } from "@/lib/utils";
 
 /** A drop zone that is also a file picker. Takes one statement or several. On a phone the picker offers the camera. */
@@ -10,7 +12,7 @@ export function UploadPanel({ onFiles }: { onFiles: (files: File[]) => void }) {
 
   return (
     <div>
-      <label
+      <motion.label
         onDragOver={(event) => {
           event.preventDefault();
           setDragging(true);
@@ -22,17 +24,35 @@ export function UploadPanel({ onFiles }: { onFiles: (files: File[]) => void }) {
           const files = Array.from(event.dataTransfer.files);
           if (files.length > 0) onFiles(files);
         }}
+        animate={{ scale: dragging ? 1.015 : 1 }}
+        transition={{ duration: 0.35, ease: EASE }}
         className={cn(
-          "flex cursor-pointer flex-col items-center gap-3 rounded-2xl border-2 border-dashed px-6 py-12 text-center transition-colors",
-          "focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-green",
-          dragging ? "border-green bg-green-soft" : "border-line bg-card hover:border-ink/40",
+          "group relative flex cursor-pointer flex-col items-center gap-3 overflow-hidden rounded-[28px] border-2 border-dashed px-6 py-14 text-center transition-[border-color,background-color,box-shadow] duration-300",
+          "focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-hg-blue",
+          dragging
+            ? "border-hg-blue bg-hg-blue-soft shadow-[0_0_0_6px_rgb(47_107_255/0.12),0_24px_60px_-24px_rgb(47_107_255/0.55)]"
+            : "border-hg-blue-tint bg-linear-to-b from-[#e6f0fd] to-[#f7faff] hover:border-hg-blue/60 hover:shadow-[0_0_0_4px_rgb(47_107_255/0.08),0_20px_48px_-28px_rgb(47_107_255/0.5)]",
         )}
       >
-        <span className="flex size-12 items-center justify-center rounded-full bg-lime">
+        {/* A soft blue glow that wakes up on hover and while a file is held over the zone. */}
+        <span
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute -top-24 left-1/2 size-72 -translate-x-1/2 rounded-full bg-hg-blue/20 blur-3xl transition-opacity duration-500",
+            dragging ? "opacity-100" : "opacity-0 group-hover:opacity-60",
+          )}
+        />
+        <motion.span
+          animate={{ y: dragging ? -6 : 0, scale: dragging ? 1.08 : 1 }}
+          transition={{ duration: 0.35, ease: EASE }}
+          className="relative flex size-14 items-center justify-center rounded-[20px] bg-hg-blue text-white shadow-[0_12px_28px_-10px_rgb(47_107_255/0.7)] transition-[translate] duration-300 group-hover:-translate-y-0.5"
+        >
           <FileUp className="size-6" aria-hidden />
+        </motion.span>
+        <span className="relative text-[20px] leading-7 font-semibold tracking-[-0.02em] text-hg-ink">
+          Drop your statements here, or choose files
         </span>
-        <span className="text-lg font-semibold">Drop your statements here, or choose files</span>
-        <span className="max-w-[44ch] text-sm text-muted">
+        <span className="relative max-w-[44ch] text-sm leading-5 font-medium text-muted">
           One card or all of them: Chase, Capital One, Citi, any bank. Each a PDF up to 4 MB, or a photo of the page with the balance and the rates. Photos are made smaller in your
           browser before they are sent.
         </span>
@@ -48,7 +68,7 @@ export function UploadPanel({ onFiles }: { onFiles: (files: File[]) => void }) {
             if (files.length > 0) onFiles(files);
           }}
         />
-      </label>
+      </motion.label>
       <p className="mt-3 text-sm text-muted">
         Each file is sent to an AI model to be read and is not stored on our server. Only the last four digits of the card
         number are kept.

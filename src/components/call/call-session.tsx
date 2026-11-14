@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MotionConfig } from "framer-motion";
+import { Stagger, StaggerItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/primitives";
 import type { CardAccount, NegotiationBrief } from "@/lib/types";
 import { askSentence, cardLabel } from "./ask";
@@ -41,17 +42,24 @@ export function CallSession(props: { card: CardAccount; brief: NegotiationBrief 
 
   return (
     <MotionConfig reducedMotion="user">
-      <header className="mb-6 sm:mb-8">
-        <Badge tone="lime">Practice call</Badge>
-        <h1 className="mt-3 text-3xl leading-tight font-extrabold sm:text-5xl">
+      <Stagger as="header" onMount gap={0.08} className="mb-7 sm:mb-10">
+        <StaggerItem>
+          <Badge tone="lime" className="px-3 py-1">
+            Practice call
+          </Badge>
+        </StaggerItem>
+        <StaggerItem
+          as="h1"
+          className="mt-4 text-[clamp(34px,5.5vw,56px)] leading-[1.05] font-semibold tracking-[-0.035em] text-hg-ink"
+        >
           Haggle calls <em>{brief.issuerName}</em>
-        </h1>
-        <p className="mt-2 text-muted sm:text-lg">
+        </StaggerItem>
+        <StaggerItem as="p" className="mt-3 text-[17px] leading-7 font-medium text-muted sm:text-lg">
           About {brief.holderFirstName}&apos;s {cardLabel(card)}.
-        </p>
-      </header>
+        </StaggerItem>
+      </Stagger>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,23rem)]">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,23rem)] lg:gap-8">
         <CallPanel line={lineState(session)} callee={brief.issuerName} clock={formatClock(elapsedMs)}>
           {session.phase === "briefing" ? (
             <StartControls

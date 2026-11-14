@@ -1,6 +1,7 @@
 // "Your bank is one call away from yes" and the footer row: Figma node 7:276 on "Haggle — Landing · Desktop 1440".
 import Image from "next/image";
 import { HgButton, HgLogo, HgSection } from "./ui";
+import { Reveal } from "@/components/motion/reveal";
 
 const caption = "text-[13px] leading-[18px] font-semibold tracking-[-0.002em] text-hg-muted";
 
@@ -36,33 +37,33 @@ export function Closing() {
           <Cloud name="bottom-right" width={784} height={404} style={{ right: -264, top: 126 }} />
         </div>
 
-        <h2 className="max-w-[760px] text-center text-[clamp(32px,4.5vw,48px)] leading-[1.125] font-semibold tracking-[-0.035em] text-hg-ink">
+        <Reveal as="h2" amount={0.6} className="max-w-[760px] text-center text-[clamp(32px,4.5vw,48px)] leading-[1.125] font-semibold tracking-[-0.035em] text-hg-ink">
           Your bank is one call away from yes
-        </h2>
-        <p className="max-w-[560px] text-center text-[18px] leading-7 font-medium tracking-[-0.01em] text-hg-muted">
+        </Reveal>
+        <Reveal as="p" delay={0.1} amount={0.6} className="max-w-[560px] text-center text-[18px] leading-7 font-medium tracking-[-0.01em] text-hg-muted">
           Upload a statement and see what you could save in two minutes
-        </p>
-        <div className="flex flex-wrap justify-center gap-3">
+        </Reveal>
+        <Reveal delay={0.2} amount={0.6} className="flex flex-wrap justify-center gap-3">
           <HgButton href="/start" arrow>
             Call my bank
           </HgButton>
           <HgButton href="/start" tone="dark">
             Upload a statement
           </HgButton>
-        </div>
+        </Reveal>
 
         {/* 3D coins and shield sit on the card's outer edges; smaller between md and xl, hidden on phones. */}
         <div
           aria-hidden
           className="pointer-events-none absolute top-[150px] left-[-80px] hidden size-[382.29px] origin-top-left scale-[0.55] items-center justify-center md:flex xl:top-[50px] xl:left-[-57px] xl:scale-100"
         >
-          <Image src="/landing/closing/coins-3d.png" alt="" width={330} height={330} sizes="330px" className="block size-[330px] max-w-none rotate-10" />
+          <Image src="/landing/closing/coins-3d.png" alt="" width={330} height={330} sizes="330px" className="hg-float block size-[330px] max-w-none rotate-10" />
         </div>
         <div
           aria-hidden
           className="pointer-events-none absolute top-[150px] right-[-100px] hidden size-[379.54px] origin-top-right scale-[0.55] items-center justify-center md:flex xl:top-[61.47px] xl:right-[-79.54px] xl:scale-100"
         >
-          <Image src="/landing/closing/shield-3d.png" alt="" width={320} height={320} sizes="320px" className="block size-[320px] max-w-none -rotate-12" />
+          <Image src="/landing/closing/shield-3d.png" alt="" width={320} height={320} sizes="320px" className="hg-float block size-[320px] max-w-none -rotate-12" style={{ animationDelay: "-3s" }} />
         </div>
       </div>
 

@@ -4,16 +4,24 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("rounded-2xl border border-line bg-card", className)} {...props} />;
+  return (
+    <div
+      className={cn(
+        "rounded-3xl border border-line/80 bg-card shadow-[0_1px_2px_rgb(11_18_32/0.04),0_12px_32px_-18px_rgb(11_18_32/0.18)]",
+        className,
+      )}
+      {...props}
+    />
+  );
 }
 
-const badgeVariants = cva("inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium", {
+const badgeVariants = cva("inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold", {
   variants: {
     tone: {
-      neutral: "bg-ink/7 text-ink",
+      neutral: "bg-hg-surface text-hg-ink-2",
       green: "bg-green-soft text-green",
       leak: "bg-leak-soft text-leak",
-      lime: "bg-lime text-ink",
+      lime: "bg-hg-blue text-white",
       alarm: "bg-alarm-soft text-alarm",
       outline: "border border-line text-muted",
     },
@@ -33,7 +41,7 @@ export function Input({ className, ...props }: React.InputHTMLAttributes<HTMLInp
   return (
     <input
       className={cn(
-        "h-11 w-full rounded-xl border border-line bg-white px-3.5 text-base text-ink placeholder:text-muted/70",
+        "h-11 w-full rounded-2xl border border-line bg-white px-4 text-base text-ink transition-[border-color,box-shadow] placeholder:text-muted/70 hover:border-hg-blue-tint focus:border-hg-blue focus:shadow-[0_0_0_4px_rgb(47_107_255/0.12)] focus:outline-none",
         className,
       )}
       {...props}
@@ -61,13 +69,13 @@ export function Switch({
       onClick={() => onCheckedChange(!checked)}
       className={cn(
         "relative h-8 w-14 shrink-0 cursor-pointer rounded-full transition-colors",
-        checked ? "bg-green" : "bg-ink/20",
+        checked ? "bg-hg-blue" : "bg-ink/15",
         className,
       )}
     >
       <span
         className={cn(
-          "absolute top-1 left-1 size-6 rounded-full bg-white shadow transition-transform",
+          "absolute top-1 left-1 size-6 rounded-full bg-white shadow transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
           checked && "translate-x-6",
         )}
       />

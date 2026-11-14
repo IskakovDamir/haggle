@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/primitives";
 import { extractionFromManual } from "@/lib/statement/manual";
 import type { Extraction } from "@/lib/types";
 import { Field } from "./field";
+import { RevealField, RevealGroup, RevealSequence } from "./field-reveal";
 import { dollarsForEditing, percentForEditing, typedDollars, typedPercent, typedText, type Typed } from "./typed-values";
 
 type ManualField = "issuerName" | "balance" | "purchaseApr" | "creditLimit" | "annualFee" | "holderFirstName";
@@ -81,24 +82,42 @@ export function ManualPanel({ onEntry }: { onEntry: (extraction: Extraction) => 
         check();
       }}
     >
-      <Card className="p-5 sm:p-6">
-        <p className="text-sm text-muted">
-          Three numbers from your statement are enough. The balance is on the first page. The APR is often in the
-          interest table on the last one.
-        </p>
-        <div className="mt-5 grid gap-x-4 gap-y-5 sm:grid-cols-2">
-          <Field label="Bank" placeholder="Chase" {...bind("issuerName")} />
-          <Field label="Statement balance" unit="dollars" placeholder="8,400.00" {...bind("balance")} />
-          <Field label="Purchase APR" unit="percent" placeholder="27.24" {...bind("purchaseApr")} />
-          <Field label="Credit limit" hint="optional" unit="dollars" {...bind("creditLimit")} />
-          <Field label="Annual fee" hint="optional" unit="dollars" {...bind("annualFee")} />
-          <Field label="Your first name" hint="optional" autoComplete="given-name" {...bind("holderFirstName")} />
-        </div>
-      </Card>
-      <Button type="submit" size="lg" className="mt-5">
-        Check the numbers
-        <ArrowRight className="size-4" aria-hidden />
-      </Button>
+      <RevealSequence>
+        <RevealGroup>
+          <Card className="rounded-[28px] p-5 sm:p-7">
+            <p className="text-sm font-medium text-muted">
+              Three numbers from your statement are enough. The balance is on the first page. The APR is often in the
+              interest table on the last one.
+            </p>
+            <div className="mt-5 grid gap-x-4 gap-y-5 sm:grid-cols-2">
+              <RevealField>
+                <Field label="Bank" placeholder="Chase" {...bind("issuerName")} />
+              </RevealField>
+              <RevealField>
+                <Field label="Statement balance" unit="dollars" placeholder="8,400.00" {...bind("balance")} />
+              </RevealField>
+              <RevealField>
+                <Field label="Purchase APR" unit="percent" placeholder="27.24" {...bind("purchaseApr")} />
+              </RevealField>
+              <RevealField>
+                <Field label="Credit limit" hint="optional" unit="dollars" {...bind("creditLimit")} />
+              </RevealField>
+              <RevealField>
+                <Field label="Annual fee" hint="optional" unit="dollars" {...bind("annualFee")} />
+              </RevealField>
+              <RevealField>
+                <Field label="Your first name" hint="optional" autoComplete="given-name" {...bind("holderFirstName")} />
+              </RevealField>
+            </div>
+          </Card>
+        </RevealGroup>
+        <RevealGroup>
+          <Button type="submit" size="lg" className="mt-5">
+            Check the numbers
+            <ArrowRight className="size-4" aria-hidden />
+          </Button>
+        </RevealGroup>
+      </RevealSequence>
     </form>
   );
 }

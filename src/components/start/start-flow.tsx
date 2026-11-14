@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { AnimatePresence, motion, useIsPresent } from "framer-motion";
+import { EASE } from "@/components/motion/reveal";
 import { SAMPLE_STATEMENTS, type SampleStatement } from "@/lib/statement/samples";
 import { newCase, useCaseFile, withCard } from "@/lib/store";
 import type { CardAccount, Extraction } from "@/lib/types";
@@ -24,7 +26,7 @@ type Stage =
   /** Several statements: each is read, then confirmed in turn. */
   | { name: "batch"; items: BatchItem[] };
 
-const labelOf = (job: ReadingJob) => (job.kind === "sample" ? job.sample.label : job.file.name);
+const labelOf =(job: ReadingJob) => (job.kind === "sample" ? job.sample.label : job.file.name);
 const wayOf = (job: ReadingJob): Way => (job.kind === "sample" ? "sample" : "upload");
 const WAY_OF_SOURCE: Record<Extraction["source"], Way> = { upload: "upload", sample: "sample", manual: "type" };
 
@@ -133,62 +135,110 @@ export function StartFlow() {
     });
   }
 
-  if (reading === "unknown") return <StartSkeleton />;
+  // Every screen is wrapped in the same Stage, so a change of `id` cross-fades and anything else updates in place.
+  if (reading === "unknown") {
+    return (
+      <Stage id="loading">
+        <StartSkeleton />
+      </Stage>
+    );
+  }
 
   if (stage.name === "linked" && reading === "on") {
-    return <ReadingPanel label={stage.sample.label} progress={{ phase: "preparing" }} onCancel={() => cancel("sample")} />;
+    return (
+      <Stage id="reading">
+        <ReadingPanel label={stage.sample.label} progress={{ phase: "preparing" }} onCancel={() => cancel("sample")} />
+      </Stage>
+    );
   }
   if (stage.name === "reading") {
-    return <ReadingPanel label={labelOf(stage.job)} progress={stage.progress} onCancel={() => cancel(wayOf(stage.job))} />;
+    return (
+      <Stage id="reading">
+        <ReadingPanel label={labelOf(stage.job)} progress={stage.progress} onCancel={() => cancel(wayOf(stage.job))} />
+      </Stage>
+    );
   }
   if (stage.name === "batch") {
     const { items } = stage;
     const next = nextToConfirm(items);
     if (next?.extraction) {
       return (
-        <ConfirmForm
-          key={next.key}
-          extraction={next.extraction}
-          caseFile={caseFile}
-          position={positionOf(items, next.key)}
-          onConfirm={(card, holderFirstName) => {
-            saveCard(card, holderFirstName);
-            settle(items, next.key, "saved");
-          }}
-          startOverLabel="Skip this one"
-          onStartOver={() => settle(items, next.key, "skipped")}
-        />
+        <Stage id={`confirm-${next.key}`}>
+          <ConfirmForm
+            key={next.key}
+            extraction={next.extraction}
+            caseFile={caseFile}
+            position={positionOf(items, next.key)}
+            onConfirm={(card, holderFirstName) => {
+              saveCard(card, holderFirstName);
+              settle(items, next.key, "saved");
+            }}
+            startOverLabel="Skip this one"
+            onStartOver={() => settle(items, next.key, "skipped")}
+          />
+        </Stage>
       );
     }
     return (
-      <BatchPanel
-        items={items}
-        onCancel={() => cancel(wayOf(items[0].job))}
-        onDone={!stillReading(items) && savedCount(items) > 0 ? () => router.push("/plan") : undefined}
-      />
+      <Stage id="batch">
+        <BatchPanel
+          items={items}
+          onCancel={() => cancel(wayOf(items[0].job))}
+          onDone={!stillReading(items) && savedCount(items) > 0 ? () => router.push("/plan") : undefined}
+        />
+      </Stage>
     );
   }
   if (stage.name === "confirm") {
     const { extraction } = stage;
     return (
-      <ConfirmForm
-        extraction={extraction}
-        caseFile={caseFile}
-        onConfirm={save}
-        onStartOver={() => setStage({ name: "choose", way: WAY_OF_SOURCE[extraction.source], problem: null })}
-      />
+      <Stage id="confirm">
+        <ConfirmForm
+          extraction={extraction}
+          caseFile={caseFile}
+          onConfirm={save}
+          onStartOver={() => setStage({ name: "choose", way: WAY_OF_SOURCE[extraction.source], problem: null })}
+        />
+      </Stage>
     );
   }
 
   return (
-    <WaysIn
-      readingOff={reading === "off"}
-      startWith={stage.name === "choose" ? stage.way : "sample"}
-      problem={stage.name === "choose" ? stage.problem : null}
-      onFiles={(files) => void startBatch(files.map((file) => ({ kind: "file", file })))}
-      onSample={(sample) => start({ kind: "sample", sample })}
-      onAllSamples={() => void startBatch(SAMPLE_STATEMENTS.map((sample) => ({ kind: "sample", sample })))}
-      onEntry={(extraction) => setStage({ name: "confirm", extraction })}
-    />
+    <Stage id="choose">
+      <WaysIn
+        readingOff={reading === "off"}
+        startWith={stage.name === "choose" ? stage.way : "sample"}
+        problem={stage.name === "choose" ? stage.problem : null}
+        onFiles={(files) => void startBatch(files.map((file) => ({ kind: "file", file })))}
+        onSample={(sample) => start({ kind: "sample", sample })}
+        onAllSamples={() => void startBatch(SAMPLE_STATEMENTS.map((sample) => ({ kind: "sample", sample })))}
+        onEntry={(extraction) => setStage({ name: "confirm", extraction })}
+      />
+    </Stage>
+  );
+}
+
+/** One screen leaves before the next arrives, so stages cross-fade instead of jumping. */
+function Stage({ id, children }: { id: string; children: React.ReactNode }) {
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <StageFrame key={id}>{children}</StageFrame>
+    </AnimatePresence>
+  );
+}
+
+/** One stage on its way in or out. A leaving stage takes no more clicks, so nothing is pressed twice. */
+function StageFrame({ children }: { children: React.ReactNode }) {
+  const present = useIsPresent();
+  return (
+    <motion.div
+      inert={!present}
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.3, ease: EASE }}
+    >
+      {children}
+    </motion.div>
   );
 }

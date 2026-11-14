@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import { EASE } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
 import { Badge, Card, SampleBadge } from "@/components/ui/primitives";
 import { todayIso } from "@/lib/format";
@@ -15,6 +17,7 @@ import {
   type CardFormValues,
 } from "./card-form";
 import { Field } from "./field";
+import { RevealField, RevealGroup, RevealSequence } from "./field-reveal";
 
 type FieldSpec = {
   field: CardFormField;
@@ -155,58 +158,109 @@ export function ConfirmForm({
         looksRight();
       }}
     >
-      <div className="flex flex-wrap items-center gap-2">
-        {position && <Badge tone="lime">{position}</Badge>}
-        {extraction.source === "sample" && <SampleBadge />}
-        {warningCount > 0 && <Badge tone="leak">{warningCount === 1 ? "1 thing to check" : `${warningCount} things to check`}</Badge>}
-      </div>
-      <h1 className="mt-3 text-3xl leading-[1.1] font-extrabold sm:text-[2.75rem]">{TITLE[extraction.source]}</h1>
-      <p className="mt-3 max-w-[60ch] text-lg text-muted">
-        {LEAD[extraction.source]} Nothing is saved or calculated until you press Looks right.
-      </p>
+      <RevealSequence gap={0.06}>
+        <RevealGroup className="flex flex-wrap items-center gap-2">
+          {position && <Badge tone="lime">{position}</Badge>}
+          {extraction.source === "sample" && <SampleBadge />}
+          <AnimatePresence initial={false}>
+            {warningCount > 0 && (
+              <motion.span
+                key="to-check"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.25, ease: EASE }}
+              >
+                <Badge tone="leak">{warningCount === 1 ? "1 thing to check" : `${warningCount} things to check`}</Badge>
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </RevealGroup>
+        <RevealGroup>
+          <h1 className="mt-4 text-[clamp(32px,4.5vw,48px)] leading-[1.1] font-semibold tracking-[-0.035em] text-hg-ink">
+            {TITLE[extraction.source]}
+          </h1>
+        </RevealGroup>
+        <RevealGroup>
+          <p className="mt-4 max-w-[60ch] text-[18px] leading-7 font-medium tracking-[-0.01em] text-muted">
+            {LEAD[extraction.source]} Nothing is saved or calculated until you press Looks right.
+          </p>
+        </RevealGroup>
 
-      {warnings.general.length > 0 && (
-        <ul className="mt-6 space-y-1 rounded-2xl border border-leak/30 bg-leak-soft p-4 text-sm text-leak">
-          {warnings.general.map((message) => (
-            <li key={message}>{message}</li>
+        <AnimatePresence initial={false}>
+          {warnings.general.length > 0 && (
+            <motion.div
+              key="general-warnings"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: EASE }}
+              className="overflow-hidden"
+            >
+              <ul className="mt-6 space-y-1 rounded-[20px] border border-leak/30 bg-leak-soft p-4 text-sm text-leak">
+                {warnings.general.map((message) => (
+                  <li key={message}>{message}</li>
+                ))}
+              </ul>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="mt-8 space-y-4">
+          {GROUPS.map((group, index) => (
+            <RevealGroup key={group.title}>
+              <Card className="rounded-[28px] p-5 sm:p-7">
+                <h2 className="flex items-center gap-2.5 text-[13px] font-semibold tracking-[-0.002em] text-hg-ink-2">
+                  <span
+                    aria-hidden
+                    className="flex size-6 items-center justify-center rounded-full bg-hg-blue-soft text-[11px] font-bold text-hg-blue tabular"
+                  >
+                    {index + 1}
+                  </span>
+                  {group.title}
+                </h2>
+                <div className="mt-5 grid gap-x-4 gap-y-5 sm:grid-cols-2">
+                  {group.fields.map(({ field, ...spec }) => (
+                    <RevealField key={field}>
+                      <Field
+                        id={inputId(field)}
+                        name={field}
+                        value={values[field]}
+                        onChange={(event) => change(field, event.target.value)}
+                        onBlur={() => setVisited((current) => new Set(current).add(field))}
+                        error={errorFor(field)}
+                        warnings={warnings.byField[field]}
+                        {...spec}
+                      />
+                    </RevealField>
+                  ))}
+                </div>
+              </Card>
+            </RevealGroup>
           ))}
-        </ul>
-      )}
+        </div>
 
-      <div className="mt-8 space-y-4">
-        {GROUPS.map((group) => (
-          <Card key={group.title} className="p-5 sm:p-6">
-            <h2 className="text-xs font-bold tracking-widest text-muted uppercase">{group.title}</h2>
-            <div className="mt-4 grid gap-x-4 gap-y-5 sm:grid-cols-2">
-              {group.fields.map(({ field, ...spec }) => (
-                <Field
-                  key={field}
-                  id={inputId(field)}
-                  name={field}
-                  value={values[field]}
-                  onChange={(event) => change(field, event.target.value)}
-                  onBlur={() => setVisited((current) => new Set(current).add(field))}
-                  error={errorFor(field)}
-                  warnings={warnings.byField[field]}
-                  {...spec}
-                />
-              ))}
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <Button type="submit" size="lg">
-          Looks right
-          <ArrowRight className="size-4" aria-hidden />
-        </Button>
-        <Button variant="ghost" size="lg" onClick={onStartOver}>
-          {startOverLabel}
-        </Button>
-      </div>
+        <RevealGroup className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <Button type="submit" size="lg">
+            Looks right
+            <ArrowRight className="size-4" aria-hidden />
+          </Button>
+          <Button variant="ghost" size="lg" onClick={onStartOver}>
+            {startOverLabel}
+          </Button>
+        </RevealGroup>
+      </RevealSequence>
       <div className="mt-3 space-y-1 text-sm text-muted" aria-live="polite">
-        {triedToContinue && !typed.card && <p className="text-alarm">Fix the fields marked in red first.</p>}
+        {triedToContinue && !typed.card && (
+          <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, ease: EASE }}
+            className="text-alarm"
+          >
+            Fix the fields marked in red first.
+          </motion.p>
+        )}
         {updates && (
           <p>
             This updates the {updates.issuerName} card{updates.last4 ? ` ending in ${updates.last4}` : ""} that is already in

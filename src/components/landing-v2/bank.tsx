@@ -1,6 +1,8 @@
 // "Your bank would rather say yes": the blue band with the bank's earnings and the 3D bank (Figma node 4:129).
 import Image from "next/image";
 import { HgSection } from "./ui";
+import { Reveal } from "@/components/motion/reveal";
+import { GrowBar } from "@/components/motion/grow";
 
 const A = "/landing/bank";
 
@@ -20,7 +22,7 @@ const strong = "text-[17px] leading-6 font-semibold tracking-[-0.01em] text-whit
 export function Bank() {
   return (
     <HgSection className="px-4 py-10 font-manrope md:px-10 md:py-14">
-      <div
+      <Reveal y={40} amount={0.15}
         className="relative mx-auto flex w-full max-w-[1200px] flex-col items-start gap-10 overflow-hidden rounded-[40px] p-6 md:p-12 xl:flex-row xl:items-center xl:gap-12 xl:pr-[380px]"
         style={{ backgroundImage: "linear-gradient(161.82deg, #2453e6 14.286%, #0f2a9e 85.714%)" }}
       >
@@ -61,7 +63,7 @@ export function Bank() {
                 <p className={`${strong} whitespace-nowrap`}>{bar.value}</p>
               </div>
               <div className="h-4 overflow-hidden rounded-lg bg-white/[0.16]">
-                {bar.tone && <div className={`h-4 rounded-lg ${bar.tone}`} style={{ width: bar.fill }} />}
+                {bar.tone && <GrowBar width={bar.fill} className={`h-4 rounded-lg ${bar.tone}`} delay={0.2} />}
               </div>
             </div>
           ))}
@@ -69,11 +71,11 @@ export function Bank() {
 
         {/* 3D bank: a 412px image turned 6deg inside a 452.9px box that bleeds off the card's right edge. */}
         <div className="pointer-events-none relative -mt-4 -mr-10 -mb-20 flex size-[300px] shrink-0 items-center justify-center self-end md:absolute md:right-[-70px] md:bottom-[-60px] md:m-0 md:size-[320px] lg:right-[-60px] lg:bottom-[-80px] lg:size-[400px] xl:top-[5px] xl:right-[-100.9px] xl:bottom-auto xl:size-[452.9px]">
-          <div className="relative size-[90.99%] rotate-6">
+          <div className="hg-float relative size-[90.99%] rotate-6">
             <Image src={`${A}/bank-3d.png`} alt="" fill sizes="(min-width: 1280px) 412px, 364px" className="object-contain" />
           </div>
         </div>
-      </div>
+      </Reveal>
     </HgSection>
   );
 }

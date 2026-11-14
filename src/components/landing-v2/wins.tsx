@@ -1,5 +1,6 @@
 // "What Haggle wins for you": four outcome cards with 3D illustrations, from Figma node 5:18.
 import Image from "next/image";
+import { Stagger, StaggerItem } from "@/components/motion/reveal";
 import { cn } from "@/lib/utils";
 import { HgHeading, HgSection } from "./ui";
 
@@ -83,12 +84,13 @@ const BLOBS = [
   { src: "/landing/wins/blob-bottom-left.svg", left: -290, top: 206, w: 700, h: 480 },
 ];
 
-function WinCard({ win }: { win: Win }) {
+function WinCard({ win, index }: { win: Win; index: number }) {
   const t = TONES[win.tone];
   return (
-    <article
+    <StaggerItem
+      as="article"
       className={cn(
-        "relative flex min-h-[340px] flex-col justify-between overflow-hidden rounded-[32px] p-8 sm:h-[250px] sm:min-h-0",
+        "group relative flex min-h-[340px] flex-col justify-between overflow-hidden rounded-[32px] p-8 transition-shadow duration-300 hover:shadow-[0_28px_56px_-28px_rgb(11_18_32/0.5)] sm:h-[250px] sm:min-h-0",
         t.card,
       )}
     >
@@ -107,12 +109,18 @@ function WinCard({ win }: { win: Win }) {
       </a>
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-5 -bottom-8 size-[150px] sm:right-auto sm:bottom-auto sm:left-(--x) sm:top-(--y) sm:size-[290px]"
-        style={{ "--x": `${win.art.x}px`, "--y": `${win.art.y}px`, rotate: `${win.art.rotate}deg` } as React.CSSProperties}
+        className="hg-float pointer-events-none absolute -right-5 -bottom-8 size-[150px] sm:right-auto sm:bottom-auto sm:left-(--x) sm:top-(--y) sm:size-[290px]"
+        style={{ "--x": `${win.art.x}px`, "--y": `${win.art.y}px`, rotate: `${win.art.rotate}deg`, animationDelay: `${index * -1.6}s` } as React.CSSProperties}
       >
-        <Image src={win.art.src} alt="" width={290} height={290} className="size-full object-contain" />
+        <Image
+          src={win.art.src}
+          alt=""
+          width={290}
+          height={290}
+          className="size-full object-contain transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-rotate-6"
+        />
       </div>
-    </article>
+    </StaggerItem>
   );
 }
 
@@ -138,11 +146,11 @@ export function Wins() {
             style={{ left: `${(b.left / 1200) * 100}%`, top: b.top, width: b.w, height: b.h }}
           />
         ))}
-        <div className="relative grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {WINS.map((win) => (
-            <WinCard key={win.title} win={win} />
+        <Stagger gap={0.1} className="relative grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {WINS.map((win, i) => (
+            <WinCard key={win.title} win={win} index={i} />
           ))}
-        </div>
+        </Stagger>
       </div>
     </HgSection>
   );

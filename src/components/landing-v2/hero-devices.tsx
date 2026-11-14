@@ -23,7 +23,7 @@ function HeroPhone({ className }: { className?: string }) {
         <div className="flex w-full flex-col items-center gap-2 rounded-[18px] bg-hg-blue-soft px-2.5 py-3.5">
           <div className="flex items-center gap-[3px]">
             {wave.map((h, i) => (
-              <span key={i} className="w-1 rounded-[2px] bg-hg-blue" style={{ height: h }} />
+              <span key={i} className="hg-wave w-1 rounded-[2px] bg-hg-blue" style={{ height: h, animationDelay: `${(i % 5) * -0.21}s` }} />
             ))}
           </div>
           <span className={`${caption} text-hg-blue`}>Haggle is negotiating</span>

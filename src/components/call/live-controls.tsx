@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { ArrowRight, LoaderCircle, Mic, PhoneOff, SendHorizontal } from "lucide-react";
+import { EASE } from "@/components/motion/reveal";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/primitives";
 import { cn } from "@/lib/utils";
@@ -13,7 +15,20 @@ import type { CallSession } from "./use-call-session";
 /** The longest line the negotiate route accepts. */
 const MAX_LINE_CHARS = 1000;
 
-const limeButton = "bg-lime text-ink hover:bg-lime/90";
+/** Each phase of the row rises in when it takes over, so the change reads as one step. */
+function Phase({ id, className, children }: { id: string; className?: string; children: React.ReactNode }) {
+  return (
+    <motion.div
+      key={id}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: EASE }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 /** The row under the transcript. It changes with the call: speak or type, wait for the result, or move on. */
 export function LiveControls({ session }: { session: CallSession }) {
@@ -21,41 +36,47 @@ export function LiveControls({ session }: { session: CallSession }) {
 
   if (phase === "done") {
     return (
-      <div className="flex flex-col gap-2 sm:flex-row">
+      <Phase id="done" className="flex flex-col gap-2 sm:flex-row">
         <Link
           href={`/win?call=${encodeURIComponent(session.callId ?? "")}`}
-          className={cn(buttonVariants({ size: "lg" }), limeButton, "flex-1")}
+          className={cn(buttonVariants({ size: "lg" }), "group flex-1")}
         >
           See the result
-          <ArrowRight className="size-4" aria-hidden />
+          <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
         </Link>
-        <Button size="lg" variant="ghost" className="text-[#e9e8e3] hover:bg-white/10" onClick={session.reset}>
+        <Button size="lg" variant="ghost" onClick={session.reset}>
           Call again
         </Button>
-      </div>
+      </Phase>
     );
   }
 
   if (phase === "reading") {
     return problem ? (
-      <div className="flex flex-col gap-3">
+      <Phase id="reading-problem" className="flex flex-col gap-3">
         <Notice tone="dark">{problem.message}</Notice>
-        <Button size="lg" className={limeButton} onClick={session.retry}>
+        <Button size="lg" onClick={session.retry}>
           Read the call again
         </Button>
-      </div>
+      </Phase>
     ) : (
-      <p role="status" className="flex items-center gap-2.5 text-[15px]">
-        <LoaderCircle className="size-4 shrink-0 animate-spin text-lime" aria-hidden />
-        Reading the call. Every number is checked against the bank&apos;s own words.
-      </p>
+      <Phase id="reading">
+        <p
+          role="status"
+          className="hg-shimmer flex items-center gap-2.5 rounded-2xl px-4 py-3 text-[15px] font-medium text-hg-ink-2"
+        >
+          <LoaderCircle className="size-4 shrink-0 animate-spin text-hg-blue" aria-hidden />
+          Reading the call. Every number is checked against the bank&apos;s own words.
+        </p>
+      </Phase>
     );
   }
 
   const voiceFailed = mode === "voice" && (voice.status === "error" || voice.status === "unavailable");
+  const micLive = voice.status === "live";
 
   return (
-    <div className="flex flex-col gap-3">
+    <Phase id="live" className="flex flex-col gap-3">
       {problem && (
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Notice tone="dark" className="flex-1">
@@ -81,9 +102,24 @@ export function LiveControls({ session }: { session: CallSession }) {
       {mode === "text" && <BankComposer session={session} />}
 
       {mode === "voice" && !voiceFailed && (
-        <p role="status" className={cn("flex items-center gap-2.5 text-[15px]", panel.dim)}>
-          <Mic className={cn("size-4 shrink-0", voice.status === "live" && "animate-pulse text-lime")} aria-hidden />
-          {voice.status === "live"
+        <p role="status" className={cn("flex items-center gap-3 text-[15px] font-medium", micLive ? "text-hg-ink-2" : panel.dim)}>
+          <span
+            aria-hidden
+            className={cn(
+              "relative flex size-9 shrink-0 items-center justify-center rounded-full transition-colors duration-300",
+              micLive ? "bg-hg-blue text-white" : "bg-hg-blue-soft text-hg-blue",
+            )}
+          >
+            {micLive && (
+              <motion.span
+                className="absolute inset-0 rounded-full bg-hg-blue"
+                animate={{ scale: [1, 1.6], opacity: [0.35, 0] }}
+                transition={{ duration: 1.6, ease: "easeOut", repeat: Infinity }}
+              />
+            )}
+            <Mic className="relative size-4" />
+          </span>
+          {micLive
             ? "The microphone is on. Speak as the bank."
             : "Connecting the call. Allow the microphone if your browser asks."}
         </p>
@@ -93,7 +129,7 @@ export function LiveControls({ session }: { session: CallSession }) {
         <PhoneOff className="size-4" aria-hidden />
         End call
       </Button>
-    </div>
+    </Phase>
   );
 }
 
@@ -123,14 +159,9 @@ function BankComposer({ session }: { session: CallSession }) {
         maxLength={MAX_LINE_CHARS}
         autoComplete="off"
         placeholder={banksTurn ? "Answer as the bank" : "Wait for the agent"}
-        className={cn("rounded-full", panel.field)}
+        className={cn("rounded-full", panel.field, banksTurn && "border-hg-blue-tint bg-white")}
       />
-      <Button
-        type="submit"
-        disabled={!canSend}
-        aria-label="Say it"
-        className={cn(limeButton, "size-11 shrink-0 px-0")}
-      >
+      <Button type="submit" disabled={!canSend} aria-label="Say it" className="size-11 shrink-0 px-0">
         <SendHorizontal className="size-4" aria-hidden />
       </Button>
     </form>

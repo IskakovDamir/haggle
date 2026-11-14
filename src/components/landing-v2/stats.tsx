@@ -1,5 +1,6 @@
 // Stats row from the Figma frame "Stats" (13:194): four cards, each with a 3D object tucked into the corner.
 import Image from "next/image";
+import { Stagger, StaggerItem } from "@/components/motion/reveal";
 import { HgSection } from "./ui";
 
 type Stat = {
@@ -47,35 +48,45 @@ const stats: Stat[] = [
   },
 ];
 
-function StatCard({ stat }: { stat: Stat }) {
+function StatCard({ stat, index }: { stat: Stat; index: number }) {
   const { art } = stat;
   return (
-    <li className="relative flex h-[300px] flex-col gap-1.5 overflow-hidden rounded-[28px] p-7" style={stat.bg}>
+    <StaggerItem
+      as="li"
+      className="group relative flex h-[300px] flex-col gap-1.5 overflow-hidden rounded-[28px] p-7 transition-shadow duration-300 hover:shadow-[0_24px_48px_-24px_rgb(11_18_32/0.45)]"
+    >
+      <span aria-hidden className="absolute inset-0" style={stat.bg} />
       <p className={`relative text-[40px] leading-11 font-semibold tracking-[-0.03em] ${stat.dark ? "text-white" : "text-hg-ink"}`}>
         {stat.value}
       </p>
       <p className={`relative w-full max-w-[190px] text-[14px] leading-5 font-medium tracking-[-0.005em] ${stat.labelColor}`}>{stat.label}</p>
-      <Image
-        src={`/landing/stats/${art.src}.png`}
-        alt=""
-        width={art.size}
-        height={art.size}
-        sizes={`${Math.ceil(art.size)}px`}
-        className="pointer-events-none absolute max-w-none object-contain"
-        style={{ right: art.right, top: art.top, width: art.size, height: art.size, rotate: `${art.rotate}deg` }}
-      />
-    </li>
+      <span
+        aria-hidden
+        className="hg-float pointer-events-none absolute"
+        style={{ right: art.right, top: art.top, width: art.size, height: art.size, animationDelay: `${index * -1.4}s` }}
+      >
+        <Image
+          src={`/landing/stats/${art.src}.png`}
+          alt=""
+          width={art.size}
+          height={art.size}
+          sizes={`${Math.ceil(art.size)}px`}
+          className="size-full max-w-none object-contain transition-transform duration-500 ease-out group-hover:scale-110"
+          style={{ rotate: `${art.rotate}deg` }}
+        />
+      </span>
+    </StaggerItem>
   );
 }
 
 export function Stats() {
   return (
     <HgSection className="px-4 pt-14 pb-6 font-manrope sm:px-6 xl:px-[104px]">
-      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <StatCard key={stat.value} stat={stat} />
+      <Stagger as="ul" gap={0.1} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat, i) => (
+          <StatCard key={stat.value} stat={stat} index={i} />
         ))}
-      </ul>
+      </Stagger>
     </HgSection>
   );
 }

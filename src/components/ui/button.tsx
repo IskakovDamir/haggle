@@ -3,21 +3,21 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-full font-medium whitespace-nowrap transition-colors disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
+  "inline-flex items-center justify-center gap-2 rounded-full font-semibold tracking-[-0.005em] whitespace-nowrap transition-[background-color,box-shadow,transform,filter] duration-200 ease-out hover:-translate-y-px active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
   {
     variants: {
       variant: {
-        default: "bg-green text-white hover:bg-green/90",
-        outline: "border border-line bg-card text-ink hover:bg-paper",
-        ghost: "text-ink hover:bg-ink/5",
-        danger: "bg-alarm text-white hover:bg-alarm/90",
-        ink: "bg-ink text-paper hover:bg-ink/90",
+        default: "bg-hg-blue text-white shadow-[0_8px_24px_-10px_rgb(47_107_255/0.7)] hover:brightness-110 hover:shadow-[0_12px_28px_-10px_rgb(47_107_255/0.8)]",
+        outline: "border border-line bg-card text-ink hover:border-hg-blue-tint hover:bg-hg-blue-soft",
+        ghost: "text-ink hover:bg-hg-blue-soft",
+        danger: "bg-alarm text-white hover:brightness-110",
+        ink: "bg-ink text-white shadow-[0_8px_24px_-12px_rgb(11_18_32/0.6)] hover:bg-hg-ink-2",
       },
       size: {
-        sm: "h-8 px-3 text-sm",
+        sm: "h-8 px-3.5 text-[13px]",
         default: "h-10 px-5 text-sm",
-        lg: "h-12 px-7 text-base",
-        xl: "h-16 px-8 text-xl",
+        lg: "h-12 px-6 text-[15px]",
+        xl: "h-16 px-8 text-lg",
       },
     },
     defaultVariants: { variant: "default", size: "default" },

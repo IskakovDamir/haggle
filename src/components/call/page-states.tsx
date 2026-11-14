@@ -4,14 +4,15 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/primitives";
 import { cn } from "@/lib/utils";
 
-/** Grey blocks shown until the case file has been read from the browser. */
+/** Soft shimmering blocks shown until the case file has been read from the browser. */
 export function PageSkeleton() {
   return (
-    <div className="animate-pulse space-y-4" role="status" aria-label="Loading">
-      <div className="h-9 w-2/3 rounded-xl bg-ink/10" />
-      <div className="h-5 w-1/2 rounded-lg bg-ink/7" />
-      <div className="h-64 rounded-2xl bg-ink/7" />
-      <div className="h-32 rounded-2xl bg-ink/7" />
+    <div className="space-y-4" role="status" aria-label="Loading">
+      <div className="hg-shimmer h-6 w-28 rounded-full" />
+      <div className="hg-shimmer h-12 w-2/3 rounded-2xl" />
+      <div className="hg-shimmer h-5 w-1/2 rounded-xl" />
+      <div className="hg-shimmer mt-2 h-64 rounded-[32px]" />
+      <div className="hg-shimmer h-32 rounded-[28px]" />
     </div>
   );
 }
@@ -29,10 +30,13 @@ export function EmptyState({
   action?: string;
 }) {
   return (
-    <Card className="mx-auto max-w-xl p-6 text-center sm:p-10">
-      <h1 className="text-2xl font-extrabold sm:text-3xl">{title}</h1>
-      <p className="mt-3 text-muted">{children}</p>
-      <Link href={href} className={cn(buttonVariants({ size: "lg" }), "mt-6")}>
+    <Card className="mx-auto max-w-xl rounded-[32px] p-8 text-center sm:p-12">
+      <span aria-hidden className="mx-auto mb-5 flex size-12 items-center justify-center rounded-full bg-hg-blue-soft">
+        <span className="size-3 rounded-full bg-hg-blue shadow-[0_0_0_6px_rgb(47_107_255/0.15)]" />
+      </span>
+      <h1 className="text-[clamp(26px,4vw,34px)] leading-[1.15] font-semibold tracking-[-0.035em] text-hg-ink">{title}</h1>
+      <p className="mx-auto mt-3 max-w-[44ch] text-muted">{children}</p>
+      <Link href={href} className={cn(buttonVariants({ size: "lg" }), "mt-7")}>
         {action}
       </Link>
     </Card>
@@ -41,9 +45,9 @@ export function EmptyState({
 
 const NOTICE_TONES = {
   info: "border-line bg-card text-ink",
-  alarm: "border-alarm/30 bg-alarm-soft text-alarm",
-  // For use inside the dark call panel.
-  dark: "border-[#4a2a22] bg-[#2a1814] text-[#f3b9a8]",
+  alarm: "border-alarm/20 bg-alarm-soft text-alarm",
+  // For use inside the call panel: a softer orange, so a hiccup on the call reads calm, not alarming.
+  dark: "border-leak/20 bg-leak-soft text-[#a83a12]",
 } as const;
 
 /** One sentence about something that went wrong or needs saying. Announced to screen readers. */
@@ -59,7 +63,7 @@ export function Notice({
   return (
     <div
       role={tone === "info" ? "status" : "alert"}
-      className={cn("rounded-xl border px-4 py-3 text-sm", NOTICE_TONES[tone], className)}
+      className={cn("rounded-2xl border px-4 py-3 text-sm leading-snug", NOTICE_TONES[tone], className)}
     >
       {children}
     </div>

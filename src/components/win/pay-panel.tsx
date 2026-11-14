@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Check, LoaderCircle } from "lucide-react";
+import { EASE } from "@/components/motion/reveal";
 import { WIN_FEE_BPS } from "@/lib/engine";
 import { formatDate, formatPoints } from "@/lib/format";
 import { formatCents } from "@/lib/money";
@@ -14,6 +16,7 @@ import { Notice } from "@/components/call/page-states";
 import { useCapabilities } from "@/components/call/use-capabilities";
 import { localDateOf } from "@/components/dashboard/dates";
 import type { PaymentReturn } from "./use-payment-return";
+import { BEAT } from "./win-motion";
 
 /** Only a Stripe-hosted https page is a place to send the visitor to pay. */
 function isCheckoutUrl(url: string): boolean {
@@ -57,8 +60,17 @@ export function PayPanel({
   function payState() {
     if (call.paid) {
       return (
-        <p className="flex items-center gap-2 font-semibold text-green">
-          <Check className="size-5 shrink-0" aria-hidden />
+        <p className="flex items-center gap-3 rounded-2xl bg-hg-blue-soft px-4 py-3 font-semibold text-green">
+          <motion.span
+            aria-hidden
+            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-hg-blue text-white"
+            initial={{ scale: 0.4, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            // Usually lands after the Stripe check, so it pops a beat after it mounts, not on the page's clock.
+            transition={{ type: "spring", stiffness: 420, damping: 20, delay: 0.25 }}
+          >
+            <Check className="size-4" strokeWidth={3} />
+          </motion.span>
           Paid {formatCents(call.paid.amountCents)} on {formatDate(localDateOf(call.paid.at))}. Thank you.
         </p>
       );
@@ -69,7 +81,7 @@ export function PayPanel({
     if (paymentReturn.status === "checking") {
       return (
         <p role="status" className="flex items-center gap-2">
-          <LoaderCircle className="size-4 shrink-0 animate-spin text-green" aria-hidden />
+          <LoaderCircle className="size-4 shrink-0 animate-spin text-hg-blue" aria-hidden />
           Checking your payment with Stripe.
         </p>
       );
@@ -83,22 +95,29 @@ export function PayPanel({
       <>
         {paymentReturn.status === "failed" && <Notice tone="alarm">{paymentReturn.message}</Notice>}
         {error && <Notice tone="alarm">{error}</Notice>}
-        <Button size="lg" onClick={pay} disabled={opening || capabilities.status === "loading"} className="w-full sm:w-fit">
-          {opening && <LoaderCircle className="size-4 animate-spin" aria-hidden />}
-          {opening ? "Opening checkout" : `Pay ${formatCents(savings.feeCents)}`}
-        </Button>
+        <motion.div
+          initial={{ opacity: 0, y: 10, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.5, ease: EASE, delay: BEAT.pay + 0.2 }}
+          className="w-full sm:w-fit"
+        >
+          <Button size="lg" onClick={pay} disabled={opening || capabilities.status === "loading"} className="w-full sm:w-fit">
+            {opening && <LoaderCircle className="size-4 animate-spin" aria-hidden />}
+            {opening ? "Opening checkout" : `Pay ${formatCents(savings.feeCents)}`}
+          </Button>
+        </motion.div>
         <p className="text-sm text-muted">Test mode. Use card 4242 4242 4242 4242, any future date, any CVC.</p>
       </>
     );
   }
 
   return (
-    <Card className="p-5 sm:p-6">
-      <h2 className="text-lg font-extrabold">Pay after your win</h2>
-      <p className="mt-1 text-sm text-muted">
+    <Card className="rounded-[28px] p-6 sm:p-7">
+      <h2 className="text-[20px] leading-tight font-semibold tracking-[-0.03em] text-hg-ink">Pay after your win</h2>
+      <p className="mt-1.5 text-sm text-muted">
         Haggle charges {formatPoints(WIN_FEE_BPS)}% of your first-year savings, and only after the bank says yes.
       </p>
-      <div className="mt-4 flex flex-col gap-3">{payState()}</div>
+      <div className="mt-5 flex flex-col gap-3">{payState()}</div>
     </Card>
   );
 }

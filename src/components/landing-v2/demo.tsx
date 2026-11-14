@@ -2,11 +2,12 @@
 // The design has a phone-number form; this build can't place real calls, so it links to the in-browser practice call.
 import Image from "next/image";
 import { HgButton, HgSection } from "./ui";
+import { Reveal } from "@/components/motion/reveal";
 
 export function Demo() {
   return (
     <HgSection id="demo" className="flex flex-col items-center px-4 py-14 font-manrope sm:px-8 lg:px-12 xl:px-[104px]">
-      <div className="relative flex w-full max-w-[1200px] flex-col items-stretch gap-8 overflow-hidden rounded-[40px] bg-linear-to-r from-[#1a3fd6] to-[#3a76ff] px-6 pt-10 pb-6 sm:px-10 lg:flex-row lg:items-center lg:gap-12 lg:py-14 lg:pr-14 lg:pl-16">
+      <Reveal y={40} amount={0.2} className="relative flex w-full max-w-[1200px] flex-col items-stretch gap-8 overflow-hidden rounded-[40px] bg-linear-to-r from-[#1a3fd6] to-[#3a76ff] px-6 pt-10 pb-6 sm:px-10 lg:flex-row lg:items-center lg:gap-12 lg:py-14 lg:pr-14 lg:pl-16">
         <Image
           src="/landing/demo/blob.svg"
           alt=""
@@ -30,7 +31,7 @@ export function Demo() {
         </div>
         {/* In the row layout this is the 360px "Phone space"; the phone itself hangs off the banner's right edge as in Figma. */}
         <div className="relative size-[240px] shrink-0 self-center lg:static lg:h-[10px] lg:w-[360px]">
-          <div className="absolute inset-0 flex items-center justify-center lg:inset-auto lg:top-[25px] lg:right-[54.63px] lg:size-[316.368px]">
+          <div className="hg-float absolute inset-0 flex items-center justify-center lg:inset-auto lg:top-[25px] lg:right-[54.63px] lg:size-[316.368px]">
             <Image
               src="/landing/demo/3d-phone.png"
               alt=""
@@ -40,7 +41,7 @@ export function Demo() {
             />
           </div>
         </div>
-      </div>
+      </Reveal>
     </HgSection>
   );
 }

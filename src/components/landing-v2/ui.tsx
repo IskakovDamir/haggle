@@ -2,6 +2,7 @@
 // Colors and type come from the hg-* tokens in globals.css; images live in public/landing.
 import Image from "next/image";
 import Link from "next/link";
+import { Stagger, StaggerItem } from "@/components/motion/reveal";
 import { cn } from "@/lib/utils";
 
 /** The three-ribbon mark on brand blue. Scales with `size`; the blades are positioned as in Figma. */
@@ -64,7 +65,8 @@ export function HgButton({
     <Link
       href={href}
       className={cn(
-        "inline-flex shrink-0 items-center justify-center gap-2 rounded-full font-semibold whitespace-nowrap transition-[filter,transform] hover:brightness-110 active:scale-[0.98]",
+        "group inline-flex shrink-0 items-center justify-center gap-2 rounded-full font-semibold whitespace-nowrap transition-[filter,transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0 active:scale-[0.98]",
+        tone === "blue" && "hover:shadow-[0_12px_28px_-10px_rgb(47_107_255/0.75)]",
         size === "m" ? "px-6 py-3.5 text-[15px] leading-5 tracking-[-0.005em]" : "px-[18px] py-2.5 text-[14px] leading-5 tracking-[-0.005em]",
         tone === "blue" && "bg-hg-blue text-white",
         tone === "dark" && "bg-hg-ink text-white",
@@ -79,7 +81,7 @@ export function HgButton({
           alt=""
           width={size === "m" ? 12 : 10.667}
           height={size === "m" ? 12 : 10.667}
-          className={cn(tone === "white" && "invert")}
+          className={cn("transition-transform duration-200 ease-out group-hover:translate-x-0.5", tone === "white" && "invert")}
         />
       )}
     </Link>
@@ -89,10 +91,16 @@ export function HgButton({
 /** Centered section heading: H2 (48/54) and an optional muted lead line (Body L, 18/28). */
 export function HgHeading({ title, lead, className }: { title: React.ReactNode; lead?: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("flex flex-col items-center gap-4 text-center", className)}>
-      <h2 className="text-[clamp(32px,4.5vw,48px)] leading-[1.125] font-semibold tracking-[-0.035em] text-hg-ink">{title}</h2>
-      {lead && <p className="max-w-[64ch] text-[18px] leading-7 font-medium tracking-[-0.01em] text-hg-muted">{lead}</p>}
-    </div>
+    <Stagger gap={0.12} amount={0.6} className={cn("flex flex-col items-center gap-4 text-center", className)}>
+      <StaggerItem as="h2" className="text-[clamp(32px,4.5vw,48px)] leading-[1.125] font-semibold tracking-[-0.035em] text-hg-ink">
+        {title}
+      </StaggerItem>
+      {lead && (
+        <StaggerItem as="p" className="max-w-[64ch] text-[18px] leading-7 font-medium tracking-[-0.01em] text-hg-muted">
+          {lead}
+        </StaggerItem>
+      )}
+    </Stagger>
   );
 }
 

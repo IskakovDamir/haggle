@@ -1,3 +1,7 @@
+"use client";
+
+import { AnimatePresence, motion } from "framer-motion";
+import { EASE } from "@/components/motion/reveal";
 import { Input } from "@/components/ui/primitives";
 import { cn } from "@/lib/utils";
 
@@ -21,9 +25,9 @@ export function Field({ id, label, hint, unit, error, warnings = [], className, 
 
   return (
     <div className={className}>
-      <label htmlFor={id} className="mb-1.5 block text-sm font-medium">
+      <label htmlFor={id} className="mb-1.5 block text-sm font-semibold tracking-[-0.005em] text-hg-ink-2">
         {label}
-        {hint && <span className="font-normal text-muted"> {hint}</span>}
+        {hint && <span className="font-medium text-hg-muted"> {hint}</span>}
       </label>
       <div className="relative">
         {unit === "dollars" && (
@@ -40,7 +44,9 @@ export function Field({ id, label, hint, unit, error, warnings = [], className, 
             "tabular",
             unit === "dollars" && "pl-7",
             unit === "percent" && "pr-9",
-            error ? "border-alarm" : warnings.length > 0 && "border-leak/60",
+            error
+              ? "border-alarm focus:border-alarm focus:shadow-[0_0_0_4px_rgb(217_45_32/0.12)]"
+              : warnings.length > 0 && "border-leak/60 focus:shadow-[0_0_0_4px_rgb(224_83_31/0.12)]",
           )}
           {...input}
         />
@@ -50,13 +56,25 @@ export function Field({ id, label, hint, unit, error, warnings = [], className, 
           </span>
         )}
       </div>
-      {notes.length > 0 && (
-        <ul id={notesId} className={cn("mt-1.5 space-y-1 text-sm leading-snug", error ? "text-alarm" : "text-leak")}>
-          {notes.map((note) => (
-            <li key={note}>{note}</li>
-          ))}
-        </ul>
-      )}
+      <AnimatePresence initial={false}>
+        {notes.length > 0 && (
+          <motion.ul
+            key="notes"
+            id={notesId}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: EASE }}
+            className={cn("space-y-1 overflow-hidden text-sm leading-snug", error ? "text-alarm" : "text-leak")}
+          >
+            {notes.map((note, index) => (
+              <li key={note} className={cn(index === 0 && "pt-1.5")}>
+                {note}
+              </li>
+            ))}
+          </motion.ul>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

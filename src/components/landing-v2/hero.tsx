@@ -1,6 +1,7 @@
 // Hero from the Figma frame "Hero" (12:184): nav, headline with inline pills, CTAs and the device picture.
 import Image from "next/image";
 import Link from "next/link";
+import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { HgButton, HgLogo, HgMark, HgSection } from "./ui";
 import { HeroDevices } from "./hero-devices";
 import { HeroIcon } from "./hero-icon";
@@ -85,8 +86,12 @@ function RateDownPill() {
   return (
     <span aria-hidden className="flex h-[1.185em] w-[1.804em] shrink-0 items-center justify-center rounded-[0.587em] bg-hg-ink">
       <span className="flex h-[0.696em] w-[0.957em] items-end gap-[0.087em]">
-        {bars.map((bar) => (
-          <span key={bar.h} className={`w-[0.174em] shrink-0 rounded-[0.087em] ${bar.tone}`} style={{ height: bar.h }} />
+        {bars.map((bar, i) => (
+          <span
+            key={bar.h}
+            className={`hg-bar w-[0.174em] shrink-0 rounded-[0.087em] ${bar.tone}`}
+            style={{ height: bar.h, animationDelay: `${0.7 + i * 0.09}s` }}
+          />
         ))}
       </span>
     </span>
@@ -96,20 +101,26 @@ function RateDownPill() {
 function Headline() {
   const line = "flex flex-wrap items-center justify-center gap-x-[0.196em] gap-y-[0.065em]";
   return (
-    <h1 className="flex flex-col items-center gap-[0.065em] text-center text-[clamp(32px,6.4vw,92px)] leading-[1.0543] font-semibold tracking-[-0.045em] text-hg-ink">
-      <span className={line}>
+    <Stagger
+      as="h1"
+      onMount
+      gap={0.14}
+      delay={0.1}
+      className="flex flex-col items-center gap-[0.065em] text-center text-[clamp(32px,6.4vw,92px)] leading-[1.0543] font-semibold tracking-[-0.045em] text-hg-ink"
+    >
+      <StaggerItem as="span" className={line}>
         <span>Let AI</span>
-        <span aria-hidden className="block size-[1.185em] shrink-0 overflow-hidden rounded-full bg-hg-blue">
+        <span aria-hidden className="hg-pop block size-[1.185em] shrink-0 overflow-hidden rounded-full bg-hg-blue" style={{ animationDelay: "0.35s" }}>
           <HgMark size={109} className="size-full!" />
         </span>
         <span>call your bank</span>
-      </span>
-      <span className={line}>
+      </StaggerItem>
+      <StaggerItem as="span" className={line}>
         <span>and lower your</span>
         <RateDownPill />
         <span>card rate</span>
-      </span>
-    </h1>
+      </StaggerItem>
+    </Stagger>
   );
 }
 
@@ -120,37 +131,41 @@ export function Hero() {
       style={{ backgroundImage: heroBg }}
     >
       <div aria-hidden className="pointer-events-none absolute inset-0">
-        {backdrop.map((item) => (
+        {backdrop.map((item, i) => (
           <Image
             key={item.src}
             src={`/landing/hero/${item.src}.svg`}
             alt=""
             width={item.w}
             height={item.h}
-            className="absolute block max-w-none"
-            style={item.pos}
+            className={`absolute block max-w-none ${item.src === "glow" ? "" : "hg-drift"}`}
+            style={{ ...item.pos, animationDelay: `${-i * 2.3}s`, animationDirection: i % 2 ? "reverse" : "normal" }}
           />
         ))}
       </div>
 
-      <Nav />
+      <Reveal className="relative w-full" y={-12} delay={0}>
+        <Nav />
+      </Reveal>
 
       <div className="relative flex flex-col items-center gap-[26px] pt-12">
         <Headline />
-        <p className="max-w-[960px] text-center text-[16px] leading-6 font-medium tracking-[-0.01em] text-hg-ink-2 sm:text-[18px] sm:leading-7">
+        <Reveal as="p" delay={0.45} y={16} className="max-w-[960px] text-center text-[16px] leading-6 font-medium tracking-[-0.01em] text-hg-ink-2 sm:text-[18px] sm:leading-7">
           Haggle calls your card issuer, waits on hold and negotiates a lower APR, and you pay only after you save
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-3">
+        </Reveal>
+        <Reveal delay={0.6} y={16} className="flex flex-wrap items-center justify-center gap-3">
           <HgButton href="/start" arrow>
             Call my bank
           </HgButton>
           <HgButton href="/start?sample=maria-chase" tone="dark">
             Try a demo call
           </HgButton>
-        </div>
+        </Reveal>
       </div>
 
-      <HeroDevices />
+      <Reveal delay={0.75} y={80} amount={0} className="relative w-full">
+        <HeroDevices />
+      </Reveal>
 
       <div
         aria-hidden

@@ -3,6 +3,7 @@ import Image from "next/image";
 import { FaqAccordion, type FaqEntry } from "./faq-accordion";
 import { BlobPanel } from "./pricing-panel";
 import { HgButton, HgSection } from "./ui";
+import { Reveal } from "@/components/motion/reveal";
 
 const questions: FaqEntry[] = [
   {
@@ -37,7 +38,7 @@ export function Faq() {
     <HgSection id="faq" className="px-4 pt-14 pb-10 font-manrope sm:px-8 lg:px-10 xl:px-[104px]">
       <BlobPanel dir="faq" angle={155.14} bottoms={{ center: -176, left: -106 }} className="px-5 py-8 sm:px-8 lg:min-h-[556px] lg:py-10 lg:pr-7 lg:pl-10">
         <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-16">
-          <div className="flex shrink-0 flex-col items-start gap-5 lg:w-[320px] xl:w-[400px]">
+          <Reveal amount={0.4} className="flex shrink-0 flex-col items-start gap-5 lg:w-[320px] xl:w-[400px]">
             <h2 className="text-[clamp(32px,4.5vw,48px)] leading-[1.125] font-semibold tracking-[-0.035em] text-hg-ink">
               Questions you might have
             </h2>
@@ -47,13 +48,13 @@ export function Faq() {
             <HgButton href="/start" size="s" arrow>
               Ask us anything
             </HgButton>
-          </div>
+          </Reveal>
           <FaqAccordion items={questions} />
         </div>
 
         {/* 3D padlock, under the intro on wide screens. Decorative, so it steps aside when the layout stacks. */}
         <div aria-hidden className="pointer-events-none absolute bottom-[-15.2px] left-[124.85px] hidden size-[301.2px] items-center justify-center lg:flex">
-          <Image src="/landing/faq/padlock-3d.png" alt="" width={260} height={260} sizes="260px" className="block size-[260px] max-w-none rotate-10" />
+          <Image src="/landing/faq/padlock-3d.png" alt="" width={260} height={260} sizes="260px" className="hg-float block size-[260px] max-w-none rotate-10" />
         </div>
       </BlobPanel>
     </HgSection>

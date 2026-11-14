@@ -1,3 +1,7 @@
+"use client";
+
+import { AnimatePresence, motion } from "framer-motion";
+import { EASE } from "@/components/motion/reveal";
 import { cn } from "@/lib/utils";
 import { panel } from "./panel-theme";
 
@@ -10,7 +14,13 @@ const LINE_LABELS: Record<LineState, string> = {
   ended: "Ended",
 };
 
-/** The dark, phone-like panel the call happens in: who is on the line, the timer, and whatever the call shows. */
+/** Bar heights from the landing phone. They only say "on the call": they do not follow the audio. */
+const WAVE = [8, 14, 22, 30, 18, 26, 34, 20, 12, 24, 30, 16, 10, 20, 14, 8];
+
+/**
+ * The phone-like panel the call happens in, drawn like the phone on the landing:
+ * an ink bezel, who is on the line, the timer, a waveform while the line is open, and whatever the call shows.
+ */
 export function CallPanel({
   line,
   callee,
@@ -24,28 +34,124 @@ export function CallPanel({
   clock: string;
   children: React.ReactNode;
 }) {
-  const live = line === "live";
+  const open = line === "live" || line === "connecting";
   return (
-    <section aria-label={`Practice call with ${callee}`} className={cn(panel.shell, "flex flex-col gap-4 p-4 sm:p-5")}>
-      <div className={cn("flex items-center justify-between gap-3 text-[13px]", panel.dim)}>
-        <span className={cn("flex min-w-0 items-center gap-2 font-bold", live && "text-lime")}>
+    <motion.section
+      aria-label={`Practice call with ${callee}`}
+      className={panel.bezel}
+      initial={{ opacity: 0, y: 20, scale: 0.985 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.6, ease: EASE, delay: 0.1 }}
+    >
+      <div className={cn(panel.shell, "flex flex-col gap-4 border-0 px-4 pt-3 pb-5 sm:px-5")}>
+        <div aria-hidden className="mx-auto h-[20px] w-[76px] shrink-0 rounded-full bg-hg-ink" />
+
+        <div className="flex items-center gap-3">
+          <Avatar callee={callee} line={line} />
+          <div className="min-w-0 flex-1 text-[13px] leading-[18px] font-semibold">
+            <p className="truncate text-[15px] leading-5 text-hg-ink">{callee}</p>
+            <p className={cn("flex items-center gap-1.5", line === "live" ? "text-hg-blue" : panel.dim)}>
+              <StatusDot line={line} />
+              <span className="uppercase">{LINE_LABELS[line]}</span>
+            </p>
+          </div>
           <span
-            aria-hidden
-            className={cn(
-              "size-2 shrink-0 rounded-full",
-              live ? "bg-lime shadow-[0_0_0_4px_rgba(201,242,107,0.2)]" : "bg-[#9a9a94]",
-              line === "connecting" && "animate-pulse",
-            )}
-          />
-          <span className="truncate">
-            <span className="uppercase">{LINE_LABELS[line]}</span> · {callee}
+            className="tabular shrink-0 rounded-full bg-hg-surface px-3 py-1.5 text-[13px] font-semibold text-hg-ink-2"
+            aria-label="Call time"
+          >
+            {clock}
           </span>
-        </span>
-        <span className="tabular shrink-0" aria-label="Call time">
-          {clock}
-        </span>
+        </div>
+
+        <AnimatePresence initial={false}>
+          {open && (
+            <motion.div
+              key="wave"
+              aria-hidden
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.45, ease: EASE }}
+              className="overflow-hidden"
+            >
+              <Waveform live={line === "live"} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {children}
       </div>
-      {children}
-    </section>
+    </motion.section>
+  );
+}
+
+/** The bank's initial, with soft rings: slow while connecting, a steady pulse while live. */
+function Avatar({ callee, line }: { callee: string; line: LineState }) {
+  const initial = callee.trim().charAt(0).toUpperCase() || "B";
+  const rings = line === "connecting" ? [0, 1.2] : line === "live" ? [0] : [];
+  return (
+    <span
+      aria-hidden
+      className="relative flex size-10 shrink-0 items-center justify-center rounded-full bg-hg-ink text-[15px] font-semibold text-white"
+    >
+      {rings.map((delay) => (
+        <motion.span
+          key={`${line}:${delay}`}
+          className="absolute inset-0 rounded-full border-2 border-hg-blue"
+          initial={{ scale: 1, opacity: 0 }}
+          animate={{ scale: [1, 1.7], opacity: [0.55, 0] }}
+          transition={{ duration: line === "connecting" ? 2.4 : 1.8, ease: "easeOut", repeat: Infinity, delay }}
+        />
+      ))}
+      {initial}
+    </span>
+  );
+}
+
+function StatusDot({ line }: { line: LineState }) {
+  return (
+    <span aria-hidden className="relative flex size-2 shrink-0">
+      {line === "live" && (
+        <motion.span
+          className="absolute inset-0 rounded-full bg-hg-blue"
+          animate={{ scale: [1, 2.6], opacity: [0.5, 0] }}
+          transition={{ duration: 1.4, ease: "easeOut", repeat: Infinity }}
+        />
+      )}
+      <motion.span
+        className={cn(
+          "relative size-2 rounded-full",
+          line === "live" || line === "connecting" ? "bg-hg-blue" : "bg-hg-muted/60",
+        )}
+        animate={line === "connecting" ? { opacity: [0.35, 1, 0.35] } : { opacity: 1 }}
+        transition={line === "connecting" ? { duration: 1.8, ease: "easeInOut", repeat: Infinity } : { duration: 0.3 }}
+      />
+    </span>
+  );
+}
+
+/** The blue strip from the landing phone. Moving while live; a slow, quiet sweep while connecting. */
+function Waveform({ live }: { live: boolean }) {
+  return (
+    <div className="flex h-[60px] items-center justify-center gap-[3px] rounded-[18px] bg-hg-blue-soft">
+      {WAVE.map((height, index) => (
+        <motion.span
+          key={index}
+          className="w-1 rounded-[2px] bg-hg-blue"
+          style={{ height }}
+          initial={false}
+          animate={
+            live
+              ? { scaleY: [0.35, 1, 0.55, 0.9, 0.35], opacity: 1 }
+              : { scaleY: 0.3, opacity: [0.35, 0.9, 0.35] }
+          }
+          transition={
+            live
+              ? { duration: 1.1 + (index % 5) * 0.14, ease: "easeInOut", repeat: Infinity, delay: index * 0.04 }
+              : { duration: 1.8, ease: "easeInOut", repeat: Infinity, delay: index * 0.08 }
+          }
+        />
+      ))}
+    </div>
   );
 }

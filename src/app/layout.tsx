@@ -1,22 +1,23 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Serif, Inter, Manrope } from "next/font/google";
+import { Manrope } from "next/font/google";
+import { MotionRoot } from "@/components/motion/motion-root";
 import "./globals.css";
 
-const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
-const manrope = Manrope({ variable: "--font-manrope-face", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
-const instrument = Instrument_Serif({ variable: "--font-instrument", subsets: ["latin"], weight: "400", style: ["normal", "italic"] });
+const manrope = Manrope({ variable: "--font-manrope-face", subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
 
 export const metadata: Metadata = {
   title: "Haggle",
   description: "An AI agent that calls your bank: lower card interest, waived fees, and you pay only after a win.",
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#f6f5f1" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#f4f6fa" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} ${instrument.variable} ${manrope.variable} h-full`}>
-      <body className="flex min-h-full flex-col">{children}</body>
+    <html lang="en" className={`${manrope.variable} h-full`}>
+      <body className="flex min-h-full flex-col">
+        <MotionRoot>{children}</MotionRoot>
+      </body>
     </html>
   );
 }

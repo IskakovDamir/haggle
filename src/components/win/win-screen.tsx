@@ -20,6 +20,7 @@ import { PayPanel } from "./pay-panel";
 import { Receipt } from "./receipt";
 import { ResultCard } from "./result-card";
 import { usePaymentReturn } from "./use-payment-return";
+import { Appear, BEAT } from "./win-motion";
 
 /** "/win?call=<callId>": the result of one call. Also where Stripe sends the visitor back, with "session_id". */
 export function WinScreen() {
@@ -89,7 +90,7 @@ function CallResult({
       <div className="flex flex-col gap-6">
         <NoWin kind={kind} call={call} bankName={bankName} today={today} />
         {planNotice}
-        <NextUp step={nextStep} today={today} />
+        <NextUp step={nextStep} today={today} delay={0.45} />
       </div>
     );
   }
@@ -105,30 +106,39 @@ function CallResult({
           savings={savings ?? { annualSavingsCents: 0, lines: [], feeCents: 0 }}
         />
 
-        {savings === null && <Notice tone="alarm">We could not work out the savings for this call. Nothing is charged for it.</Notice>}
+        {savings === null && (
+          <Appear delay={BEAT.savings}>
+            <Notice tone="alarm">We could not work out the savings for this call. Nothing is charged for it.</Notice>
+          </Appear>
+        )}
         {savings !== null && savings.annualSavingsCents > 0 && (
           <div className="grid items-start gap-6 md:grid-cols-2">
-            <Receipt savings={savings} />
-            <PayPanel
-              call={call}
-              savings={savings}
-              label={`${goalLabel(call.goal)}, ${bankName}`.slice(0, 80)}
-              paymentReturn={paymentReturn}
-            />
+            <Appear delay={BEAT.receipt}>
+              <Receipt savings={savings} />
+            </Appear>
+            {/* The fee and the way to pay it arrive last, once the win and what it is worth have landed. */}
+            <Appear delay={BEAT.pay}>
+              <PayPanel
+                call={call}
+                savings={savings}
+                label={`${goalLabel(call.goal)}, ${bankName}`.slice(0, 80)}
+                paymentReturn={paymentReturn}
+              />
+            </Appear>
           </div>
         )}
 
         {planNotice}
-        <NextUp step={nextStep} today={today} primary={call.paid !== null} />
+        <NextUp step={nextStep} today={today} primary={call.paid !== null} delay={BEAT.next} />
 
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <Appear delay={BEAT.links} y={8} className="flex flex-col gap-2 sm:flex-row">
           <Link href="/dashboard" className={buttonVariants({ variant: "outline", size: "lg" })}>
             See paid versus saved
           </Link>
           <Link href="/plan" className={buttonVariants({ variant: "ghost", size: "lg" })}>
             Back to your plan
           </Link>
-        </div>
+        </Appear>
       </div>
     </MotionConfig>
   );

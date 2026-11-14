@@ -1,5 +1,6 @@
 // "From statement to phone call": six numbered step tiles, from Figma node 5:130.
 import Image from "next/image";
+import { Stagger, StaggerItem } from "@/components/motion/reveal";
 import { cn } from "@/lib/utils";
 import { HgHeading, HgSection } from "./ui";
 
@@ -36,7 +37,7 @@ function StepTile({ step }: { step: Step }) {
   return (
     <div
       className={cn(
-        "relative flex h-[224px] flex-col overflow-hidden rounded-[28px] p-7",
+        "relative flex h-[224px] flex-col overflow-hidden rounded-[28px] p-7 transition-[transform,box-shadow] duration-300 ease-out group-hover:-translate-y-1 group-hover:shadow-[0_20px_40px_-24px_rgb(47_107_255/0.5)] [&>span:first-child]:transition-transform [&>span:first-child]:duration-500 group-hover:[&>span:first-child]:-translate-x-2",
         blue
           ? "bg-[linear-gradient(148.95deg,#2448f0_14.286%,#2f6bff_57.143%,#8db6ff_85.714%)]"
           : "border border-hg-line bg-linear-to-b from-[#e6f0fd] to-[#f7faff]",
@@ -74,9 +75,9 @@ export function HowItWorks() {
         lead="You upload a statement and say yes on the call, Haggle does everything in between"
         className="[&_h2]:max-w-[900px] [&_p]:max-w-[900px] [&_p]:text-[18px] [&_p]:leading-7 [&_p]:tracking-[-0.01em] [&_p]:text-hg-muted"
       />
-      <ol className="grid w-full max-w-[1200px] grid-cols-1 gap-x-10 gap-y-6 md:grid-cols-2 lg:grid-cols-3">
+      <Stagger as="ol" gap={0.09} className="grid w-full max-w-[1200px] grid-cols-1 gap-x-10 gap-y-6 md:grid-cols-2 lg:grid-cols-3">
         {STEPS.map((step, i) => (
-          <li key={step.n} className="relative">
+          <StaggerItem as="li" key={step.n} className="group relative">
             <StepTile step={step} />
             {/* Arrow between neighbours in a row of three; hidden when the grid wraps differently. */}
             {i % 3 !== 2 && (
@@ -87,9 +88,9 @@ export function HowItWorks() {
                 <Image src="/landing/how/arrow-right.svg" alt="" width={9.56667} height={9.56667} unoptimized />
               </span>
             )}
-          </li>
+          </StaggerItem>
         ))}
-      </ol>
+      </Stagger>
     </HgSection>
   );
 }

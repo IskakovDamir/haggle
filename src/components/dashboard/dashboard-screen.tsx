@@ -3,6 +3,7 @@
 import { useCaseFile } from "@/lib/store";
 import type { CaseFile, IsoDate } from "@/lib/types";
 import { useToday } from "@/components/call/clock";
+import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { EmptyState, Notice, PageSkeleton } from "@/components/call/page-states";
 import { planFor } from "@/components/call/resolve-call";
 import { CallHistory } from "./call-history";
@@ -48,25 +49,33 @@ function Dashboard({ caseFile, onClear }: { caseFile: CaseFile; onClear: () => v
   const debtFree = debtFreeByCard(caseFile, today);
 
   return (
-    <div className="flex flex-col gap-12">
+    <div className="flex flex-col gap-16 sm:gap-20">
       <Scoreboard totals={totalsFor(caseFile.calls)} />
 
       <section aria-labelledby="debt-free">
-        <h2 id="debt-free" className="text-2xl font-extrabold">
-          Your debt-free date
-        </h2>
-        <p className="mt-1 text-muted">If you pay only the minimum and add nothing to the balance.</p>
+        <Reveal y={16}>
+          <h2 id="debt-free" className="text-[clamp(28px,3.4vw,40px)] leading-[1.125] font-semibold text-hg-ink">
+            Your debt-free date
+          </h2>
+          <p className="mt-2 text-[17px] leading-7 font-medium tracking-[-0.01em] text-muted">
+            If you pay only the minimum and add nothing to the balance.
+          </p>
+        </Reveal>
         {debtFree === null ? (
           <Notice className="mt-4">We could not work out the debt-free dates just now. Please reload the page.</Notice>
         ) : debtFree.size === 0 ? (
           <Notice className="mt-4">None of your cards carries a balance, so there is no debt to pay down.</Notice>
         ) : (
-          <div className="mt-4 grid items-start gap-4 lg:grid-cols-2">
+          <Stagger className="mt-5 grid items-start gap-4 lg:grid-cols-2">
             {caseFile.cards.map((card) => {
               const forCard = debtFree.get(card.id);
-              return forCard ? <DebtFreeCard key={card.id} card={card} debtFree={forCard} /> : null;
+              return forCard ? (
+                <StaggerItem key={card.id}>
+                  <DebtFreeCard card={card} debtFree={forCard} />
+                </StaggerItem>
+              ) : null;
             })}
-          </div>
+          </Stagger>
         )}
       </section>
 
@@ -78,9 +87,9 @@ function Dashboard({ caseFile, onClear }: { caseFile: CaseFile; onClear: () => v
 
       <CallHistory calls={caseFile.calls} cards={caseFile.cards} />
 
-      <div className="border-t border-line pt-6">
+      <Reveal y={12} className="border-t border-line pt-6">
         <StartOver onClear={onClear} />
-      </div>
+      </Reveal>
     </div>
   );
 }

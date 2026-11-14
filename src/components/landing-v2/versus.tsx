@@ -2,6 +2,7 @@
 import Image from "next/image";
 import { BlobPanel } from "./pricing-panel";
 import { HgHeading, HgMark, HgSection } from "./ui";
+import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 
 const rows = [
   { need: "Knows what you can ask for", chatbot: "Only if you ask it the right way", haggle: "Finds every lever in your statement" },
@@ -17,12 +18,12 @@ const answer = "flex items-center gap-2.5 text-[14px] leading-5 font-medium trac
 export function Versus() {
   return (
     <HgSection className="flex flex-col items-center gap-10 px-4 pt-14 pb-10 font-manrope sm:px-8 lg:px-10 xl:px-[104px]">
-      <div className="flex flex-col items-center gap-4">
+      <Reveal amount={0.5} className="flex flex-col items-center gap-4">
         <HgHeading title="A chatbot can’t call Chase" />
         <p className="max-w-[640px] text-center text-[18px] leading-7 font-medium tracking-[-0.01em] text-hg-muted">
           It can tell you what to say, but it won’t sit on hold, push past a no or notice when your rate creeps up
         </p>
-      </div>
+      </Reveal>
 
       <BlobPanel dir="versus" angle={158.98} bottoms={{ center: -200, left: -130 }} className="p-3 sm:p-7">
         {/* On narrow screens the table scrolls inside its own box, never the page. */}
@@ -54,9 +55,9 @@ export function Versus() {
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <Stagger as="tbody" gap={0.07}>
               {rows.map((row) => (
-                <tr key={row.need} className="border-t border-hg-line">
+                <StaggerItem as="tr" key={row.need} className="border-t border-hg-line">
                   <th
                     scope="row"
                     className="h-[68px] px-7 py-[22px] text-left text-[17px] leading-6 font-semibold tracking-[-0.01em] text-hg-ink xl:whitespace-nowrap"
@@ -79,9 +80,9 @@ export function Versus() {
                       {row.haggle}
                     </span>
                   </td>
-                </tr>
+                </StaggerItem>
               ))}
-            </tbody>
+            </Stagger>
           </table>
         </div>
       </BlobPanel>
