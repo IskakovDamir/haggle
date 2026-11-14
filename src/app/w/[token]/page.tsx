@@ -24,6 +24,10 @@ const NOTE = {
   unverified: "We could not verify this card. It may have been edited, so treat its numbers with care.",
 } as const;
 
+// Every token is unique and arrives from outside the app (a post, a message), never from in-app navigation,
+// so there is no shell worth prerendering: the page renders on request.
+export const instant = false;
+
 // The token is read inside Suspense so the page shell shows at once; there are no static tokens to prerender.
 export default function SharedWinPage({ params }: PageProps<"/w/[token]">) {
   return (
