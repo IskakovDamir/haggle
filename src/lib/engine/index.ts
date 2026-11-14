@@ -1,63 +1,36 @@
-// CONTRACT STUB. The engine owner replaces the bodies (and may split into files) but keeps these exports
-// and signatures. See SPEC.md, "Engine".
-import type { Analysis, Bps, CallOutcome, CardAccount, Cents, IsoDate, Payoff, Savings } from "@/lib/types";
+// The engine: what a card's debt costs, which asks are worth making, and what a win is worth.
+// Pure functions over integer cents and integer basis points. No I/O, no clock, no model. See SPEC.md, "Engine".
+//
+//   constants.ts    every policy number, including the published survey figures
+//   math.ts         exact integer multiply and divide, rounded half up
+//   interest.ts     monthly and yearly interest
+//   payoff.ts       the minimum payment rule and the month-by-month simulations
+//   utilization.ts  balance / limit
+//   percent.ts      percent wording for the sentences
+//   levers.ts       the six asks, their eligibility, value and sentences
+//   plan.ts         the ordered steps and their dates
+//   analyze.ts      everything above for a set of cards
+//   savings.ts      first-year savings from a call's outcome, and Haggle's fee
 
-/** Minimum payment: 1% of the balance plus the month's interest, at least $25, or the whole balance if smaller. */
-export const MIN_PAYMENT = { percentOfBalanceBps: 100, floorCents: 2500 } as const;
-/** Haggle's fee: 20% of first-year savings, charged only after a win. */
-export const WIN_FEE_BPS = 2000;
-/** Average APR cut for cardholders who ask, used as the expected value before a call. */
-export const EXPECTED_APR_CUT_BPS = 630;
-
-const todo = (name: string): never => {
-  throw new Error(`engine.${name} is not implemented yet`);
-};
-
-/** One month of interest on a balance, rounded half up to the cent. */
-export function monthlyInterestCents(balanceCents: Cents, aprBps: Bps): Cents {
-  void balanceCents;
-  void aprBps;
-  return todo("monthlyInterestCents");
-}
-
-/** Interest over 12 months if the balance stays where it is: balance x APR. */
-export function annualInterestCents(balanceCents: Cents, aprBps: Bps): Cents {
-  void balanceCents;
-  void aprBps;
-  return todo("annualInterestCents");
-}
-
-/** Pay only the minimum each month until the balance is gone. */
-export function simulateMinimumPayments(balanceCents: Cents, aprBps: Bps): Payoff {
-  void balanceCents;
-  void aprBps;
-  return todo("simulateMinimumPayments");
-}
-
-/** Pay a fixed amount each month. paidOff is false when it never covers the interest. */
-export function simulateFixedPayment(balanceCents: Cents, aprBps: Bps, paymentCents: Cents): Payoff {
-  void balanceCents;
-  void aprBps;
-  void paymentCents;
-  return todo("simulateFixedPayment");
-}
-
-/** What the debt costs, which asks are worth making, and in what order. */
-export function analyze(cards: CardAccount[], today: IsoDate): Analysis {
-  void cards;
-  void today;
-  return todo("analyze");
-}
-
-/** First-year savings from what the bank granted on a call, and Haggle's fee for it. */
-export function savingsFromOutcome(card: CardAccount, outcome: CallOutcome): Savings {
-  void card;
-  void outcome;
-  return todo("savingsFromOutcome");
-}
-
-/** 20% of first-year savings, rounded to the cent. */
-export function feeForWin(annualSavingsCents: Cents): Cents {
-  void annualSavingsCents;
-  return todo("feeForWin");
-}
+export {
+  BALANCE_TRANSFER,
+  EXPECTED_APR_CUT_BPS,
+  LIMIT_INCREASE,
+  MAX_PAYOFF_MONTHS,
+  MIN_PAYMENT,
+  PUBLISHED_FIGURES,
+  WIN_FEE_BPS,
+} from "./constants";
+export { annualInterestCents, monthlyInterestCents } from "./interest";
+export {
+  minimumPaymentCents,
+  simulateFixedPayment,
+  simulateMinimumPayments,
+  traceFixedPayment,
+  traceMinimumPayments,
+} from "./payoff";
+export type { PayoffTrace } from "./payoff";
+export { utilizationPct } from "./utilization";
+export { LEVER_ORDER, leversFor } from "./levers";
+export { analyze } from "./analyze";
+export { feeForWin, savingsFromOutcome } from "./savings";
