@@ -19,11 +19,11 @@ export function InsightsHeader() {
         </Link>
         <Link
           href="/phone"
-          className="rounded-full px-3.5 py-2 text-[14px] leading-5 font-semibold text-hg-ink-2 transition-colors hover:text-hg-blue"
+          className="rounded-full px-3.5 py-2 text-[14px] leading-5 font-semibold whitespace-nowrap text-hg-ink-2 transition-colors hover:text-hg-blue"
         >
           Phone numbers
         </Link>
-        <HgButton href="/" tone="dark" size="s">
+        <HgButton href="/" tone="dark" size="s" className="hidden sm:inline-flex">
           What is Haggle
         </HgButton>
       </nav>

@@ -82,7 +82,7 @@ async function IssuerView({ params }: { params: PageProps<"/phone/[issuer]">["pa
             style={{ backgroundImage: "linear-gradient(161.82deg, #2453e6 14.286%, #0f2a9e 85.714%)" }}
           >
             <p className="text-[15px] leading-5 font-semibold text-white/75">{line.label}</p>
-            <PhoneNumber line={line} className="text-[clamp(40px,6vw,64px)] leading-none font-semibold tracking-[-0.03em] text-white hover:text-white/85" />
+            <PhoneNumber line={line} className="text-[clamp(30px,8.4vw,64px)] leading-none font-semibold tracking-[-0.03em] whitespace-nowrap text-white hover:text-white/85" />
             <p className="text-[16px] leading-6 font-medium text-white/85">{line.hours ?? `Hours are not listed on ${issuer.source.name}.`}</p>
             <p className="mt-2 text-[13px] leading-[18px] font-medium">
               <CheckedOn issuer={issuer} tone="dark" />
