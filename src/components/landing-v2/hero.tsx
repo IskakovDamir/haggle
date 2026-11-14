@@ -1,6 +1,7 @@
 // Hero from the Figma frame "Hero" (12:184): nav, headline with inline pills, CTAs and the device picture.
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { LocaleSwitch } from "@/components/i18n/locale-switch";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { landingPath, type Copy, type Locale } from "@/lib/i18n/locale";
@@ -197,7 +198,7 @@ export function Hero({ locale = "en" }: { locale?: Locale }) {
           >
             <span className="rounded-full bg-hg-blue px-2.5 py-1 text-[12px] text-white">{t.badge}</span>
             {t.badgeText}
-            <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
+            <ArrowRight aria-hidden className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" strokeWidth={2.25} />
           </Link>
         </Reveal>
         <Headline locale={locale} />

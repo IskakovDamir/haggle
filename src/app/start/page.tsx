@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import { SiteShell } from "@/components/site/shell";
 import { StartFlow } from "@/components/start/start-flow";
@@ -20,9 +21,7 @@ export default function StartPage() {
         <span>
           <span className="text-hg-blue">Missed a payment?</span> Start here to get the late fee and your old rate back.
         </span>
-        <span aria-hidden className="text-hg-blue transition-transform group-hover:translate-x-0.5">
-          →
-        </span>
+        <ArrowRight aria-hidden className="size-4 shrink-0 text-hg-blue transition-transform duration-200 group-hover:translate-x-0.5" strokeWidth={2.25} />
       </Link>
       {/* StartFlow reads ?sample= from the URL, which is only known in the browser. */}
       <Suspense fallback={<StartSkeleton />}>

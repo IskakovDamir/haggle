@@ -3,6 +3,7 @@ import type { Copy, Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
 import { HgButton, HgMark } from "./ui";
 import { HeroIcon } from "./hero-icon";
+import { ArrowText } from "@/components/ui/arrow-text";
 
 const caption = "text-[13px] leading-[18px] font-semibold tracking-[-0.002em]";
 const h4 = "text-[17px] leading-6 font-semibold tracking-[-0.01em]";
@@ -159,7 +160,7 @@ function InterestChart({ t }: { t: TabletCopy }) {
           </div>
         ))}
         <span className={`${caption} absolute top-[11px] left-[117px] rounded-[10px] bg-hg-ink px-2.5 py-1.5 whitespace-nowrap text-white`}>
-          {t.callTag}
+          <ArrowText text={t.callTag} />
         </span>
       </div>
     </div>

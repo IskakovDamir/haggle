@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { EASE } from "@/components/motion/reveal";
+import { ArrowText } from "@/components/ui/arrow-text";
 import { caption, Panel, PanelHeader, Pill } from "@/components/site/app-ui";
 import { formatCents, formatDollars } from "@/lib/money";
 import { cn } from "@/lib/utils";
@@ -98,7 +99,7 @@ export function InterestChart({ series, subtitle }: { series: InterestSeries; su
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, ease: EASE, delay: 0.9 }}
                     >
-                      {marker.label}
+                      <ArrowText text={marker.label} />
                     </motion.span>
                   ) : (
                     <span

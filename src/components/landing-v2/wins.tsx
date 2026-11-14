@@ -48,6 +48,13 @@ const COPY: Copy<WinsCopy> = {
   },
 };
 
+/**
+ * Art is placed from the card's right edge, so it stays on the right when a card is wider than in
+ * Figma (one column below lg). Figma gives x from the left of a 572px card, for 290px art.
+ */
+const FIGMA_CARD_WIDTH = 572;
+const ART_SIZE = 290;
+
 const WINS: Win[] = [
   { tone: "blue", art: { src: "/landing/wins/3d-arrow-down.png", x: 267.2, y: 17.42, rotate: 5.58 } },
   { tone: "white", art: { src: "/landing/wins/3d-gauge.png", x: 268.41, y: 22.77, rotate: 8 } },
@@ -118,8 +125,8 @@ function WinCard({ win, text, more, index }: { win: Win; text: WinText; more: st
       </a>
       <div
         aria-hidden
-        className="hg-float pointer-events-none absolute -right-5 -bottom-8 size-[150px] sm:right-auto sm:bottom-auto sm:left-(--x) sm:top-(--y) sm:size-[290px]"
-        style={{ "--x": `${win.art.x}px`, "--y": `${win.art.y}px`, rotate: `${win.art.rotate}deg`, animationDelay: `${index * -1.6}s` } as React.CSSProperties}
+        className="hg-float pointer-events-none absolute -right-5 -bottom-8 size-[150px] sm:right-(--r) sm:bottom-auto sm:top-(--y) sm:size-[290px]"
+        style={{ "--r": `${FIGMA_CARD_WIDTH - win.art.x - ART_SIZE}px`, "--y": `${win.art.y}px`, rotate: `${win.art.rotate}deg`, animationDelay: `${index * -1.6}s` } as React.CSSProperties}
       >
         <Image
           src={win.art.src}
