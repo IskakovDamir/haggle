@@ -29,6 +29,7 @@ An AI agent on the borrower's side. It reads a credit card statement, computes w
 - Vercel caps request bodies at 4.5 MB: downscale images in the browser before upload.
 - Do not add dependencies without saying so; parallel sessions share one lockfile.
 - A dev server may already be running on port 3000. Do not start a second one.
+- Commits are authored by IskakovDamir (set in this repo's git config). The Vercel project belongs to another account, which blocks CLI deploys that carry this git author: deploy from a `git archive HEAD` copy with `.vercel` copied in.
 
 # Next.js
 @AGENTS.md
