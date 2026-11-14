@@ -24,7 +24,8 @@ Your report is checked by code against the bank's own lines, and the cardholder 
 
 Rules:
 - Only the bank can grant something. What the agent asked for, offered or read back is not a grant. Report a number only when the bank itself said that number.
-- Copy each number exactly as the bank said it. Do not round, convert or work anything out.
+- Copy each number exactly as the bank said it. Do not round, convert or work anything out. A number the bank said in words counts the same as digits: "forty dollars" is 40.
+- When the bank states the same term more than once, report the last figure it confirmed. "I can do 27%" followed later by "the 27.24% APR starts next month" is 27.24.
 - A field is null unless the bank granted that thing on this call. A possibility ("I might be able to"), an offer the bank took back, or anything that depends on a later review is not granted.
 - result is "won" when the bank granted what the call asked for, "partial" when it granted something concrete but less than the ask or something else instead, "declined" when the bank said no and granted nothing, and "unclear" when the call ended before an answer or you cannot tell.
 - evidence holds one short quote for each thing granted, copied word for word from a bank line, with that line's index. Never quote an agent line. Leave it empty when nothing was granted.

@@ -1,6 +1,7 @@
 // The code check on a model-read outcome. A model reads the transcript; this file decides whether
 // to believe it. The rule: a number counts as granted only if the bank itself said it.
 import type { CallOutcome, Turn } from "@/lib/types";
+import { spokenFigures } from "./spoken-numbers";
 
 type Draft = Omit<CallOutcome, "verified">;
 
@@ -35,6 +36,8 @@ function figuresSaidByBank(turns: Turn[]): Set<number> {
       const value = toHundredths(match);
       if (value !== null) figures.add(value);
     }
+    // Speech to text on a phone call often writes numbers as words: "forty dollar".
+    for (const value of spokenFigures(turn.text)) figures.add(value);
   }
   return figures;
 }
@@ -97,6 +100,9 @@ export function verifyOutcome(draft: Omit<CallOutcome, "verified">, turns: Turn[
 
   const claimsWin = checked.result === "won" || checked.result === "partial";
   const winWithoutProof = claimsWin && confirmed === 0 && checked.evidence.length === 0;
-  if (rejected > 0 || winWithoutProof) return { ...checked, result: "unclear", verified: false };
+  if (winWithoutProof || (rejected > 0 && confirmed === 0)) return { ...checked, result: "unclear", verified: false };
+  // Some numbers held and some did not: keep only what the bank said, and call it a partial win.
+  // The dropped numbers are never counted or charged for.
+  if (rejected > 0) return { ...checked, result: claimsWin ? "partial" : checked.result, verified: true };
   return { ...checked, verified: true };
 }

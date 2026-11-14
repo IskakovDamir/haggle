@@ -82,7 +82,18 @@ describe("verifyOutcome: what it catches", () => {
       ["bank", "I can't waive the fee. What I can do is lower your rate to 24.99%."],
     );
     const outcome = verifyOutcome(draft({ result: "won", aprAfterBps: 2499, annualFeeWaivedCents: 9500 }), turns);
-    expect(outcome).toMatchObject({ result: "unclear", aprAfterBps: 2499, annualFeeWaivedCents: null, verified: false });
+    // The waiver is dropped and never charged; the rate the bank said itself still counts.
+    expect(outcome).toMatchObject({ result: "partial", aprAfterBps: 2499, annualFeeWaivedCents: null, verified: true });
+  });
+
+  it("keeps a rate the bank said when a fee it only agreed to by 'yes' is dropped", () => {
+    const turns = transcript(
+      ["agent", "So to confirm, Chase is refunding the full forty dollar late fee?"],
+      ["bank", "Yes, yes."],
+      ["bank", "The rate's 27.24%. It's gonna start tomorrow."],
+    );
+    const outcome = verifyOutcome(draft({ result: "won", aprAfterBps: 2724, lateFeeRefundCents: 4000 }), turns);
+    expect(outcome).toMatchObject({ result: "partial", aprAfterBps: 2724, lateFeeRefundCents: null, verified: true });
   });
 
   it("catches a win with no number and no words from the bank behind it", () => {

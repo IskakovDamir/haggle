@@ -65,5 +65,10 @@ describe("readConversation", () => {
     });
     expect(noAnswer).toMatchObject({ status: "failed", reason: "Nobody picked up." });
     expect(readConversation({ status: "failed" })).toMatchObject({ status: "failed", reason: "The call could not be connected." });
+    // ElevenLabs can leave an unanswered call at "initiated".
+    expect(readConversation({ status: "initiated", metadata: { phone_call: { call_result: "no_answer" } } })).toMatchObject({
+      status: "failed",
+      reason: "Nobody picked up.",
+    });
   });
 });

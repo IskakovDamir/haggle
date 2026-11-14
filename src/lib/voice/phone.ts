@@ -67,6 +67,9 @@ export function readConversation(record: ConversationRecord): { status: PhoneCal
   const callResult = record.metadata?.phone_call?.call_result ?? null;
   const unanswered = callResult !== null && callResult !== "answered" ? CALL_RESULT_SENTENCE[callResult] ?? null : null;
 
+  // An unanswered call can keep the status "initiated" for good, so the call result decides it first.
+  if (unanswered && turns.length === 0) return { status: "failed", reason: unanswered, turns };
+
   switch (record.status) {
     case "failed":
       return { status: "failed", reason: unanswered ?? "The call could not be connected.", turns };

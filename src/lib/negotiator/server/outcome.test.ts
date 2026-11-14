@@ -111,7 +111,9 @@ describe("POST /api/outcome: what the code check catches", () => {
 
   it("a fee waiver the bank never granted", async () => {
     const { outcome } = await readCall(wonCall, reading({ result: "won", aprAfterPercent: 19.99, annualFeeWaivedDollars: 95 }));
-    expect(outcome).toMatchObject({ result: "unclear", aprAfterBps: 1999, annualFeeWaivedCents: null, verified: false });
+    // The waiver is dropped and never charged. The rate the bank said still counts, and it meets this
+    // APR call's ask, so the grade against the brief makes it a win.
+    expect(outcome).toMatchObject({ result: "won", aprAfterBps: 1999, annualFeeWaivedCents: null, verified: true });
   });
 });
 

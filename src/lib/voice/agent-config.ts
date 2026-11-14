@@ -27,6 +27,9 @@ const CLIENT_EVENTS = [
  */
 const AGENT_MAX_SECONDS = MAX_CALL_MS / 1000 + 15;
 
+/** Sounds a listener makes while the agent talks. They mean "go on", not "stop". */
+const INTERRUPTION_IGNORE_TERMS = ["okay", "ok", "yeah", "yep", "uh huh", "mhm", "mm", "right", "sure", "got it", "go ahead", "hmm"];
+
 export type AgentSettings = { llm: string; voiceId?: string };
 
 export function agentConfig(settings: AgentSettings) {
@@ -35,6 +38,8 @@ export function agentConfig(settings: AgentSettings) {
     conversation_config: {
       agent: {
         first_message: AGENT_FIRST_MESSAGE,
+        // The opening line carries the disclosures (AI assistant, recorded call). Noise must not cut it short.
+        disable_first_message_interruptions: true,
         language: "en",
         prompt: {
           prompt: agentPrompt(PINNED_RULES),
@@ -46,6 +51,13 @@ export function agentConfig(settings: AgentSettings) {
         },
       },
       conversation: { max_duration_seconds: AGENT_MAX_SECONDS, client_events: CLIENT_EVENTS },
+      // Phone lines and busy rooms are noisy. The agent waits a beat before taking its turn, and short
+      // listening sounds ("okay", "mhm", "yeah") from the other side do not stop it mid-sentence.
+      turn: {
+        turn_eagerness: "patient",
+        interruption_ignore_terms: INTERRUPTION_IGNORE_TERMS,
+        merge_with_default_ignore_terms: true,
+      },
       tts: {
         model_id: AGENT_TTS_MODEL,
         voice_id: settings.voiceId ?? AGENT_VOICES[DEFAULT_AGENT_VOICE].id,
