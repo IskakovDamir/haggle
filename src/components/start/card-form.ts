@@ -45,6 +45,7 @@ export type FieldMessages = Partial<Record<CardFormField, string[]>>;
 const FIELDS_OF: Record<ExtractionWarning["field"], CardFormField[]> = {
   document: [],
   id: [],
+  missedPayment: [],
   issuer: ["issuerName"],
   issuerName: ["issuerName"],
   cardName: ["cardName"],

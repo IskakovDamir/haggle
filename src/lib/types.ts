@@ -47,6 +47,26 @@ export type CardAccount = {
   dueDate: IsoDate | null;
   memberSinceYear: number | null;
   latePaymentsLast12m: number | null;
+  /** Set when the visitor came in because they missed a payment on this card. Absent on older saved cards. */
+  missedPayment?: MissedPayment | null;
+};
+
+/** Why the payment was missed, picked by the visitor. The agent says only the reason picked, never a different one. */
+export type MissedReason = "autopay_failed" | "account_changed" | "travel" | "medical" | "income_drop" | "forgot" | "other";
+
+/** What the visitor told us about one missed payment. Everything here is their own account of it. */
+export type MissedPayment = {
+  reason: MissedReason;
+  /** The visitor's own words, one short line. Empty when they added nothing. */
+  note: string;
+  /** How many days late the payment was or is. null when they did not say. */
+  daysLate: number | null;
+  /** True when the visitor says the missed payment has been paid since. */
+  paidSince: boolean;
+  /** True when the visitor says this is their first late payment in the last 12 months. */
+  firstInYear: boolean;
+  /** The APR before the bank raised it after the miss. null when the rate did not change. */
+  aprBeforeBps: Bps | null;
 };
 
 export type ExtractionWarning = { field: keyof CardAccount | "document"; message: string };
@@ -70,6 +90,7 @@ export type Payoff = {
 };
 
 export type LeverKind =
+  | "missed_payment"
   | "apr_reduction"
   | "annual_fee_waiver"
   | "late_fee_refund"

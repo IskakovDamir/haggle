@@ -26,6 +26,7 @@ export const briefSchema: z.ZodType<NegotiationBrief> = z.object({
     .regex(/^\d{4}$/)
     .nullable(),
   goal: z.enum([
+    "missed_payment",
     "apr_reduction",
     "annual_fee_waiver",
     "late_fee_refund",

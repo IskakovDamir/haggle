@@ -11,6 +11,7 @@ import { utilizationPct } from "./utilization";
 
 /** The order levers are listed in and worked through: calls for money first, the transfer last. */
 export const LEVER_ORDER: readonly LeverKind[] = [
+  "missed_payment",
   "apr_reduction",
   "annual_fee_waiver",
   "late_fee_refund",
@@ -34,7 +35,40 @@ const aprOf = (card: CardAccount) => wholeOrZero(card.purchaseAprBps);
 /** "$95 " when there is a fee to name, nothing when there is none. */
 const feeLabel = (feeCents: Cents) => (wholeOrZero(feeCents) > 0 ? `${formatShort(wholeOrZero(feeCents))} ` : "");
 
+/** The asks a missed-payment call already covers, so they are not counted or called about twice. */
+const COVERED_BY_MISSED_CALL = "This is part of the missed-payment call for this card.";
+
+/** The rate the bank moved the card to after the miss, and the rate before. null when it did not change. */
+function rateRaise(card: CardAccount): { before: number; now: number } | null {
+  const before = card.missedPayment?.aprBeforeBps;
+  const now = aprOf(card);
+  if (before === null || before === undefined || !(before >= 0) || before >= now) return null;
+  return { before: Math.round(before), now };
+}
+
 const RULES: Record<LeverKind, LeverRule> = {
+  missed_payment: {
+    needsCall: true,
+    title: (card) => `Ask ${bankName(card)} to forgive the missed payment`,
+    judge: (card) => {
+      if (!card.missedPayment) return { reason: "You have not told us about a missed payment on this card." };
+      const fee = wholeOrZero(card.lateFeeCents);
+      const raise = rateRaise(card);
+      const raiseCost = raise ? annualInterestCents(balanceOf(card), raise.now - raise.before) : 0;
+      const parts: string[] = [];
+      if (fee > 0) parts.push(`a ${formatShort(fee)} late fee`);
+      if (raise) {
+        parts.push(
+          `a rate raised from ${formatApr(raise.before)} to ${formatApr(raise.now)}, about ${formatDollars(raiseCost)} a year on this balance`,
+        );
+      }
+      const cost = parts.length > 0 ? `The missed payment cost you ${parts.join(" and ")}.` : "The missed payment is on your record.";
+      const ask =
+        "A goodwill call asks the bank to take it back as a one-time courtesy and to keep the late payment off your credit report.";
+      return { why: `${cost} ${ask}`, valueCents: fee + raiseCost };
+    },
+  },
+
   apr_reduction: {
     needsCall: true,
     title: (card) => `Ask ${bankName(card)} to lower your APR`,
@@ -43,6 +77,8 @@ const RULES: Record<LeverKind, LeverRule> = {
       const apr = aprOf(card);
       if (balance === 0) return { reason: "There is no balance on this card, so a lower rate would not save anything." };
       if (apr === 0) return { reason: "This card's APR is already 0%." };
+      // Asking for less than the raised rate would count the same interest twice. Get the old rate back first.
+      if (rateRaise(card)) return { reason: `${COVERED_BY_MISSED_CALL} Ask for a lower rate after it, once the old rate is back.` };
 
       // A cut can never be worth more than the interest itself.
       const cutBps = Math.min(EXPECTED_APR_CUT_BPS, apr);
@@ -74,6 +110,7 @@ const RULES: Record<LeverKind, LeverRule> = {
     needsCall: true,
     title: (card) => `Ask ${bankName(card)} to refund the ${feeLabel(card.lateFeeCents)}late fee`,
     judge: (card) => {
+      if (card.missedPayment) return { reason: COVERED_BY_MISSED_CALL };
       const fee = wholeOrZero(card.lateFeeCents);
       if (fee === 0) return { reason: "There is no late fee on this statement." };
       return {
@@ -87,6 +124,7 @@ const RULES: Record<LeverKind, LeverRule> = {
     needsCall: true,
     title: (card) => `Ask ${bankName(card)} to review your penalty APR`,
     judge: (card) => {
+      if (card.missedPayment) return { reason: COVERED_BY_MISSED_CALL };
       const apr = aprOf(card);
       const penalty = card.penaltyAprBps === null ? 0 : wholeOrZero(card.penaltyAprBps);
       if (penalty === 0) return { reason: "The statement does not show a penalty APR." };

@@ -51,6 +51,8 @@ describe("analyze: Maria's two cards", () => {
     // that figure, these two lines and the sentences below change with it.
     const values = analysis.levers.map((lever) => [`${lever.cardId}:${lever.kind}`, lever.eligible, lever.potentialAnnualCents]);
     expect(values).toEqual([
+      // Neither card has a missed payment on it.
+      ["chase:missed_payment", false, 0],
       ["chase:apr_reduction", true, 52_920],
       ["chase:annual_fee_waiver", false, 0],
       ["chase:late_fee_refund", false, 0],
@@ -58,6 +60,7 @@ describe("analyze: Maria's two cards", () => {
       ["chase:credit_limit_increase", true, 0],
       // $2,288.16 of interest minus a $252.00 transfer fee
       ["chase:balance_transfer", true, 203_616],
+      ["capital-one:missed_payment", false, 0],
       ["capital-one:apr_reduction", true, 19_530],
       ["capital-one:annual_fee_waiver", true, 9_500],
       ["capital-one:late_fee_refund", false, 0],

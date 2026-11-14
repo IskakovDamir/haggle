@@ -6,6 +6,7 @@ import type { CardAccount, CaseFile, IsoDate, LeverKind, NegotiationBrief, PlanS
 import { firstOpenStep } from "@/components/dashboard/progress";
 
 const LEVER_KINDS: readonly LeverKind[] = [
+  "missed_payment",
   "apr_reduction",
   "annual_fee_waiver",
   "late_fee_refund",

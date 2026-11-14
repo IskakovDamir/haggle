@@ -100,6 +100,8 @@ function toDraft(reading: Reading): Draft {
 }
 
 const ASKED_FOR: Record<LeverKind, string> = {
+  missed_payment:
+    "a goodwill adjustment after a missed payment: a late fee refund, the old APR back if it was raised, and any interest refund (count an interest refund as statementCreditDollars)",
   apr_reduction: "a lower purchase APR",
   annual_fee_waiver: "a waiver of the annual fee",
   late_fee_refund: "a refund of a late fee",

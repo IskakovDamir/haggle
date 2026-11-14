@@ -149,16 +149,26 @@ export function Hero() {
       </Reveal>
 
       <div className="relative flex flex-col items-center gap-[26px] pt-12">
+        <Reveal delay={0} y={10}>
+          <Link
+            href="/missed"
+            className="group inline-flex items-center gap-2 rounded-full border border-white bg-white/70 py-1.5 pr-3 pl-1.5 text-[14px] font-semibold text-hg-ink-2 backdrop-blur transition-colors hover:bg-white"
+          >
+            <span className="rounded-full bg-hg-blue px-2.5 py-1 text-[12px] text-white">New</span>
+            Missed a payment? Get the late fee back
+            <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
+          </Link>
+        </Reveal>
         <Headline />
         <Reveal as="p" delay={0.45} y={16} className="max-w-[960px] text-center text-[16px] leading-6 font-medium tracking-[-0.01em] text-hg-ink-2 sm:text-[18px] sm:leading-7">
           Haggle calls your card issuer, waits on hold and negotiates a lower APR, and you pay only after you save
         </Reveal>
         <Reveal delay={0.6} y={16} className="flex flex-wrap items-center justify-center gap-3">
-          <HgButton href="/start" arrow>
-            Call my bank
+          <HgButton href="/missed" arrow>
+            I missed a payment
           </HgButton>
-          <HgButton href="/start?sample=maria-chase" tone="dark">
-            Try a demo call
+          <HgButton href="/start" tone="dark">
+            Lower my rate
           </HgButton>
         </Reveal>
       </div>

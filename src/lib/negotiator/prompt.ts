@@ -15,6 +15,7 @@ function cardLabel(brief: NegotiationBrief): string {
 
 /** Why the agent is calling, worded to finish a sentence: "We are calling ... to ask for a lower interest rate." */
 const CALL_PURPOSE: Record<LeverKind, string> = {
+  missed_payment: "about a missed payment, to ask for a one-time courtesy adjustment",
   apr_reduction: "to ask for a lower interest rate",
   annual_fee_waiver: "to ask you to waive the annual fee",
   late_fee_refund: "to ask for a refund of the late fee on the latest statement",
@@ -26,6 +27,18 @@ const CALL_PURPOSE: Record<LeverKind, string> = {
 /** The one ask of this call, with its numbers. */
 function goalInstruction(brief: NegotiationBrief): string {
   switch (brief.goal) {
+    case "missed_payment": {
+      const rate =
+        brief.askAprBps === null
+          ? ""
+          : ` Then ask to put the APR back from ${formatApr(brief.currentAprBps)} to ${formatApr(brief.askAprBps)}, the rate before the miss.`;
+      return (
+        `This is a goodwill request after a missed payment. Open with a short apology on ${brief.holderFirstName}'s behalf, then give the reason for the miss exactly as FACTS states it, and point to the history in FACTS. ` +
+        `Ask, one at a time: first, a one-time refund of the late fee.${rate} Then ask whether the interest charged that month can be refunded too. ` +
+        `Last, ask the representative to confirm the late payment will not be reported to the credit bureaus, or, if it already was, to remove it as a goodwill adjustment. ` +
+        "If they offer part of something, thank them and ask once for the rest before accepting. Any refund is a win."
+      );
+    }
     case "apr_reduction":
       if (brief.askAprBps === null || brief.acceptAprBps === null) {
         return "Ask what lower purchase APR is available on this account. Do not name a target rate.";
@@ -82,7 +95,7 @@ These rules come before the goal. Losing the call is fine. Breaking a rule is no
 ${bullets(brief.disclosures)}
    If they were already said at the start of the call, do not repeat them. If anyone asks whether you are a person, say again that you are an AI assistant.
 2. State only the facts listed above. If the representative asks about anything else, say you do not have that information and that ${holder} can answer.
-3. Never invent an offer, a hardship, a competitor quote or a deadline. Do not say another bank has offered anything. Do not say the cardholder lost a job, is ill or is in an emergency. Do not say anything expires or must happen today.
+3. Never invent an offer, a hardship, a competitor quote or a deadline. Do not say another bank has offered anything. Do not say the cardholder lost a job, is ill or is in an emergency unless FACTS says so, and then say only what FACTS says. Never give a reason for a missed payment that is not in FACTS. Do not say anything expires or must happen today.
 4. Never give personal data. No Social Security number, no date of birth, no full card number, no address, no security answers. When the bank needs to verify identity, say that ${holder} is on the line and will verify it directly, then wait.
 5. Never promise a payment, a date or anything else on the cardholder's behalf.
 

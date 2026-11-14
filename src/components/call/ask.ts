@@ -4,6 +4,7 @@ import { formatShort } from "@/lib/money";
 import type { CardAccount, LeverKind, NegotiationBrief } from "@/lib/types";
 
 const GOAL_LABELS: Record<LeverKind, string> = {
+  missed_payment: "Missed payment forgiven",
   apr_reduction: "Lower APR",
   annual_fee_waiver: "Annual fee waiver",
   late_fee_refund: "Late fee refund",
@@ -19,6 +20,14 @@ export function goalLabel(goal: LeverKind): string {
 
 export function askSentence(brief: NegotiationBrief, card: CardAccount): string {
   switch (brief.goal) {
+    case "missed_payment": {
+      const asks: string[] = [];
+      if (card.lateFeeCents > 0) asks.push(`refund the ${formatShort(card.lateFeeCents)} late fee`);
+      if (brief.askAprBps !== null) asks.push(`put the APR back from ${formatApr(brief.currentAprBps)} to ${formatApr(brief.askAprBps)}`);
+      asks.push("keep the late payment off the credit report");
+      const list = asks.length > 1 ? `${asks.slice(0, -1).join(", ")} and ${asks[asks.length - 1]}` : asks[0];
+      return `As a one-time courtesy, ${list}.`;
+    }
     case "apr_reduction": {
       if (brief.askAprBps === null) return `Lower the ${formatApr(brief.currentAprBps)} APR.`;
       const ask = `Lower the APR from ${formatApr(brief.currentAprBps)} to ${formatApr(brief.askAprBps)}.`;

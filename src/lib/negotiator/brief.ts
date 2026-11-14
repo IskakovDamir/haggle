@@ -1,6 +1,7 @@
 // The brief: everything the agent may know and say on one call. Built by code from the confirmed card,
 // never by a model, so the agent has no source for a fact that is not on the statement.
 import { formatApr } from "@/lib/format";
+import { missedPaymentFacts } from "@/lib/missed";
 import { formatCents, formatShort } from "@/lib/money";
 import type { Bps, CardAccount, Lever, LeverKind, NegotiationBrief } from "@/lib/types";
 
@@ -26,13 +27,25 @@ export function aprTargets(currentAprBps: Bps): { askAprBps: Bps | null; acceptA
   return { askAprBps: ask, acceptAprBps: Math.max(currentAprBps - WIN_APR_CUT_BPS, ask) };
 }
 
+/** After a missed payment: ask for the rate the card had before the miss. Both null when the rate did not change. */
+function oldRateBack(card: CardAccount): { askAprBps: Bps | null; acceptAprBps: Bps | null } {
+  const before = card.missedPayment?.aprBeforeBps ?? null;
+  if (before === null || before >= card.purchaseAprBps) return { askAprBps: null, acceptAprBps: null };
+  return { askAprBps: before, acceptAprBps: before };
+}
+
 /** Everything the agent may know and say on one call. Deterministic: no model involved. */
 export function buildBrief(input: { card: CardAccount; holderFirstName: string; lever: Lever }): NegotiationBrief {
   const { card } = input;
   const goal = input.lever.kind;
   const holder = oneLine(input.holderFirstName, 40) || UNNAMED_HOLDER;
   const issuerName = oneLine(card.issuerName, 60) || "the bank";
-  const targets = goal === "apr_reduction" ? aprTargets(card.purchaseAprBps) : { askAprBps: null, acceptAprBps: null };
+  const targets =
+    goal === "apr_reduction"
+      ? aprTargets(card.purchaseAprBps)
+      : goal === "missed_payment"
+        ? oldRateBack(card)
+        : { askAprBps: null, acceptAprBps: null };
 
   return {
     holderFirstName: holder,
@@ -63,6 +76,18 @@ function factsFromCard(card: CardAccount, issuerName: string, goal: LeverKind): 
   const facts: string[] = [];
 
   if (card.memberSinceYear !== null) facts.push(`${capitalize(issuerName)} cardholder since ${card.memberSinceYear}.`);
+  // The missed-payment call leans on the visitor's own account of the miss, and on nothing else.
+  if (goal === "missed_payment" && card.missedPayment) {
+    facts.push(...missedPaymentFacts(card.missedPayment));
+    if (card.lateFeeCents > 0) facts.push(`A late fee of ${formatShort(card.lateFeeCents)} was charged.`);
+    const before = card.missedPayment.aprBeforeBps;
+    if (before !== null && before < card.purchaseAprBps) {
+      facts.push(`After the missed payment the APR went from ${formatApr(before)} to ${formatApr(card.purchaseAprBps)}.`);
+    }
+    if (card.interestChargedCents !== null && card.interestChargedCents > 0) {
+      facts.push(`Interest of ${formatCents(card.interestChargedCents)} was charged on that statement.`);
+    }
+  }
   // "Never late" needs a known count of zero, and a late fee on this very statement contradicts it.
   if (card.latePaymentsLast12m === 0 && card.lateFeeCents === 0) {
     facts.push("Every payment in the last 12 months was made on time.");
@@ -81,7 +106,8 @@ function factsFromCard(card: CardAccount, issuerName: string, goal: LeverKind): 
   if (goal === "penalty_apr_review" && card.penaltyAprBps !== null) {
     facts.push(`The penalty APR on this card is ${formatApr(card.penaltyAprBps)}.`);
   }
-  return facts;
+  // The request schema takes at most 12 facts.
+  return facts.slice(0, 12);
 }
 
 /**
@@ -101,6 +127,7 @@ function fallbackIntention(holder: string, goal: LeverKind, balanceCents: number
     case "annual_fee_waiver":
       return `${subject} is considering a move to a card with no annual fee.`;
     case "late_fee_refund":
+    case "missed_payment":
       return `${subject} is considering a different card for everyday spending.`;
     case "credit_limit_increase":
       return askAgainLater;

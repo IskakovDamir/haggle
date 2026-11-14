@@ -27,6 +27,7 @@ const aprBps = z.number().int().min(0).max(100_00);
 
 const ISSUERS = ["chase", "capital_one", "citi", "amex", "discover", "bank_of_america", "wells_fargo", "other"] as const;
 const GOALS = [
+  "missed_payment",
   "apr_reduction",
   "annual_fee_waiver",
   "late_fee_refund",
