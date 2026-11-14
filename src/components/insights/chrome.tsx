@@ -14,6 +14,18 @@ export function InsightsHeader({ lang = "en" }: { lang?: Locale }) {
         <HgLogo href="/es" />
         <nav aria-label="Secciones" className="flex items-center gap-1 sm:gap-2">
           <Link
+            href="/es/datos"
+            className="hidden rounded-full px-3.5 py-2 text-[14px] leading-5 font-semibold text-hg-ink-2 transition-colors hover:text-hg-blue sm:inline-flex"
+          >
+            Datos
+          </Link>
+          <Link
+            href="/es/herramientas/calculadora-de-intereses"
+            className="hidden rounded-full px-3.5 py-2 text-[14px] leading-5 font-semibold whitespace-nowrap text-hg-ink-2 transition-colors hover:text-hg-blue md:inline-flex"
+          >
+            Calculadora
+          </Link>
+          <Link
             href="/es/telefonos"
             className="rounded-full px-3.5 py-2 text-[14px] leading-5 font-semibold whitespace-nowrap text-hg-ink-2 transition-colors hover:text-hg-blue"
           >

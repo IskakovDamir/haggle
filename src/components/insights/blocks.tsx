@@ -5,25 +5,37 @@ import { GrowBar } from "@/components/motion/grow";
 import { formatStatValue } from "@/lib/benchmarks";
 import type { FaqItem, Segment } from "@/lib/benchmarks/faq";
 import type { Bank, BankMetric, Stat, TimelineStep } from "@/lib/benchmarks/types";
-import type { Locale } from "@/lib/i18n/locale";
+import type { Copy, Locale } from "@/lib/i18n/locale";
+import { insightsBankPath } from "@/lib/benchmarks/locale";
 import { cn } from "@/lib/utils";
 import { InlineStat, Provenance, SourceLink } from "./provenance";
 
-export const METRIC_LABEL: Record<BankMetric, string> = {
-  satisfaction: "Satisfaction score",
-  waitToPerson: "Wait to a person",
-  lateFeeMax: "Highest late fee",
-  lateFeeRefundRate: "Late fee refunds granted",
-  typicalAprCut: "Typical rate cut",
+export const METRIC_LABELS: Copy<Record<BankMetric, string>> = {
+  en: {
+    satisfaction: "Satisfaction score",
+    waitToPerson: "Wait to a person",
+    lateFeeMax: "Highest late fee",
+    lateFeeRefundRate: "Late fee refunds granted",
+    typicalAprCut: "Typical rate cut",
+  },
+  es: {
+    satisfaction: "Puntaje de satisfacción",
+    waitToPerson: "Espera para hablar con alguien",
+    lateFeeMax: "Cargo por atraso más alto",
+    lateFeeRefundRate: "Devoluciones aprobadas",
+    typicalAprCut: "Reducción típica de la tasa",
+  },
 };
+
+export const METRIC_LABEL = METRIC_LABELS.en;
 
 const caption = "text-left text-[13px] leading-[18px] font-semibold tracking-[-0.002em] text-hg-muted";
 
 /** A column's provenance, printed in its header. Every stat in a column shares its kind and source. */
-function ColumnLabel({ sample }: { sample: Stat }) {
+function ColumnLabel({ sample, lang }: { sample: Stat; lang: Locale }) {
   return (
     <span className="mt-1 block text-[12px] leading-4 font-medium">
-      <Provenance stat={sample} />
+      <Provenance stat={sample} lang={lang} />
     </span>
   );
 }
@@ -37,12 +49,15 @@ export function BankTable({
   metrics,
   highlight,
   label,
+  lang = "en",
 }: {
   banks: Bank[];
   metrics: BankMetric[];
   highlight?: BankMetric;
   label: string;
+  lang?: Locale;
 }) {
+  const names = METRIC_LABELS[lang];
   const max = highlight ? Math.max(...banks.map((b) => b.stats[highlight].value)) : 1;
   return (
     <BlobPanel dir="versus" angle={158.98} bottoms={{ center: -200, left: -130 }} className="p-3 sm:p-7">
@@ -52,7 +67,7 @@ export function BankTable({
           <thead>
             <tr>
               <th scope="col" className={cn("px-6 py-4 align-bottom", caption)}>
-                Bank
+                {lang === "es" ? "Banco" : "Bank"}
               </th>
               {metrics.map((metric) => (
                 <th
@@ -60,8 +75,8 @@ export function BankTable({
                   scope="col"
                   className={cn("px-5 py-4 align-bottom", caption, metric === highlight && "bg-hg-blue-soft text-hg-ink-2")}
                 >
-                  {METRIC_LABEL[metric]}
-                  <ColumnLabel sample={banks[0].stats[metric]} />
+                  {names[metric]}
+                  <ColumnLabel sample={banks[0].stats[metric]} lang={lang} />
                 </th>
               ))}
             </tr>
@@ -70,7 +85,7 @@ export function BankTable({
             {banks.map((bank) => (
               <tr key={bank.slug} className="border-t border-hg-line">
                 <th scope="row" className="px-6 py-5 text-left text-[17px] leading-6 font-semibold tracking-[-0.01em] whitespace-nowrap text-hg-ink">
-                  <Link href={`/insights/${bank.slug}`} className="transition-colors hover:text-hg-blue">
+                  <Link href={insightsBankPath(bank.slug, lang)} className="transition-colors hover:text-hg-blue">
                     {bank.name}
                   </Link>
                 </th>
@@ -97,7 +112,7 @@ export function BankTable({
 }
 
 /** What happens after a missed payment, each step with its source. No numbering: the "when" line orders it. */
-export function Timeline({ steps }: { steps: TimelineStep[] }) {
+export function Timeline({ steps, lang = "en" }: { steps: TimelineStep[]; lang?: Locale }) {
   return (
     <ol className="relative flex flex-col gap-0 border-l-2 border-hg-blue-tint pl-6 sm:pl-8">
       {steps.map((step) => (
@@ -106,7 +121,7 @@ export function Timeline({ steps }: { steps: TimelineStep[] }) {
           <p className="text-[15px] leading-5 font-semibold tracking-[-0.005em] text-hg-blue">{step.when}</p>
           <p className="mt-1.5 max-w-[60ch] text-[17px] leading-7 font-medium tracking-[-0.01em] text-hg-ink">{step.text}</p>
           <p className="mt-1 text-[13px] leading-[18px] font-medium">
-            <SourceLink source={step.source} />
+            <SourceLink source={step.source} lang={lang} />
           </p>
         </li>
       ))}

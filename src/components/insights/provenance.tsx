@@ -81,12 +81,14 @@ export function StatFigure({
   tone = "light",
   size = "l",
   label,
+  lang = "en",
   className,
 }: {
   stat: Stat;
   tone?: Tone;
   size?: "xl" | "l" | "m";
   label?: string;
+  lang?: Locale;
   className?: string;
 }) {
   return (
@@ -106,7 +108,7 @@ export function StatFigure({
         {label ?? stat.label}
       </p>
       <p className="text-[13px] leading-[18px] font-medium">
-        <Provenance stat={stat} tone={tone} withDate={stat.kind !== "estimate"} />
+        <Provenance stat={stat} tone={tone} withDate={stat.kind !== "estimate"} lang={lang} />
       </p>
     </div>
   );
