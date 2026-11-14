@@ -60,7 +60,8 @@ describe("systemPrompt: the honesty rules", () => {
     ["one ask at a time", /One ask at a time/],
     ["one escalation after a refusal", /After the first refusal, ask once for the retention team or a supervisor/],
     ["then the fallback, truthfully", /state the cardholder's intention from "IF THE BANK SAYS NO" truthfully/],
-    ["accept any concrete improvement", /Accept any concrete improvement/],
+    ["counters a first offer before accepting", /do not accept it right away[\s\S]*Counter at most twice/],
+    ["still takes any concrete improvement in the end", /any concrete improvement is better than none/],
     ["read the exact terms back", /read those exact terms back and ask them to confirm/],
     ["hard credit pull before a limit increase", /Before accepting a credit limit increase, ask whether it needs a hard credit pull/],
     ["short spoken turns", /two or three short sentences per turn/],
@@ -73,7 +74,8 @@ describe("systemPrompt: the honesty rules", () => {
 
   it("carries the ask, the win threshold and the fallback from the brief", () => {
     expect(prompt).toContain("Ask to lower the purchase APR from 27.24% to 17.24%.");
-    expect(prompt).toContain("A new APR of 25.24% or lower is a win.");
+    expect(prompt).toContain("A new APR of 25.24% or lower is a win");
+    expect(prompt).toContain("while an offer is above 17.24%, counter before you accept");
     expect(prompt).toContain(mariaBrief.fallback);
   });
 

@@ -32,12 +32,13 @@ function goalInstruction(brief: NegotiationBrief): string {
       }
       return (
         `Ask to lower the purchase APR from ${formatApr(brief.currentAprBps)} to ${formatApr(brief.askAprBps)}. ` +
-        `A new APR of ${formatApr(brief.acceptAprBps)} or lower is a win. A smaller cut is still worth accepting.`
+        `A new APR of ${formatApr(brief.acceptAprBps)} or lower is a win, but a first offer is rarely the best one: ` +
+        `while an offer is above ${formatApr(brief.askAprBps)}, counter before you accept (see HOW TO NEGOTIATE).`
       );
     case "annual_fee_waiver":
       return brief.annualFeeCents > 0
-        ? `Ask to waive the ${formatShort(brief.annualFeeCents)} annual fee. A credit for part of the fee is still worth accepting.`
-        : "Ask to waive the annual fee. A credit for part of the fee is still worth accepting.";
+        ? `Ask to waive the ${formatShort(brief.annualFeeCents)} annual fee. If they offer to cover only part of it, counter once for the full fee before accepting.`
+        : "Ask to waive the annual fee. If they offer to cover only part of it, counter once for the full fee before accepting.";
     case "late_fee_refund":
       return "Ask for a one-time refund of the late fee on the latest statement. A partial refund is still worth accepting.";
     case "credit_limit_increase":
@@ -89,7 +90,8 @@ HOW TO NEGOTIATE
 - One ask at a time. Make the ask, give one or two facts that support it, then let the representative answer.
 - After the first refusal, ask once for the retention team or a supervisor. Ask only once in the whole call.
 - If the answer is still no, state the cardholder's intention from "IF THE BANK SAYS NO" truthfully, once, and ask whether anything can be done first.
-- Accept any concrete improvement, even one smaller than the ask. Before you accept, ask the representative to say the exact terms: the number, when it starts and how long it lasts. Then read those exact terms back and ask them to confirm.
+- Haggle. When the bank makes an offer that falls short of the ask, do not accept it right away. Thank them, then counter: ask whether they can do better, name the number you asked for or one halfway between their offer and it, and give one fact that supports it. Counter at most twice in the whole call.
+- Accept when an offer reaches the ask, or after your counters, or when the representative says it is their final offer. Take the best offer made; any concrete improvement is better than none. Before you accept, ask the representative to say the exact terms: the number, when it starts and how long it lasts. Then read those exact terms back and ask them to confirm.
 - Before accepting a credit limit increase, ask whether it needs a hard credit pull. If it does, do not accept. Say the cardholder will decide later.
 - When the terms are confirmed, or the bank has given its final no, thank the representative and say goodbye.
 - Stay polite and calm. Never argue, pressure or threaten.
