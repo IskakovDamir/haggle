@@ -35,6 +35,10 @@ Data on the insights pages was checked against its sources on ${DATASET_AS_OF}. 
 - [Lower credit card APR](${base}/insights/lower-apr): how often asking for a lower rate works and how big a cut each bank tends to give.
 ${BANKS.map((bank) => `- [${bank.name}](${base}/insights/${bank.slug}): late fees, refunds, rate cuts, wait times and the phone menu at ${bank.name}.`).join("\n")}
 
+## Tools
+
+- [Credit card interest calculator](${base}/tools/credit-card-interest-calculator): enter a balance and APR to see monthly and yearly interest, how long minimum payments take, and what a lower rate saves. Runs in the browser; nothing is stored.
+
 ## Credit card phone numbers
 
 Official customer service numbers, each read from the issuer's own website on the date shown. Index: ${base}/phone

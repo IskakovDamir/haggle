@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: path === "/insights" ? 0.9 : 0.8,
     })),
+    { url: `${base}/tools/credit-card-interest-calculator`, changeFrequency: "monthly", priority: 0.9 },
     { url: `${base}/phone`, lastModified: DIRECTORY_AS_OF, changeFrequency: "monthly", priority: 0.9 },
     ...ISSUERS.map((issuer) => ({
       url: `${base}${directoryPath(issuer)}`,

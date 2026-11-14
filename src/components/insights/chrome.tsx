@@ -18,6 +18,12 @@ export function InsightsHeader() {
           Insights
         </Link>
         <Link
+          href="/tools/credit-card-interest-calculator"
+          className="hidden rounded-full px-3.5 py-2 text-[14px] leading-5 font-semibold whitespace-nowrap text-hg-ink-2 transition-colors hover:text-hg-blue md:inline-flex"
+        >
+          Calculator
+        </Link>
+        <Link
           href="/phone"
           className="rounded-full px-3.5 py-2 text-[14px] leading-5 font-semibold whitespace-nowrap text-hg-ink-2 transition-colors hover:text-hg-blue"
         >
