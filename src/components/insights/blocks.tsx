@@ -5,6 +5,7 @@ import { GrowBar } from "@/components/motion/grow";
 import { formatStatValue } from "@/lib/benchmarks";
 import type { FaqItem, Segment } from "@/lib/benchmarks/faq";
 import type { Bank, BankMetric, Stat, TimelineStep } from "@/lib/benchmarks/types";
+import type { Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
 import { InlineStat, Provenance, SourceLink } from "./provenance";
 
@@ -113,16 +114,16 @@ export function Timeline({ steps }: { steps: TimelineStep[] }) {
   );
 }
 
-function Answer({ answer }: { answer: Segment[] }) {
+function Answer({ answer, lang }: { answer: Segment[]; lang: Locale }) {
   return (
     <p className="max-w-[68ch] text-[16px] leading-[26px] font-medium tracking-[-0.005em] text-hg-ink-2">
       {answer.map((part, i) => {
         if (typeof part === "string") return <span key={i}>{part}</span>;
-        if ("stat" in part) return <InlineStat key={i} stat={part.stat} />;
+        if ("stat" in part) return <InlineStat key={i} stat={part.stat} lang={lang} />;
         return (
           <span key={i} className="text-[0.8em]">
             {" "}
-            (<SourceLink source={part.source} />)
+            (<SourceLink source={part.source} lang={lang} />)
           </span>
         );
       })}
@@ -131,13 +132,13 @@ function Answer({ answer }: { answer: Segment[] }) {
 }
 
 /** Every question with its answer showing: the page reads fully with no clicks. */
-export function FaqList({ items }: { items: FaqItem[] }) {
+export function FaqList({ items, lang = "en" }: { items: FaqItem[]; lang?: Locale }) {
   return (
     <div className="flex flex-col divide-y divide-hg-line rounded-[28px] border border-hg-line bg-white">
       {items.map((item) => (
         <div key={item.question} className="flex flex-col gap-2 px-6 py-5 sm:px-8 sm:py-6">
           <h3 className="text-[18px] leading-7 font-semibold tracking-[-0.01em] text-hg-ink">{item.question}</h3>
-          <Answer answer={item.answer} />
+          <Answer answer={item.answer} lang={lang} />
         </div>
       ))}
     </div>

@@ -1,7 +1,7 @@
 // FAQ answers written from the dataset. An answer is a list of segments so the page can show each number
 // with its label or source link, and JSON-LD gets the same answer as plain text with the provenance spelled out.
 import { DATASET_AS_OF, MISSED_PAYMENT_TIMELINE } from "./data";
-import { banksBy, formatStatValue, getMarketStat, provenanceText } from "./index";
+import { banksBy, formatStatValue, getMarketStat, provenanceText, sourceName } from "./index";
 import type { Bank, Source, Stat } from "./types";
 
 export type Segment = string | { stat: Stat } | { source: Source };
@@ -14,12 +14,12 @@ const step = (id: string) => {
 };
 
 /** "84% (Source: LendingTree survey, via KKTV)" and plain sentences, for JSON-LD. */
-export function answerText(answer: Segment[]): string {
+export function answerText(answer: Segment[], language: "en" | "es" = "en"): string {
   return answer
     .map((part) => {
       if (typeof part === "string") return part;
-      if ("stat" in part) return `${formatStatValue(part.stat)} (${provenanceText(part.stat)})`;
-      return ` (Source: ${part.source.name})`;
+      if ("stat" in part) return `${formatStatValue(part.stat)} (${provenanceText(part.stat, language)})`;
+      return language === "es" ? ` (Fuente: ${sourceName(part.source.name, "es")})` : ` (Source: ${part.source.name})`;
     })
     .join("");
 }

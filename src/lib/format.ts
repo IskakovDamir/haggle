@@ -30,10 +30,10 @@ export function todayIso(now: Date = new Date()): IsoDate {
   return `${y}-${m}-${d}`;
 }
 
-/** "2026-11-14" -> "Nov 14, 2026". The date is treated as a calendar day, never shifted by timezone. */
-export function formatDate(iso: IsoDate): string {
+/** "2026-11-14" -> "Nov 14, 2026" ("14 nov 2026" in Spanish). The date is a calendar day, never shifted by timezone. */
+export function formatDate(iso: IsoDate, language: "en" | "es" = "en"): string {
   const [y, m, d] = iso.split("-").map(Number);
-  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(
+  return new Intl.DateTimeFormat(language === "es" ? "es-US" : "en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(
     new Date(Date.UTC(y, m - 1, d)),
   );
 }

@@ -3,10 +3,29 @@ import Image from "next/image";
 import Link from "next/link";
 import { HgButton, HgLogo, HgSection } from "@/components/landing-v2/ui";
 import { formatDate } from "@/lib/format";
+import type { Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
 import { ProductButton } from "./product-button";
 
-export function InsightsHeader() {
+export function InsightsHeader({ lang = "en" }: { lang?: Locale }) {
+  if (lang === "es") {
+    return (
+      <header className="mx-auto flex w-full max-w-[1408px] items-center justify-between gap-4 px-4 pt-5 sm:px-8 lg:px-10 xl:px-[104px]">
+        <HgLogo href="/es" />
+        <nav aria-label="Secciones" className="flex items-center gap-1 sm:gap-2">
+          <Link
+            href="/es/telefonos"
+            className="rounded-full px-3.5 py-2 text-[14px] leading-5 font-semibold whitespace-nowrap text-hg-ink-2 transition-colors hover:text-hg-blue"
+          >
+            Teléfonos
+          </Link>
+          <HgButton href="/es" tone="dark" size="s" className="hidden sm:inline-flex">
+            Qué es Haggle
+          </HgButton>
+        </nav>
+      </header>
+    );
+  }
   return (
     <header className="mx-auto flex w-full max-w-[1408px] items-center justify-between gap-4 px-4 pt-5 sm:px-8 lg:px-10 xl:px-[104px]">
       <HgLogo />
@@ -65,12 +84,14 @@ export function PageIntro({
   lead,
   asOf,
   art,
+  lang = "en",
 }: {
   crumbs: { href?: string; label: string }[];
   title: React.ReactNode;
   lead: React.ReactNode;
   asOf: string;
   art?: { src: string; rotate?: number };
+  lang?: Locale;
 }) {
   return (
     <HgSection className="px-4 pt-10 pb-6 sm:px-8 lg:px-10 lg:pt-14 xl:px-[104px]">
@@ -79,8 +100,9 @@ export function PageIntro({
         <h1 className="max-w-[18ch] text-[clamp(36px,5.5vw,60px)] leading-[1.08] font-semibold tracking-[-0.04em] text-hg-ink">{title}</h1>
         <p className="max-w-[60ch] text-[18px] leading-7 font-medium tracking-[-0.01em] text-hg-muted">{lead}</p>
         <p className="text-[14px] leading-5 font-semibold text-hg-ink-2">
-          Data as of {formatDate(asOf)}. Numbers with a source link are quoted from that source. Numbers marked Estimate are Haggle
-          estimates until our own calls measure them.
+          {lang === "es"
+            ? `Datos al ${formatDate(asOf, "es")}. Los números con enlace se citan de esa fuente. Los marcados como Estimación son estimaciones de Haggle hasta que nuestras llamadas los midan.`
+            : `Data as of ${formatDate(asOf)}. Numbers with a source link are quoted from that source. Numbers marked Estimate are Haggle estimates until our own calls measure them.`}
         </p>
         {art && (
           <div aria-hidden className="pointer-events-none absolute top-0 right-0 hidden size-[280px] lg:block">
@@ -114,10 +136,12 @@ export function CtaBand({
   title,
   lead,
   actions,
+  lang = "en",
 }: {
   title: string;
   lead: string;
   actions: { href: string; label: string }[];
+  lang?: Locale;
 }) {
   return (
     <HgSection className={cn("py-10 md:py-14", sectionPad)}>
@@ -129,7 +153,7 @@ export function CtaBand({
         <p className="max-w-[56ch] text-[18px] leading-7 font-medium tracking-[-0.01em] text-white/80">{lead}</p>
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap">
           {actions.map((action, i) => (
-            <ProductButton key={action.href} path={action.href} tone={i === 0 ? "white" : "dark"}>
+            <ProductButton key={action.href} path={action.href} tone={i === 0 ? "white" : "dark"} lang={lang}>
               {action.label}
             </ProductButton>
           ))}
@@ -144,8 +168,19 @@ export function CtaBand({
   );
 }
 
-export function InsightsFooter() {
+export function InsightsFooter({ lang = "en" }: { lang?: Locale }) {
   const caption = "text-[13px] leading-[18px] font-semibold tracking-[-0.002em] text-hg-muted";
+  if (lang === "es") {
+    return (
+      <footer className={cn("mx-auto flex w-full max-w-[1408px] flex-col items-center gap-4 pt-6 pb-8 text-center lg:flex-row lg:justify-between lg:text-left", sectionPad)}>
+        <HgLogo href="/es" />
+        <p className={caption}>Haggle no es un prestamista ni una empresa de reparación de crédito. Estas páginas son información general, no asesoría financiera.</p>
+        <Link href="/es/telefonos" className={`${caption} whitespace-nowrap hover:text-hg-blue`}>
+          Todos los teléfonos
+        </Link>
+      </footer>
+    );
+  }
   return (
     <footer className={cn("mx-auto flex w-full max-w-[1408px] flex-col items-center gap-4 pt-6 pb-8 text-center lg:flex-row lg:justify-between lg:text-left", sectionPad)}>
       <HgLogo />
