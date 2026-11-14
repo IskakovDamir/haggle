@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import type { Locale } from "@/lib/i18n/locale";
 import { languageAlternates } from "@/lib/directory/locale";
 import { getTopic } from "./index";
-import { calculatorPath, insightsBankPath, insightsIndexPath, insightsTopicPath, localizeTopic } from "./locale";
+import { aprGuidePath, calculatorPath, insightsBankPath, insightsIndexPath, insightsTopicPath, localizeTopic } from "./locale";
 import type { Bank, TopicSlug } from "./types";
 
 function page(lang: Locale, en: string, es: string, title: string, description: string): Metadata {
@@ -75,5 +75,26 @@ export function calculatorMetadata(lang: Locale): Metadata {
         calculatorPath("es"),
         "Credit Card Interest Calculator: See What a Lower APR Saves",
         "Enter your balance and APR to see this month's interest, a year of interest, how long minimum payments take, and how much a lower rate would save. Free, nothing saved.",
+      );
+}
+
+export function aprGuideMetadata(bank: Bank, lang: Locale): Metadata {
+  const name = bank.shortName;
+  const en = aprGuidePath(bank.slug, "en");
+  const es = aprGuidePath(bank.slug, "es");
+  return lang === "es"
+    ? page(
+        lang,
+        en,
+        es,
+        `Cómo pedirle a ${name} un APR más bajo: qué decir y cuánto ahorras`,
+        `Paso a paso para pedirle a ${name} una tasa más baja: qué decir, qué hacer si te dicen que no, qué revisar antes de aceptar y cuánto vale una reducción. Cada número citado o marcado.`,
+      )
+    : page(
+        lang,
+        en,
+        es,
+        `How to Ask ${name} for a Lower APR: What to Say and What It Saves`,
+        `A step-by-step guide to asking ${name} for a lower credit card rate: what to say, what to do if they say no, what to check before you accept, and what a cut is worth. Every number sourced or labelled.`,
       );
 }

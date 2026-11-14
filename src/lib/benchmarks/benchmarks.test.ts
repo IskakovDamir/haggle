@@ -147,3 +147,25 @@ describe("spanish benchmarks", () => {
     expect(calculatorPath("es")).toBe("/es/herramientas/calculadora-de-intereses");
   });
 });
+
+describe("lower APR guides", () => {
+  it("every row is computed by the engine and savings add up", async () => {
+    const { guideNumbers } = await import("./apr-guide");
+    const { annualInterestCents } = await import("@/lib/engine");
+    for (const bank of BANKS) {
+      const g = guideNumbers(bank);
+      expect(g.aprBps).toBe(2236);
+      expect(g.cutBps).toBe(bank.stats.typicalAprCut.value);
+      for (const row of g.rows) {
+        expect(row.nowCents).toBe(annualInterestCents(row.balanceCents, g.aprBps));
+        expect(row.savedCents).toBe(row.nowCents - row.afterCents);
+        expect(row.savedCents).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("uses the negotiator's own win threshold", async () => {
+    const { guideNumbers } = await import("./apr-guide");
+    expect(guideNumbers(BANKS[0]).winCutBps).toBe(200);
+  });
+});
