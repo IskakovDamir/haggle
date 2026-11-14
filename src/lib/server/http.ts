@@ -96,5 +96,5 @@ export function capabilities(): Capabilities {
 
 /** The Claude model for every call. Override with ANTHROPIC_MODEL. */
 export function claudeModel(): string {
-  return process.env.ANTHROPIC_MODEL || "claude-opus-5-5";
+  return process.env.ANTHROPIC_MODEL || "claude-haiku-5-5";
 }

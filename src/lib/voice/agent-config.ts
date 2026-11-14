@@ -4,7 +4,7 @@ import { AGENT_FIRST_MESSAGE, PINNED_RULES, agentPrompt } from "./agent-prompt";
 import { MAX_CALL_MS } from "./session";
 
 /** Used when ELEVENLABS_AGENT_LLM is not set. Any model id the Agents Platform lists works. */
-export const DEFAULT_AGENT_LLM = "claude-sonnet-5-5";
+export const DEFAULT_AGENT_LLM = "claude-haiku-5-5";
 
 /**
  * The events the agent sends to the browser, listed on purpose and not left to the platform's default.
