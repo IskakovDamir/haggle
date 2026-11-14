@@ -231,6 +231,10 @@ async function IssuerView({ params }: { params: PageProps<"/phone/[issuer]">["pa
           <Link href="/insights/lower-apr" className={link}>
             ask for a lower APR
           </Link>
+          , or{" "}
+          <Link href="/tools/credit-card-interest-calculator" className={link}>
+            see what a lower rate would save you
+          </Link>
           . Other issuers:{" "}
           {others.map((other, i) => (
             <span key={other.slug}>

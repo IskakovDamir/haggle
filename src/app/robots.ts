@@ -3,7 +3,7 @@ import { siteUrl } from "@/lib/benchmarks/site";
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: { userAgent: "*", allow: ["/", "/insights/", "/phone/", "/llms.txt"] },
+    rules: { userAgent: "*", allow: ["/", "/insights/", "/phone/", "/tools/", "/llms.txt"] },
     sitemap: `${siteUrl()}/sitemap.xml`,
   };
 }
