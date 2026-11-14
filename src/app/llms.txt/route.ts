@@ -1,7 +1,8 @@
 // GET /llms.txt: a plain summary of Haggle, its insights pages and the phone directory for AI search (llmstxt.org format).
 import { BANKS, DATASET_AS_OF, formatStatValue, getMarketStat, provenanceText } from "@/lib/benchmarks";
 import { siteUrl } from "@/lib/benchmarks/site";
-import { directoryPath, issuersAtoZ, mainLine, serviceName } from "@/lib/directory";
+import { directoryPath, issuersAtoZ, mainLine } from "@/lib/directory";
+import { serviceNameFor } from "@/lib/directory/locale";
 
 function line(id: string): string {
   const stat = getMarketStat(id);
@@ -46,9 +47,13 @@ Official customer service numbers, each read from the issuer's own website on th
 ${issuersAtoZ()
   .map((issuer) => {
     const main = mainLine(issuer);
-    return `- [${serviceName(issuer)}](${base}${directoryPath(issuer)}): ${main.display}${main.hours ? `, ${main.hours}` : ""} (checked ${issuer.checkedOn} on ${issuer.source.url})`;
+    return `- [${serviceNameFor(issuer, "en")}](${base}${directoryPath(issuer)}): ${main.display}${main.hours ? `, ${main.hours}` : ""} (checked ${issuer.checkedOn} on ${issuer.source.url})`;
   })
   .join("\n")}
+
+## En español
+
+The phone directory is also in Spanish: ${base}/es/telefonos. Each page links to its English version with hreflang.
 
 ## Optional
 
