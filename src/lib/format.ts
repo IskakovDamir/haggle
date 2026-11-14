@@ -11,6 +11,17 @@ export function formatPoints(bps: Bps): string {
   return String(Number((Math.abs(bps) / 100).toFixed(2)));
 }
 
+/** 8400 -> "84%", 2236 -> "22.36%". A share in basis points, trailing zeros dropped. */
+export function formatPercent(bps: Bps): string {
+  return `${Number((bps / 100).toFixed(2))}%`;
+}
+
+/** 240 -> "4 min", 90 -> "1.5 min", 45 -> "45 sec". For short waits. */
+export function formatSeconds(seconds: number): string {
+  if (seconds < 60) return `${seconds} sec`;
+  return `${Number((seconds / 60).toFixed(1))} min`;
+}
+
 /** Today's calendar date in the visitor's timezone. Call it in the browser, not during render on the server. */
 export function todayIso(now: Date = new Date()): IsoDate {
   const y = now.getFullYear();
