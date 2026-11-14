@@ -3,10 +3,46 @@
 import { ArrowRight, Quote } from "lucide-react";
 import { motion } from "framer-motion";
 import { EASE } from "@/components/motion/reveal";
+import type { Copy } from "@/lib/i18n/locale";
+import { useLocale } from "@/lib/i18n/use-locale";
 import type { CallOutcome, Savings } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import type { Change } from "./changes";
 import { Appear, BEAT, CountUpCents } from "./win-motion";
+
+type ResultCopy = {
+  badge: (partial: boolean) => string;
+  said: string;
+  yes: (partial: boolean) => string;
+  to: string;
+  saves: string;
+  savesTail: string;
+  noDollars: string;
+  quoteCaption: string;
+};
+
+const COPY: Copy<ResultCopy> = {
+  en: {
+    badge: (partial) => `${partial ? "Partial win" : "Win"} · practice call`,
+    said: "said",
+    yes: (partial) => (partial ? "yes to part of it" : "yes"),
+    to: " to ",
+    saves: "Saves",
+    savesTail: "in the first year · one card · one call",
+    noDollars: "This win is not counted in dollars, so there is no fee.",
+    quoteCaption: "The bank's own words on the call. Code checked every number against them.",
+  },
+  es: {
+    badge: (partial) => `${partial ? "Victoria parcial" : "Victoria"} · llamada de práctica`,
+    said: "dijo",
+    yes: (partial) => (partial ? "que sí a una parte" : "que sí"),
+    to: " a ",
+    saves: "Ahorra",
+    savesTail: "el primer año · una tarjeta · una llamada",
+    noDollars: "Esta victoria no se cuenta en dólares, así que no hay cargo.",
+    quoteCaption: "Las propias palabras del banco en la llamada. El código revisó cada número con ellas.",
+  },
+};
 
 /** The muted second voice of a heading, made light so it reads on the blue panel. */
 const onBlueEm = { color: "rgb(255 255 255 / 0.68)" } as const;
@@ -17,6 +53,7 @@ const onBlueEm = { color: "rgb(255 255 255 / 0.68)" } as const;
  */
 function ChangeLine({ change, big, order }: { change: Change; big: boolean; order: number }) {
   const step = order * 0.12;
+  const copy = COPY[useLocale()];
   return (
     <motion.p
       initial={{ opacity: 0, y: 10 }}
@@ -51,7 +88,7 @@ function ChangeLine({ change, big, order }: { change: Change; big: boolean; orde
           >
             <ArrowRight className="mx-1.5 inline size-[0.7em] align-baseline" />
           </motion.span>
-          <span className="sr-only"> to </span>
+          <span className="sr-only">{copy.to}</span>
         </>
       )}
       <motion.span
@@ -81,6 +118,8 @@ export function ResultCard({
 }) {
   const [headline, ...rest] = changes;
   const quote = outcome.evidence[0]?.quote ?? null;
+  const copy = COPY[useLocale()];
+  const partial = outcome.result === "partial";
 
   return (
     <motion.section
@@ -103,12 +142,12 @@ export function ResultCard({
 
       <Appear delay={0.1} y={8}>
         <p className="inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-semibold tracking-widest uppercase ring-1 ring-white/20">
-          {outcome.result === "partial" ? "Partial win" : "Win"} · practice call
+          {copy.badge(partial)}
         </p>
       </Appear>
       <Appear delay={0.18} y={10}>
         <h1 className="mt-3 text-[clamp(26px,3.6vw,36px)] leading-[1.15] font-semibold tracking-[-0.035em]">
-          {bankName} said <em style={onBlueEm}>{outcome.result === "partial" ? "yes to part of it" : "yes"}</em>
+          {bankName} {copy.said} <em style={onBlueEm}>{copy.yes(partial)}</em>
         </h1>
       </Appear>
 
@@ -123,14 +162,14 @@ export function ResultCard({
         <p className="mt-6 inline-block rounded-2xl bg-white/14 px-4 py-2.5 font-semibold text-white/85 ring-1 ring-white/20 sm:rounded-full">
           {savings.annualSavingsCents > 0 ? (
             <>
-              Saves{" "}
+              {copy.saves}{" "}
               <span className="text-white">
                 <CountUpCents cents={savings.annualSavingsCents} delay={BEAT.savings + 0.1} />
               </span>{" "}
-              in the first year · one card · one call
+              {copy.savesTail}
             </>
           ) : (
-            "This win is not counted in dollars, so there is no fee."
+            copy.noDollars
           )}
         </p>
       </Appear>
@@ -142,7 +181,7 @@ export function ResultCard({
             <div>
               <blockquote className="text-xl leading-snug font-semibold tracking-[-0.02em] sm:text-2xl">{quote}</blockquote>
               <figcaption className="mt-1.5 text-sm text-white/70">
-                The bank&apos;s own words on the call. Code checked every number against them.
+                {copy.quoteCaption}
               </figcaption>
             </div>
           </figure>

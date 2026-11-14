@@ -13,6 +13,13 @@ describe("spokenFigures", () => {
     ["one thousand two hundred fifty", [125000]],
     ["ninety five dollar annual fee", [9500]],
     ["nineteen point nine nine", [1999]],
+    ["le reembolso los cuarenta dólares", [4000]],
+    ["cuarenta y cinco dólares", [4500]],
+    ["veintisiete punto veinticuatro por ciento", [2724]],
+    ["veintinueve punto noventa y nueve", [2999]],
+    ["doscientos nueve dólares con noventa y tres centavos", [20900, 20993]],
+    ["mil doscientos cincuenta", [125000]],
+    ["veintiún dólares", [2100]],
   ])("reads %s", (text, figures) => {
     for (const figure of figures) expect(spokenFigures(text)).toContain(figure);
   });

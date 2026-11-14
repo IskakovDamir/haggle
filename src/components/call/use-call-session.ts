@@ -13,6 +13,7 @@ import { newCall, useCaseFile, withCall } from "@/lib/store";
 import type { CallRecord, CardAccount, NegotiationBrief, Savings, Turn } from "@/lib/types";
 import { useVoiceCall, type VoiceStatus } from "@/lib/voice/use-voice-call";
 import type { PhoneCallStatus } from "@/lib/voice/phone";
+import { spokenVoiceId } from "@/lib/voice/voices";
 import { fetchAgentReply, fetchOutcome, fetchPhoneStatus, startPhoneCall } from "./api";
 
 export type CallMode = CallRecord["mode"];
@@ -252,9 +253,10 @@ export function useCallSession(input: {
     setNotice(null);
     setPhase("live");
     commit(newCall({ cardId: card.id, goal: brief.goal, mode }));
+    const speaker = spokenVoiceId(voiceId, brief.language);
     if (mode === "text") void askAgent();
-    else if (mode === "phone") void ringPhone(toNumber ?? "", voiceId);
-    else void voice.start(voiceId);
+    else if (mode === "phone") void ringPhone(toNumber ?? "", speaker);
+    else void voice.start(speaker);
   }
 
   function say(text: string) {

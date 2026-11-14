@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useLocale } from "@/lib/i18n/use-locale";
 import { useCaseFile } from "@/lib/store";
 import type { CaseFile } from "@/lib/types";
 import { CallSession } from "./call-session";
@@ -24,7 +25,8 @@ export function CallScreen() {
 function PlannedCall({ caseFile, stepParam }: { caseFile: CaseFile; stepParam: string | null }) {
   const router = useRouter();
   const today = useToday();
-  const plan = useMemo(() => resolveCall(caseFile, stepParam, today), [caseFile, stepParam, today]);
+  const locale = useLocale();
+  const plan = useMemo(() => resolveCall(caseFile, stepParam, today, locale), [caseFile, stepParam, today, locale]);
 
   // The header's "Call" link carries no step. Put the chosen step in the URL, so the call that follows
   // stays on that step even after its own result changes which step is next.
@@ -43,5 +45,6 @@ function PlannedCall({ caseFile, stepParam }: { caseFile: CaseFile; stepParam: s
   if (chosenStepId) return <PageSkeleton />;
 
   // A fresh visit starts a fresh call; coming back with the browser's Back button finds the call as it was left.
-  return <CallSession key={`${router.bfcacheId}:${plan.step.id}`} card={plan.card} brief={plan.brief} />;
+  // The language is part of the key: switching it before a call starts a fresh briefing in that language.
+  return <CallSession key={`${router.bfcacheId}:${plan.step.id}:${locale}`} card={plan.card} brief={plan.brief} />;
 }

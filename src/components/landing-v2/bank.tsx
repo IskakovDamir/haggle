@@ -1,5 +1,6 @@
 // "Your bank would rather say yes": the blue band with the bank's earnings and the 3D bank (Figma node 4:129).
 import Image from "next/image";
+import type { Copy, Locale } from "@/lib/i18n/locale";
 import { HgSection } from "./ui";
 import { Reveal } from "@/components/motion/reveal";
 import { GrowBar } from "@/components/motion/grow";
@@ -11,15 +12,45 @@ function Glow({ src, width, height, style }: { src: string; width: number; heigh
   return <Image src={src} alt="" width={width} height={height} aria-hidden className="pointer-events-none absolute max-w-none" style={style} />;
 }
 
+type BankCopy = {
+  title: string;
+  lead: string;
+  chips: [string, string];
+  chartTitle: string;
+  /** One label per bar, in the same order as `bars`. */
+  bars: [string, string, string];
+  win: string;
+};
+
+const COPY: Copy<BankCopy> = {
+  en: {
+    title: "Your bank would rather say yes",
+    lead: "A customer carrying a balance is the most profitable one, so every big bank keeps a retention team that is allowed to cut your rate before you leave",
+    chips: ["84% get a rate cut", "94% get the fee waived"],
+    chartTitle: "What the bank earns in a year on $8,000 at 20%",
+    bars: ["Nothing changes", "You leave for a 0% card", "Rate cut to 15%"],
+    win: "Your win",
+  },
+  es: {
+    title: "Tu banco prefiere decirte que sí",
+    lead: "Un cliente que deja saldo pendiente es el más rentable, así que todo banco grande tiene un equipo de retención con permiso para bajarte la tasa antes de que te vayas",
+    chips: ["84% consigue una tasa más baja", "94% logra que le quiten la cuota"],
+    chartTitle: "Lo que gana el banco en un año con $8,000 al 20%",
+    bars: ["Nada cambia", "Te vas a una tarjeta al 0%", "La tasa baja al 15%"],
+    win: "Ganas tú",
+  },
+};
+
 const bars = [
-  { label: "Nothing changes", value: "$1,600", fill: "100%", tone: "bg-white/50", win: false },
-  { label: "You leave for a 0% card", value: "$0", fill: "0%", tone: "", win: false },
-  { label: "Rate cut to 15%", value: "$1,200", fill: "75%", tone: "bg-white", win: true },
+  { value: "$1,600", fill: "100%", tone: "bg-white/50", win: false },
+  { value: "$0", fill: "0%", tone: "", win: false },
+  { value: "$1,200", fill: "75%", tone: "bg-white", win: true },
 ];
 
 const strong = "text-[17px] leading-6 font-semibold tracking-[-0.01em] text-white";
 
-export function Bank() {
+export function Bank({ locale = "en" }: { locale?: Locale }) {
+  const t = COPY[locale];
   return (
     <HgSection className="px-4 py-10 font-manrope md:px-10 md:py-14">
       <Reveal y={40} amount={0.15}
@@ -30,13 +61,10 @@ export function Bank() {
         <Glow src={`${A}/blob-bottom-right.svg`} width={760} height={520} style={{ left: "56.667%", bottom: -288 }} />
 
         <div className="relative flex w-full max-w-[400px] flex-col items-start gap-5 xl:shrink-0">
-          <h2 className="text-[clamp(32px,4.5vw,48px)] leading-[1.125] font-semibold tracking-[-0.035em] text-white">Your bank would rather say yes</h2>
-          <p className="text-[18px] leading-7 font-medium tracking-[-0.01em] text-white/70">
-            A customer carrying a balance is the most profitable one, so every big bank keeps a retention team that is allowed to cut your rate
-            before you leave
-          </p>
+          <h2 className="text-[clamp(32px,4.5vw,48px)] leading-[1.125] font-semibold tracking-[-0.035em] text-white">{t.title}</h2>
+          <p className="text-[18px] leading-7 font-medium tracking-[-0.01em] text-white/70">{t.lead}</p>
           <div className="flex flex-wrap gap-2.5">
-            {["84% get a rate cut", "94% get the fee waived"].map((chip) => (
+            {t.chips.map((chip) => (
               <span
                 key={chip}
                 className="rounded-full border border-white/35 bg-white/[0.14] px-3.5 py-2 text-[14px] leading-5 font-medium tracking-[-0.005em] whitespace-nowrap text-white"
@@ -48,15 +76,15 @@ export function Bank() {
         </div>
 
         <div className="relative flex w-full max-w-[400px] min-w-0 flex-col gap-6 xl:max-w-none xl:flex-1">
-          <p className="text-[14px] leading-5 font-medium tracking-[-0.005em] text-white/70">What the bank earns in a year on $8,000 at 20%</p>
-          {bars.map((bar) => (
-            <div key={bar.label} className="flex flex-col gap-2.5">
+          <p className="text-[14px] leading-5 font-medium tracking-[-0.005em] text-white/70">{t.chartTitle}</p>
+          {bars.map((bar, i) => (
+            <div key={bar.value} className="flex flex-col gap-2.5">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <p className={strong}>{bar.label}</p>
+                  <p className={strong}>{t.bars[i]}</p>
                   {bar.win && (
                     <span className="rounded-full bg-white px-3 py-1.5 text-[13px] leading-[18px] font-semibold tracking-[-0.002em] whitespace-nowrap text-[#1a3fd6]">
-                      Your win
+                      {t.win}
                     </span>
                   )}
                 </div>

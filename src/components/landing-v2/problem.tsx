@@ -1,5 +1,6 @@
 // "A credit card is a trap with no end date": Maria's card and the minimum-payment math (Figma node 4:71).
 import Image from "next/image";
+import type { Copy, Locale } from "@/lib/i18n/locale";
 import { HgSection } from "./ui";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 
@@ -10,12 +11,58 @@ function Glow({ src, width, height, style }: { src: string; width: number; heigh
   return <Image src={src} alt="" width={width} height={height} aria-hidden className="pointer-events-none absolute max-w-none" style={style} />;
 }
 
-const accounts = [
-  ["Chase Freedom", "$8,400 · 27.24%"],
-  ["Capital One", "$3,100 · 29.99% · $95 fee"],
-  ["Credit score", "668"],
-  ["Pays each month", "The minimum"],
-];
+type ProblemCopy = {
+  title: string;
+  lead: string;
+  who: string;
+  about: string;
+  quote: string;
+  accounts: [string, string][];
+  mathTitle: string;
+  mathNote: string;
+  years: { title: string; note: string; debt: string; interest: string };
+  first: { title: string; note: string; interest: string; debt: string };
+  statement: string;
+};
+
+const COPY: Copy<ProblemCopy> = {
+  en: {
+    title: "A credit card is a trap with no end date",
+    lead: "Americans owe a record $1.29T on cards, and paying the minimum keeps most of it working for the bank",
+    who: "Maria, 34",
+    about: "Teacher in Columbus, Ohio · two kids",
+    quote: "“I’m scared to call, I don’t know what to say, and forty minutes on hold with two kids around just isn’t happening”",
+    accounts: [
+      ["Chase Freedom", "$8,400 · 27.24%"],
+      ["Capital One", "$3,100 · 29.99% · $95 fee"],
+      ["Credit score", "668"],
+      ["Pays each month", "The minimum"],
+    ],
+    mathTitle: "$8,000 at 24%, paying only the minimum",
+    mathNote: "The minimum is 1% of the balance plus interest, never less than $25",
+    years: { title: "23 years of minimum payments", note: "$22,900 paid in total", debt: "debt", interest: "interest" },
+    first: { title: "Your first $240 payment", note: "Most of it never touches the debt", interest: "to interest", debt: "to the debt" },
+    statement: "By law this math is printed on every statement, Haggle reads it straight from yours",
+  },
+  es: {
+    title: "Una tarjeta de crédito es una trampa sin fecha de salida",
+    lead: "En EE. UU. se debe un récord de $1.29T en tarjetas, y si pagas solo el mínimo, casi todo sigue trabajando para el banco",
+    who: "Maria, 34",
+    about: "Maestra en Columbus, Ohio · dos hijos",
+    quote: "“Me da miedo llamar, no sé qué decir, y esperar cuarenta minutos en línea con dos niños encima, imposible”",
+    accounts: [
+      ["Chase Freedom", "$8,400 · 27.24%"],
+      ["Capital One", "$3,100 · 29.99% · cuota de $95"],
+      ["Puntaje de crédito", "668"],
+      ["Paga cada mes", "El mínimo"],
+    ],
+    mathTitle: "$8,000 al 24%, pagando solo el mínimo",
+    mathNote: "El mínimo es el 1% del saldo más intereses, nunca menos de $25",
+    years: { title: "23 años de pagos mínimos", note: "$22,900 pagados en total", debt: "de deuda", interest: "de intereses" },
+    first: { title: "Tu primer pago de $240", note: "Casi nada llega a la deuda", interest: "a intereses", debt: "a la deuda" },
+    statement: "Por ley, este cálculo viene en cada estado de cuenta, y Haggle lo lee directo del tuyo",
+  },
+};
 
 type Segment = { amount: string; label: string; size: number; strong: boolean };
 
@@ -42,16 +89,17 @@ function StackedBar({ title, note, segments }: { title: string; note: string; se
   );
 }
 
-export function Problem() {
+export function Problem({ locale = "en" }: { locale?: Locale }) {
+  const t = COPY[locale];
   return (
     <HgSection id="problem" className="px-4 pt-10 pb-8 font-manrope md:px-10 md:pt-14 md:pb-10">
       <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-10">
         <Reveal amount={0.5} className="flex flex-col gap-4">
           <h2 className="max-w-[900px] text-[clamp(32px,4.5vw,48px)] leading-[1.125] font-semibold tracking-[-0.035em] text-hg-ink">
-            A credit card is a trap with no end date
+            {t.title}
           </h2>
           <p className="max-w-[640px] text-[18px] leading-7 font-medium tracking-[-0.01em] text-hg-muted">
-            Americans owe a record $1.29T on cards, and paying the minimum keeps most of it working for the bank
+            {t.lead}
           </p>
         </Reveal>
 
@@ -77,16 +125,14 @@ export function Problem() {
                     M
                   </span>
                   <div className="flex flex-col gap-0.5">
-                    <p className="text-[17px] leading-6 font-semibold tracking-[-0.01em] text-white">Maria, 34</p>
-                    <p className="text-[14px] leading-5 font-medium tracking-[-0.005em] text-white/60">Teacher in Columbus, Ohio · two kids</p>
+                    <p className="text-[17px] leading-6 font-semibold tracking-[-0.01em] text-white">{t.who}</p>
+                    <p className="text-[14px] leading-5 font-medium tracking-[-0.005em] text-white/60">{t.about}</p>
                   </div>
                 </div>
-                <p className="text-[18px] leading-7 font-medium tracking-[-0.01em] text-white">
-                  “I’m scared to call, I don’t know what to say, and forty minutes on hold with two kids around just isn’t happening”
-                </p>
+                <p className="text-[18px] leading-7 font-medium tracking-[-0.01em] text-white">{t.quote}</p>
               </div>
               <dl className="relative overflow-hidden rounded-[18px] bg-white/[0.07] text-[14px] leading-5 font-medium tracking-[-0.005em]">
-                {accounts.map(([label, value]) => (
+                {t.accounts.map(([label, value]) => (
                   <div key={label} className="flex flex-wrap items-center justify-between gap-x-3 border-white/10 px-[18px] py-3.5 not-first:border-t">
                     <dt className="text-white/60">{label}</dt>
                     <dd className="text-white">{value}</dd>
@@ -98,34 +144,30 @@ export function Problem() {
             {/* The minimum-payment trap */}
             <StaggerItem className="flex min-w-0 flex-1 flex-col gap-8 rounded-[34px] border border-white bg-white/[0.92] p-6 sm:p-8">
               <div className="flex flex-col gap-1.5">
-                <h3 className="text-[24px] leading-[30px] font-semibold tracking-[-0.02em] text-hg-ink">$8,000 at 24%, paying only the minimum</h3>
-                <p className="text-[14px] leading-5 font-medium tracking-[-0.005em] text-hg-muted">
-                  The minimum is 1% of the balance plus interest, never less than $25
-                </p>
+                <h3 className="text-[24px] leading-[30px] font-semibold tracking-[-0.02em] text-hg-ink">{t.mathTitle}</h3>
+                <p className="text-[14px] leading-5 font-medium tracking-[-0.005em] text-hg-muted">{t.mathNote}</p>
               </div>
               <StackedBar
-                title="23 years of minimum payments"
-                note="$22,900 paid in total"
+                title={t.years.title}
+                note={t.years.note}
                 segments={[
-                  { amount: "$8,000", label: "debt", size: 228, strong: false },
-                  { amount: "$14,900", label: "interest", size: 426, strong: true },
+                  { amount: "$8,000", label: t.years.debt, size: 228, strong: false },
+                  { amount: "$14,900", label: t.years.interest, size: 426, strong: true },
                 ]}
               />
               <StackedBar
-                title="Your first $240 payment"
-                note="Most of it never touches the debt"
+                title={t.first.title}
+                note={t.first.note}
                 segments={[
-                  { amount: "$160", label: "to interest", size: 436, strong: true },
-                  { amount: "$80", label: "to the debt", size: 218, strong: false },
+                  { amount: "$160", label: t.first.interest, size: 436, strong: true },
+                  { amount: "$80", label: t.first.debt, size: 218, strong: false },
                 ]}
               />
               <div className="flex items-center gap-3.5 rounded-[18px] bg-hg-blue-soft p-4">
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-[18px] bg-hg-blue-soft">
                   <Image src={`${A}/statement-icon.svg`} alt="" width={13.5} height={16.5} aria-hidden />
                 </span>
-                <p className="flex-1 text-[14px] leading-5 font-medium tracking-[-0.005em] text-hg-ink-2">
-                  By law this math is printed on every statement, Haggle reads it straight from yours
-                </p>
+                <p className="flex-1 text-[14px] leading-5 font-medium tracking-[-0.005em] text-hg-ink-2">{t.statement}</p>
               </div>
             </StaggerItem>
           </Stagger>

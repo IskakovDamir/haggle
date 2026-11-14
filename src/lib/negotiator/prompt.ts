@@ -24,6 +24,26 @@ const CALL_PURPOSE: Record<LeverKind, string> = {
   balance_transfer: "to ask whether a promotional rate is available on the balance",
 };
 
+/** The same purposes in Spanish, for a call held in Spanish. */
+const CALL_PURPOSE_ES: Record<LeverKind, string> = {
+  missed_payment: "por un pago atrasado, para pedir un ajuste de cortesía por única vez",
+  apr_reduction: "para pedir una tasa de interés más baja",
+  annual_fee_waiver: "para pedir que se exonere la cuota anual",
+  late_fee_refund: "para pedir el reembolso del cargo por pago atrasado del último estado de cuenta",
+  credit_limit_increase: "para pedir un límite de crédito más alto",
+  penalty_apr_review: "para pedir una revisión de la tasa de penalización",
+  balance_transfer: "para preguntar si hay una tasa promocional disponible para el saldo",
+};
+
+/** "tarjeta Chase Freedom terminada en 4821" */
+function cardLabelEs(brief: NegotiationBrief): string {
+  const namesIssuer = brief.cardName.toLowerCase().includes(brief.issuerName.toLowerCase());
+  // A card with no real name ("Credit card") is just the bank's card: "la tarjeta Chase".
+  const generic = /^credit\s*card$/i.test(brief.cardName.trim());
+  const name = generic ? brief.issuerName : (namesIssuer ? brief.cardName : `${brief.issuerName} ${brief.cardName}`).replace(/\s*card$/i, "");
+  return brief.last4 ? `la tarjeta ${name} terminada en ${brief.last4}` : `la tarjeta ${name}`;
+}
+
 /** The one ask of this call, with its numbers. */
 function goalInstruction(brief: NegotiationBrief): string {
   switch (brief.goal) {
@@ -65,8 +85,21 @@ function goalInstruction(brief: NegotiationBrief): string {
 
 /** The agent's first line, with the disclosures. Deterministic. */
 export function openingLine(brief: NegotiationBrief): string {
+  if (brief.language === "es") {
+    const purpose = `Llamamos por ${cardLabelEs(brief)}, ${CALL_PURPOSE_ES[brief.goal]}.`;
+    return ["Hola, buenas.", ...brief.disclosures, purpose].join(" ");
+  }
   const purpose = `We are calling about the ${cardLabel(brief)}, ${CALL_PURPOSE[brief.goal]}.`;
   return ["Hello.", ...brief.disclosures, purpose].join(" ");
+}
+
+/** What the agent is told about the language of the call. Empty for English. */
+function languageSection(brief: NegotiationBrief): string {
+  if (brief.language !== "es") return "";
+  return `
+LANGUAGE
+This call is in Spanish. Speak natural, polite US Spanish (Latin American, "usted" with the representative) for the whole call, including the disclosures. The facts and instructions in this prompt are written in English: say them in Spanish, with the same meaning and the same numbers. Say amounts and rates clearly, for example "cuarenta dólares" or "veintisiete punto veinticuatro por ciento". If the representative only speaks English, switch to English and say so briefly.
+`;
 }
 
 /** The agent's instructions. The same text drives the text route and the voice agent. */
@@ -115,6 +148,7 @@ For your planning only. These are general notes, not facts about this account. N
 - Requests a representative can usually act on: ${playbook.usualAsks.join("; ")}.
 - ${playbook.note}
 
+${languageSection(brief)}
 HOW TO SPEAK
 This is a spoken call. Use two or three short sentences per turn, in plain words. Sound like a real person on the phone: use contractions, a short natural acknowledgment such as "Sure" or "Got it" when it fits, and vary your wording from turn to turn. You have already said you are an AI assistant; never claim otherwise. No lists, no markup, no stage directions. Write rates and amounts in digits with the percent or dollar sign, so the transcript can be checked later.
 

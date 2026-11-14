@@ -36,6 +36,14 @@ describe("greetingFor", () => {
     expect(greetingFor(23)).toBe("Good evening!");
     expect(greetingFor(2)).toBe("Good evening!");
   });
+
+  it("greets in Spanish, with the afternoon running until eight", () => {
+    expect(greetingFor(6, "es")).toBe("¡Buenos días!");
+    expect(greetingFor(12, "es")).toBe("¡Buenas tardes!");
+    expect(greetingFor(19, "es")).toBe("¡Buenas tardes!");
+    expect(greetingFor(20, "es")).toBe("¡Buenas noches!");
+    expect(greetingFor(2, "es")).toBe("¡Buenas noches!");
+  });
 });
 
 describe("initialOf", () => {

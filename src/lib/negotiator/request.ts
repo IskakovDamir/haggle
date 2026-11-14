@@ -54,6 +54,7 @@ const briefSchema: z.ZodType<NegotiationBrief> = z.object({
   acceptAprBps: aprBps.nullable(),
   fallback: line(200),
   disclosures: z.array(line(200)).min(1).max(5),
+  language: z.enum(["en", "es"]).optional(),
 });
 
 const turnSchema: z.ZodType<Turn> = z.object({

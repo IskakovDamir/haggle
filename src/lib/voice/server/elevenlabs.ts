@@ -91,6 +91,7 @@ export async function startOutboundCall(
     toNumber: string;
     dynamicVariables: Record<string, string>;
     voiceId?: string;
+    language?: "en" | "es";
   },
   fetcher: Fetch = fetch,
 ): Promise<{ conversationId: string }> {
@@ -100,7 +101,14 @@ export async function startOutboundCall(
     to_number: input.toNumber,
     conversation_initiation_client_data: {
       dynamic_variables: input.dynamicVariables,
-      ...(input.voiceId ? { conversation_config_override: { tts: { voice_id: input.voiceId } } } : {}),
+      ...(input.voiceId || input.language === "es"
+        ? {
+            conversation_config_override: {
+              ...(input.voiceId ? { tts: { voice_id: input.voiceId } } : {}),
+              ...(input.language === "es" ? { agent: { language: "es" } } : {}),
+            },
+          }
+        : {}),
     },
   };
   const answer = await call(apiKey, "/v1/convai/twilio/outbound-call", { method: "POST", body }, fetcher);

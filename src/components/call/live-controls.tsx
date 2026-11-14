@@ -7,6 +7,8 @@ import { ArrowRight, LoaderCircle, Mic, PhoneOff, SendHorizontal, Smartphone } f
 import { EASE } from "@/components/motion/reveal";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/primitives";
+import type { Copy } from "@/lib/i18n/locale";
+import { useLocale } from "@/lib/i18n/use-locale";
 import { cn } from "@/lib/utils";
 import { Notice } from "./page-states";
 import { panel } from "./panel-theme";
@@ -14,6 +16,85 @@ import type { CallSession } from "./use-call-session";
 
 /** The longest line the negotiate route accepts. */
 const MAX_LINE_CHARS = 1000;
+
+type PhoneStatus = CallSession["phone"]["status"];
+
+type LiveCopy = {
+  seeResult: string;
+  callAgain: string;
+  readAgain: string;
+  reading: string;
+  tryAgain: string;
+  voiceFailed: string;
+  carryOn: string;
+  typeInstead: string;
+  micOn: string;
+  connecting: string;
+  stopFollowing: string;
+  endCall: string;
+  phoneLine: Record<PhoneStatus, string>;
+  lineLabel: string;
+  answer: string;
+  wait: string;
+  send: string;
+};
+
+const COPY: Copy<LiveCopy> = {
+  en: {
+    seeResult: "See the result",
+    callAgain: "Call again",
+    readAgain: "Read the call again",
+    reading: "Reading the call. Every number is checked against the bank's own words.",
+    tryAgain: "Try again",
+    voiceFailed: "The voice call could not start.",
+    carryOn: "You can carry on by typing.",
+    typeInstead: "Type instead",
+    micOn: "The microphone is on. Speak as the bank.",
+    connecting: "Connecting the call. Allow the microphone if your browser asks.",
+    stopFollowing: "Stop following and read the call",
+    endCall: "End call",
+    phoneLine: {
+      idle: "Getting ready to call.",
+      placing: "Placing the call.",
+      dialing: "Ringing your phone. Pick up and play the bank.",
+      live: "You are on the call. Speak as the bank, and hang up when you are done.",
+      wrapping: "The call ended. Getting the full transcript.",
+      done: "The call ended.",
+      failed: "The call did not connect.",
+    },
+    lineLabel: "Your line, as the bank",
+    answer: "Answer as the bank",
+    wait: "Wait for the agent",
+    send: "Say it",
+  },
+  es: {
+    seeResult: "Ver el resultado",
+    callAgain: "Llamar otra vez",
+    readAgain: "Leer la llamada otra vez",
+    reading: "Leyendo la llamada. Cada número se revisa con las propias palabras del banco.",
+    tryAgain: "Intentar de nuevo",
+    voiceFailed: "No se pudo iniciar la llamada de voz.",
+    carryOn: "Puedes seguir por escrito.",
+    typeInstead: "Escribir mejor",
+    micOn: "El micrófono está encendido. Habla como el banco.",
+    connecting: "Conectando la llamada. Permite el micrófono si tu navegador lo pide.",
+    stopFollowing: "Dejar de seguir y leer la llamada",
+    endCall: "Terminar llamada",
+    phoneLine: {
+      idle: "Preparando la llamada.",
+      placing: "Haciendo la llamada.",
+      dialing: "Está sonando tu teléfono. Contesta y haz de banco.",
+      live: "Estás en la llamada. Habla como el banco y cuelga cuando termines.",
+      wrapping: "La llamada terminó. Obteniendo la transcripción completa.",
+      done: "La llamada terminó.",
+      failed: "La llamada no se conectó.",
+    },
+    lineLabel: "Lo que dices, como el banco",
+    answer: "Responde como el banco",
+    wait: "Espera al agente",
+    send: "Enviar",
+  },
+};
 
 /** Each phase of the row rises in when it takes over, so the change reads as one step. */
 function Phase({ id, className, children }: { id: string; className?: string; children: React.ReactNode }) {
@@ -33,6 +114,7 @@ function Phase({ id, className, children }: { id: string; className?: string; ch
 /** The row under the transcript. It changes with the call: speak or type, wait for the result, or move on. */
 export function LiveControls({ session }: { session: CallSession }) {
   const { phase, mode, problem, voice } = session;
+  const copy = COPY[useLocale()];
 
   if (phase === "done") {
     return (
@@ -41,11 +123,11 @@ export function LiveControls({ session }: { session: CallSession }) {
           href={`/win?call=${encodeURIComponent(session.callId ?? "")}`}
           className={cn(buttonVariants({ size: "lg" }), "group flex-1")}
         >
-          See the result
+          {copy.seeResult}
           <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
         </Link>
         <Button size="lg" variant="ghost" onClick={session.reset}>
-          Call again
+          {copy.callAgain}
         </Button>
       </Phase>
     );
@@ -56,7 +138,7 @@ export function LiveControls({ session }: { session: CallSession }) {
       <Phase id="reading-problem" className="flex flex-col gap-3">
         <Notice tone="dark">{problem.message}</Notice>
         <Button size="lg" onClick={session.retry}>
-          Read the call again
+          {copy.readAgain}
         </Button>
       </Phase>
     ) : (
@@ -66,7 +148,7 @@ export function LiveControls({ session }: { session: CallSession }) {
           className="hg-shimmer flex items-center gap-2.5 rounded-2xl px-4 py-3 text-[15px] font-medium text-hg-ink-2"
         >
           <LoaderCircle className="size-4 shrink-0 animate-spin text-hg-blue" aria-hidden />
-          Reading the call. Every number is checked against the bank&apos;s own words.
+          {copy.reading}
         </p>
       </Phase>
     );
@@ -83,7 +165,7 @@ export function LiveControls({ session }: { session: CallSession }) {
             {problem.message}
           </Notice>
           <Button variant="outline" onClick={session.retry}>
-            Try again
+            {copy.tryAgain}
           </Button>
         </div>
       )}
@@ -91,10 +173,10 @@ export function LiveControls({ session }: { session: CallSession }) {
       {voiceFailed && (
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Notice tone="dark" className="flex-1">
-            {voice.error ?? "The voice call could not start."} You can carry on by typing.
+            {voice.error ?? copy.voiceFailed} {copy.carryOn}
           </Notice>
           <Button variant="outline" onClick={session.typeInstead}>
-            Type instead
+            {copy.typeInstead}
           </Button>
         </div>
       )}
@@ -121,38 +203,27 @@ export function LiveControls({ session }: { session: CallSession }) {
             )}
             <Mic className="relative size-4" />
           </span>
-          {micLive
-            ? "The microphone is on. Speak as the bank."
-            : "Connecting the call. Allow the microphone if your browser asks."}
+          {micLive ? copy.micOn : copy.connecting}
         </p>
       )}
 
       {mode === "phone" ? (
         <Button variant="outline" size="lg" onClick={session.end}>
-          Stop following and read the call
+          {copy.stopFollowing}
         </Button>
       ) : (
         <Button variant="danger" size="lg" onClick={session.end}>
           <PhoneOff className="size-4" aria-hidden />
-          End call
+          {copy.endCall}
         </Button>
       )}
     </Phase>
   );
 }
 
-const PHONE_LINE: Record<CallSession["phone"]["status"], string> = {
-  idle: "Getting ready to call.",
-  placing: "Placing the call.",
-  dialing: "Ringing your phone. Pick up and play the bank.",
-  live: "You are on the call. Speak as the bank, and hang up when you are done.",
-  wrapping: "The call ended. Getting the full transcript.",
-  done: "The call ended.",
-  failed: "The call did not connect.",
-};
-
 /** Where a phone call stands. The phone itself is the microphone, so this row only reports. */
-function PhoneLine({ status }: { status: CallSession["phone"]["status"] }) {
+function PhoneLine({ status }: { status: PhoneStatus }) {
+  const copy = COPY[useLocale()];
   const ringing = status === "placing" || status === "dialing";
   const live = status === "live";
   return (
@@ -179,7 +250,7 @@ function PhoneLine({ status }: { status: CallSession["phone"]["status"] }) {
           <Smartphone className="size-4" />
         </motion.span>
       </span>
-      {PHONE_LINE[status]}
+      {copy.phoneLine[status]}
     </p>
   );
 }
@@ -187,6 +258,7 @@ function PhoneLine({ status }: { status: CallSession["phone"]["status"] }) {
 /** Where the visitor types the bank's next line. It opens only when it is the bank's turn to speak. */
 function BankComposer({ session }: { session: CallSession }) {
   const [draft, setDraft] = useState("");
+  const copy = COPY[useLocale()];
   const banksTurn = !session.agentIsReplying && session.turns.at(-1)?.role === "agent";
   const canSend = banksTurn && draft.trim() !== "";
 
@@ -201,7 +273,7 @@ function BankComposer({ session }: { session: CallSession }) {
       }}
     >
       <label htmlFor="bank-line" className="sr-only">
-        Your line, as the bank
+        {copy.lineLabel}
       </label>
       <Input
         id="bank-line"
@@ -209,10 +281,10 @@ function BankComposer({ session }: { session: CallSession }) {
         onChange={(event) => setDraft(event.target.value)}
         maxLength={MAX_LINE_CHARS}
         autoComplete="off"
-        placeholder={banksTurn ? "Answer as the bank" : "Wait for the agent"}
+        placeholder={banksTurn ? copy.answer : copy.wait}
         className={cn("rounded-full", panel.field, banksTurn && "border-hg-blue-tint bg-white")}
       />
-      <Button type="submit" disabled={!canSend} aria-label="Say it" className="size-11 shrink-0 px-0">
+      <Button type="submit" disabled={!canSend} aria-label={copy.send} className="size-11 shrink-0 px-0">
         <SendHorizontal className="size-4" aria-hidden />
       </Button>
     </form>

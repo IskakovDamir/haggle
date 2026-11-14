@@ -1,7 +1,9 @@
 // Hero from the Figma frame "Hero" (12:184): nav, headline with inline pills, CTAs and the device picture.
 import Image from "next/image";
 import Link from "next/link";
+import { LocaleSwitch } from "@/components/i18n/locale-switch";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
+import { landingPath, type Copy, type Locale } from "@/lib/i18n/locale";
 import { HgButton, HgLogo, HgMark, HgSection } from "./ui";
 import { HeroDevices } from "./hero-devices";
 import { HeroIcon } from "./hero-icon";
@@ -21,25 +23,71 @@ const backdrop: { src: string; w: number; h: number; pos: React.CSSProperties }[
   { src: "cloud-bottom-center", w: 960, h: 400, pos: { left: "calc(50% - 484px)", bottom: -712 } },
 ];
 
-const navItems = [
-  { label: "Home", href: "/", current: true },
-  { label: "How it works", href: "#how" },
-  { label: "What we win", href: "#wins", chevron: true },
-  { label: "Pricing", href: "#pricing" },
-];
+type HeroCopy = {
+  navLabel: string;
+  nav: { home: string; how: string; wins: string; pricing: string };
+  logIn: string;
+  getStarted: string;
+  badge: string;
+  badgeText: string;
+  /** The headline's two lines, split around the inline pills: [before mark, after mark] and [before bars, after bars]. */
+  headline: [[string, string], [string, string]];
+  lead: string;
+  missed: string;
+  lower: string;
+};
+
+const COPY: Copy<HeroCopy> = {
+  en: {
+    navLabel: "Main",
+    nav: { home: "Home", how: "How it works", wins: "What we win", pricing: "Pricing" },
+    logIn: "Log in",
+    getStarted: "Get started",
+    badge: "New",
+    badgeText: "Missed a payment? Get the late fee back",
+    headline: [
+      ["Let AI", "call your bank"],
+      ["and lower your", "card rate"],
+    ],
+    lead: "Haggle calls your card issuer, waits on hold and negotiates a lower APR, and you pay only after you save",
+    missed: "I missed a payment",
+    lower: "Lower my rate",
+  },
+  es: {
+    navLabel: "Principal",
+    nav: { home: "Inicio", how: "Cómo funciona", wins: "Qué ganas", pricing: "Precios" },
+    logIn: "Entrar",
+    getStarted: "Empezar",
+    badge: "Nuevo",
+    badgeText: "¿Se te pasó un pago? Recupera el cargo por atraso",
+    headline: [
+      ["Que la IA", "llame a tu banco"],
+      ["y baje tu", "tasa de interés"],
+    ],
+    lead: "Haggle llama a tu banco, espera en línea por ti y negocia una APR más baja. Y solo pagas si ahorras",
+    missed: "Se me pasó un pago",
+    lower: "Bajar mi tasa",
+  },
+};
 
 const small = "text-[14px] leading-5 font-medium tracking-[-0.005em]";
-const lang = "text-[13px] leading-[18px] font-semibold tracking-[-0.002em]";
 
-function Nav() {
+function Nav({ locale }: { locale: Locale }) {
+  const t = COPY[locale];
+  const navItems = [
+    { label: t.nav.home, href: landingPath(locale), current: true },
+    { label: t.nav.how, href: "#how" },
+    { label: t.nav.wins, href: "#wins", chevron: true },
+    { label: t.nav.pricing, href: "#pricing" },
+  ];
   return (
-    <nav aria-label="Main" className="relative flex w-full items-center justify-between gap-2 px-2">
+    <nav aria-label={t.navLabel} className="relative flex w-full items-center justify-between gap-2 px-2">
       <div className="flex items-center lg:w-[320px]">
-        <HgLogo />
+        <HgLogo locale={locale} />
       </div>
       <ul className="hidden items-start gap-1 rounded-full border border-white/90 bg-white/55 p-[5px] lg:flex">
         {navItems.map((item) => (
-          <li key={item.label}>
+          <li key={item.href}>
             <Link
               href={item.href}
               aria-current={item.current ? "page" : undefined}
@@ -54,21 +102,12 @@ function Nav() {
         ))}
       </ul>
       <div className="flex items-center justify-end gap-2.5 lg:w-[320px]">
-        {/* Language switch is visual for now: only English exists. */}
-        <div role="group" aria-label="Language" className="hidden items-center gap-0.5 rounded-full bg-white/60 p-1 sm:flex">
-          <span aria-current="true" className={`${lang} flex items-center gap-1.5 rounded-full bg-hg-ink px-2.5 py-1.5 text-white`}>
-            <HeroIcon name="icon-globe" box={14} width={12.8333} height={12.8333} />
-            EN
-          </span>
-          <span aria-disabled="true" title="Spanish is coming soon" className={`${lang} cursor-not-allowed px-2.5 py-1.5 text-hg-ink-2`}>
-            ES
-          </span>
-        </div>
+        <LocaleSwitch landing={locale} className="hidden sm:flex" />
         <HgButton href="/dashboard" tone="dark" size="s">
-          Log in
+          {t.logIn}
         </HgButton>
         <HgButton href="/start" size="s">
-          Get started
+          {t.getStarted}
         </HgButton>
       </div>
     </nav>
@@ -98,7 +137,8 @@ function RateDownPill() {
   );
 }
 
-function Headline() {
+function Headline({ locale }: { locale: Locale }) {
+  const [[a, b], [c, d]] = COPY[locale].headline;
   const line = "flex flex-wrap items-center justify-center gap-x-[0.196em] gap-y-[0.065em]";
   return (
     <Stagger
@@ -109,22 +149,23 @@ function Headline() {
       className="flex flex-col items-center gap-[0.065em] text-center text-[clamp(32px,6.4vw,92px)] leading-[1.0543] font-semibold tracking-[-0.045em] text-hg-ink"
     >
       <StaggerItem as="span" className={line}>
-        <span>Let AI</span>
+        <span>{a}</span>
         <span aria-hidden className="hg-pop block size-[1.185em] shrink-0 overflow-hidden rounded-full bg-hg-blue" style={{ animationDelay: "0.35s" }}>
           <HgMark size={109} className="size-full!" />
         </span>
-        <span>call your bank</span>
+        <span>{b}</span>
       </StaggerItem>
       <StaggerItem as="span" className={line}>
-        <span>and lower your</span>
+        <span>{c}</span>
         <RateDownPill />
-        <span>card rate</span>
+        <span>{d}</span>
       </StaggerItem>
     </Stagger>
   );
 }
 
-export function Hero() {
+export function Hero({ locale = "en" }: { locale?: Locale }) {
+  const t = COPY[locale];
   return (
     <HgSection
       className="mt-2 flex w-[calc(100%-16px)] flex-col items-center rounded-[32px] px-4 pt-5 font-manrope [--s:0.44] sm:mt-4 sm:w-[calc(100%-32px)] sm:px-6 md:[--s:0.52] lg:[--s:0.72] xl:[--s:0.9] min-[1380px]:[--s:1]"
@@ -145,7 +186,7 @@ export function Hero() {
       </div>
 
       <Reveal className="relative w-full" y={-12} delay={0}>
-        <Nav />
+        <Nav locale={locale} />
       </Reveal>
 
       <div className="relative flex flex-col items-center gap-[26px] pt-12">
@@ -154,27 +195,27 @@ export function Hero() {
             href="/missed"
             className="group inline-flex items-center gap-2 rounded-full border border-white bg-white/70 py-1.5 pr-3 pl-1.5 text-[14px] font-semibold text-hg-ink-2 backdrop-blur transition-colors hover:bg-white"
           >
-            <span className="rounded-full bg-hg-blue px-2.5 py-1 text-[12px] text-white">New</span>
-            Missed a payment? Get the late fee back
+            <span className="rounded-full bg-hg-blue px-2.5 py-1 text-[12px] text-white">{t.badge}</span>
+            {t.badgeText}
             <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
           </Link>
         </Reveal>
-        <Headline />
+        <Headline locale={locale} />
         <Reveal as="p" delay={0.45} y={16} className="max-w-[960px] text-center text-[16px] leading-6 font-medium tracking-[-0.01em] text-hg-ink-2 sm:text-[18px] sm:leading-7">
-          Haggle calls your card issuer, waits on hold and negotiates a lower APR, and you pay only after you save
+          {t.lead}
         </Reveal>
         <Reveal delay={0.6} y={16} className="flex flex-wrap items-center justify-center gap-3">
           <HgButton href="/missed" arrow>
-            I missed a payment
+            {t.missed}
           </HgButton>
           <HgButton href="/start" tone="dark">
-            Lower my rate
+            {t.lower}
           </HgButton>
         </Reveal>
       </div>
 
       <Reveal delay={0.75} y={80} amount={0} className="relative w-full">
-        <HeroDevices />
+        <HeroDevices locale={locale} />
       </Reveal>
 
       <div

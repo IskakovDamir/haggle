@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { MotionConfig } from "framer-motion";
 import { Stagger, StaggerItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/primitives";
+import type { Copy } from "@/lib/i18n/locale";
+import { useLocale } from "@/lib/i18n/use-locale";
 import type { CardAccount, NegotiationBrief } from "@/lib/types";
 import { askSentence, cardLabel } from "./ask";
 import { BankGuide } from "./bank-guide";
@@ -15,6 +17,32 @@ import { StartControls } from "./start-controls";
 import { Transcript } from "./transcript";
 import { useCallSession, type CallSession as Session } from "./use-call-session";
 import { useCapabilities } from "./use-capabilities";
+
+const COPY: Copy<{
+  practice: string;
+  calls: string;
+  about: (holder: string, card: string) => string;
+  bankLabel: string;
+  phoneEmpty: string;
+  agentFirst: string;
+}> = {
+  en: {
+    practice: "Practice call",
+    calls: "Haggle calls",
+    about: (holder, card) => `About ${holder}'s ${card}.`,
+    bankLabel: "You, as the bank",
+    phoneEmpty: "The transcript shows up here as the call goes.",
+    agentFirst: "The agent speaks first.",
+  },
+  es: {
+    practice: "Llamada de práctica",
+    calls: "Haggle llama a",
+    about: (holder, card) => `Sobre la tarjeta ${card} de ${holder}.`,
+    bankLabel: "Tú, como el banco",
+    phoneEmpty: "La transcripción aparece aquí mientras avanza la llamada.",
+    agentFirst: "El agente habla primero.",
+  },
+};
 
 /** What the bar at the top of the panel says about the line. */
 function lineState(session: Session): LineState {
@@ -33,6 +61,8 @@ function lineState(session: Session): LineState {
 /** One practice call about one plan step: the briefing, the live transcript, and the hand-off to the result. */
 export function CallSession(props: { card: CardAccount; brief: NegotiationBrief }) {
   const router = useRouter();
+  const locale = useLocale();
+  const copy = COPY[locale];
   // The call runs on the card as it stood when this screen opened. The case file is saved again with
   // every line, and a brief that changed identity mid-call would only disturb the voice session.
   const [{ card, brief }] = useState(props);
@@ -50,17 +80,17 @@ export function CallSession(props: { card: CardAccount; brief: NegotiationBrief 
       <Stagger as="header" onMount gap={0.08} className="mb-7 sm:mb-10">
         <StaggerItem>
           <Badge tone="lime" className="px-3 py-1">
-            Practice call
+            {copy.practice}
           </Badge>
         </StaggerItem>
         <StaggerItem
           as="h1"
           className="mt-4 text-[clamp(34px,5.5vw,56px)] leading-[1.05] font-semibold tracking-[-0.035em] text-hg-ink"
         >
-          Haggle calls <em>{brief.issuerName}</em>
+          {copy.calls} <em>{brief.issuerName}</em>
         </StaggerItem>
         <StaggerItem as="p" className="mt-3 text-[17px] leading-7 font-medium text-muted sm:text-lg">
-          About {brief.holderFirstName}&apos;s {cardLabel(card)}.
+          {copy.about(brief.holderFirstName, cardLabel(card, locale))}
         </StaggerItem>
       </Stagger>
 
@@ -68,7 +98,7 @@ export function CallSession(props: { card: CardAccount; brief: NegotiationBrief 
         <CallPanel line={lineState(session)} callee={brief.issuerName} clock={formatClock(elapsedMs)}>
           {session.phase === "briefing" ? (
             <StartControls
-              ask={askSentence(brief, card)}
+              ask={askSentence(brief, card, locale)}
               capabilities={capabilities}
               voice={session.voice}
               notice={session.notice}
@@ -78,10 +108,10 @@ export function CallSession(props: { card: CardAccount; brief: NegotiationBrief 
             <>
               <Transcript
                 turns={session.turns}
-                bankLabel="You, as the bank"
+                bankLabel={copy.bankLabel}
                 agentIsReplying={session.agentIsReplying}
                 follow
-                emptyText={session.mode === "phone" ? "The transcript shows up here as the call goes." : "The agent speaks first."}
+                emptyText={session.mode === "phone" ? copy.phoneEmpty : copy.agentFirst}
                 className="h-[min(26rem,52vh)]"
               />
               <LiveControls session={session} />

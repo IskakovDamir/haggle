@@ -8,14 +8,17 @@ import { callHref } from "@/components/call/resolve-call";
 import { EASE, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { Field } from "@/components/start/field";
 import { Button } from "@/components/ui/button";
-import { Card, SampleBadge, Switch } from "@/components/ui/primitives";
+import { Card, Switch } from "@/components/ui/primitives";
 import { feeForWin, leversFor } from "@/lib/engine";
 import { formatApr } from "@/lib/format";
+import type { Locale } from "@/lib/i18n/locale";
+import { useLocale } from "@/lib/i18n/use-locale";
 import { MISSED_REASONS, MAX_NOTE_CHARS } from "@/lib/missed";
 import { formatCents, formatDollars } from "@/lib/money";
 import { newCase, useCaseFile, withCard } from "@/lib/store";
 import type { CardAccount } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { MISSED_COPY, localizeMissedError, reasonLabelFor } from "./missed-copy";
 import { BLANK_MISSED, SAMPLE_MISSED, SAMPLE_MISSED_CARD_ID, readMissedForm, type MissedField, type MissedValues } from "./missed-model";
 
 const newId = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `id-${Date.now()}`);
@@ -23,6 +26,8 @@ const newId = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? c
 /** The missed-payment way in: a few numbers, the true reason, then straight to the call. */
 export function MissedForm() {
   const router = useRouter();
+  const locale = useLocale();
+  const copy = MISSED_COPY[locale];
   const { update } = useCaseFile();
   const [values, setValues] = useState<MissedValues>(BLANK_MISSED);
   const [sample, setSample] = useState(false);
@@ -31,7 +36,12 @@ export function MissedForm() {
   const thisYear = new Date().getFullYear();
   // The preview needs no real id; the card gets one when it is saved.
   const result = useMemo(() => readMissedForm(values, { id: "draft", thisYear }), [values, thisYear]);
-  const errors = result.ok ? {} : result.errors;
+  const errors: Partial<Record<MissedField, string>> = {};
+  if (!result.ok) {
+    for (const [field, message] of Object.entries(result.errors) as [MissedField, string][]) {
+      errors[field] = localizeMissedError(message, locale);
+    }
+  }
 
   // What the call is worth, from the engine, as soon as the numbers are good enough to read.
   const lever = result.ok ? leversFor(result.card).find((candidate) => candidate.kind === "missed_payment") : undefined;
@@ -74,7 +84,7 @@ export function MissedForm() {
     router.push(callHref(`${card.id}:missed_payment`));
   }
 
-  const asks = result.ok ? asksFor(result.card) : [];
+  const asks = result.ok ? asksFor(result.card, locale) : [];
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
@@ -89,15 +99,15 @@ export function MissedForm() {
           <StaggerItem className="flex flex-wrap items-center gap-3">
             <Button type="button" variant="outline" size="sm" onClick={fillSample}>
               <Sparkles className="size-3.5" aria-hidden />
-              Fill in Maria&apos;s example
+              {copy.fillSample}
             </Button>
-            {sample && <SampleBadge />}
+            {sample && <SampleTag>{copy.sampleData}</SampleTag>}
           </StaggerItem>
 
           <StaggerItem>
             <Card className="rounded-[28px] p-5 sm:p-7">
-              <SectionTitle n={1} title="Why you missed it" lead="Pick what is true. The agent says this reason to the bank and nothing else." />
-              <div id="missed-reason" tabIndex={-1} role="radiogroup" aria-label="Why you missed the payment" className="mt-4 flex flex-wrap gap-2 outline-none">
+              <SectionTitle n={1} title={copy.reasonTitle} lead={copy.reasonLead} />
+              <div id="missed-reason" tabIndex={-1} role="radiogroup" aria-label={copy.reasonGroup} className="mt-4 flex flex-wrap gap-2 outline-none">
                 {MISSED_REASONS.map((reason) => {
                   const on = values.reason === reason.id;
                   return (
@@ -119,7 +129,7 @@ export function MissedForm() {
                           transition={{ type: "spring", stiffness: 420, damping: 34 }}
                         />
                       )}
-                      <span className="relative">{reason.label}</span>
+                      <span className="relative">{reasonLabelFor(reason.id, locale)}</span>
                     </button>
                   );
                 })}
@@ -138,7 +148,7 @@ export function MissedForm() {
               </AnimatePresence>
               <div className="mt-5">
                 <label htmlFor="missed-note" className="mb-1.5 block text-sm font-semibold tracking-[-0.005em] text-hg-ink-2">
-                  In your own words <span className="font-medium text-hg-muted">optional</span>
+                  {copy.noteLabel} <span className="font-medium text-hg-muted">{copy.optional}</span>
                 </label>
                 <textarea
                   id="missed-note"
@@ -147,11 +157,11 @@ export function MissedForm() {
                   value={values.note}
                   onChange={(event) => set("note", event.target.value)}
                   aria-invalid={tried && errors.note ? true : undefined}
-                  placeholder="One sentence the agent can repeat, like what happened with autopay."
+                  placeholder={copy.notePlaceholder}
                   className="w-full resize-none rounded-2xl border border-line bg-white px-4 py-3 text-base text-ink transition-[border-color,box-shadow] placeholder:text-muted/70 hover:border-hg-blue-tint focus:border-hg-blue focus:shadow-[0_0_0_4px_rgb(47_107_255/0.12)] focus:outline-none"
                 />
                 <p className={cn("mt-1 text-xs", tried && errors.note ? "text-alarm" : "text-hg-muted")}>
-                  {tried && errors.note ? errors.note : `Only what is true. ${values.note.trim().length}/${MAX_NOTE_CHARS}`}
+                  {tried && errors.note ? errors.note : copy.noteCount(values.note.trim().length, MAX_NOTE_CHARS)}
                 </p>
               </div>
             </Card>
@@ -159,18 +169,18 @@ export function MissedForm() {
 
           <StaggerItem>
             <Card className="rounded-[28px] p-5 sm:p-7">
-              <SectionTitle n={2} title="Your card" lead="Numbers from your statement or your banking app." />
+              <SectionTitle n={2} title={copy.cardTitle} lead={copy.cardLead} />
               <div className="mt-5 grid gap-x-4 gap-y-5 sm:grid-cols-2">
-                <Field label="Bank" placeholder="Chase" {...bind("issuerName")} />
-                <Field label="Your first name" hint="optional" autoComplete="given-name" {...bind("holderFirstName")} />
-                <Field label="Card balance" unit="dollars" placeholder="8,400.00" {...bind("balance")} />
-                <Field label="APR now" unit="percent" placeholder="29.99" {...bind("apr")} />
-                <Field label="Last four digits" hint="optional" inputMode="numeric" {...bind("last4")} />
-                <Field label="Customer since" hint="optional, year" inputMode="numeric" placeholder="2016" {...bind("memberSinceYear")} />
+                <Field label={copy.bank} placeholder="Chase" {...bind("issuerName")} />
+                <Field label={copy.firstName} hint={copy.optional} autoComplete="given-name" {...bind("holderFirstName")} />
+                <Field label={copy.balance} unit="dollars" placeholder="8,400.00" {...bind("balance")} />
+                <Field label={copy.aprNow} unit="percent" placeholder="29.99" {...bind("apr")} />
+                <Field label={copy.last4} hint={copy.optional} inputMode="numeric" {...bind("last4")} />
+                <Field label={copy.memberSince} hint={copy.memberSinceHint} inputMode="numeric" placeholder="2016" {...bind("memberSinceYear")} />
               </div>
               <Toggle
                 className="mt-5"
-                label="The bank raised my APR after the missed payment"
+                label={copy.aprRaised}
                 checked={values.aprRaised}
                 onChange={(next) => set("aprRaised", next)}
               />
@@ -183,7 +193,7 @@ export function MissedForm() {
                     transition={{ duration: 0.3, ease: EASE }}
                     className="overflow-hidden"
                   >
-                    <Field className="pt-4 sm:max-w-[calc(50%-8px)]" label="APR before" unit="percent" placeholder="27.24" {...bind("aprBefore")} />
+                    <Field className="pt-4 sm:max-w-[calc(50%-8px)]" label={copy.aprBefore} unit="percent" placeholder="27.24" {...bind("aprBefore")} />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -192,16 +202,16 @@ export function MissedForm() {
 
           <StaggerItem>
             <Card className="rounded-[28px] p-5 sm:p-7">
-              <SectionTitle n={3} title="The missed payment" lead="Leave out anything you are not sure about." />
+              <SectionTitle n={3} title={copy.missedTitle} lead={copy.missedLead} />
               <div className="mt-5 grid gap-x-4 gap-y-5 sm:grid-cols-3">
-                <Field label="Late fee" hint="optional" unit="dollars" placeholder="40.00" {...bind("lateFee")} />
-                <Field label="Interest that month" hint="optional" unit="dollars" {...bind("interestCharged")} />
-                <Field label="Days late" hint="optional" inputMode="numeric" placeholder="9" {...bind("daysLate")} />
+                <Field label={copy.lateFee} hint={copy.optional} unit="dollars" placeholder="40.00" {...bind("lateFee")} />
+                <Field label={copy.interest} hint={copy.optional} unit="dollars" {...bind("interestCharged")} />
+                <Field label={copy.daysLate} hint={copy.optional} inputMode="numeric" placeholder="9" {...bind("daysLate")} />
               </div>
               <div className="mt-5 flex flex-col gap-3">
-                <Toggle label="I have paid it since" checked={values.paidSince} onChange={(next) => set("paidSince", next)} />
+                <Toggle label={copy.paidSince} checked={values.paidSince} onChange={(next) => set("paidSince", next)} />
                 <Toggle
-                  label="It is my first late payment in the last 12 months"
+                  label={copy.firstInYear}
                   checked={values.firstInYear}
                   onChange={(next) => set("firstInYear", next)}
                 />
@@ -211,10 +221,10 @@ export function MissedForm() {
 
           <StaggerItem className="flex flex-wrap items-center gap-3">
             <Button type="submit" size="lg">
-              Have Haggle call {values.issuerName.trim() || "my bank"}
+              {copy.submit(values.issuerName.trim())}
               <ArrowRight className="size-4" aria-hidden />
             </Button>
-            <p className="text-sm text-hg-muted">A practice call: you play the bank.</p>
+            <p className="text-sm text-hg-muted">{copy.practice}</p>
           </StaggerItem>
         </Stagger>
       </form>
@@ -226,7 +236,7 @@ export function MissedForm() {
         className="hg-panel relative overflow-hidden rounded-[28px] p-6 lg:sticky lg:top-24"
         aria-live="polite"
       >
-        <p className="text-sm font-semibold text-white/70">What the agent asks for</p>
+        <p className="text-sm font-semibold text-white/70">{copy.asksTitle}</p>
         {asks.length > 0 ? (
           <ul className="mt-4 flex flex-col gap-2.5">
             <AnimatePresence initial={false}>
@@ -250,18 +260,18 @@ export function MissedForm() {
           </ul>
         ) : (
           <p className="mt-4 text-[15px] leading-snug text-white/80">
-            Fill in the bank, the balance, the APR and the reason, and this fills in with what the agent will ask for.
+            {copy.asksEmpty}
           </p>
         )}
         <div className="mt-6 rounded-2xl bg-white/12 p-4">
-          <p className="text-sm text-white/70">Worth in the first year</p>
+          <p className="text-sm text-white/70">{copy.worthTitle}</p>
           <p className="mt-1 text-[40px] leading-none font-semibold tracking-[-0.04em] tabular-nums">
             {worth === null ? "—" : formatDollars(worth)}
           </p>
           <p className="mt-2 text-sm text-white/70">
             {worth === null || worth === 0
-              ? "You pay nothing unless the bank says yes."
-              : `You pay ${formatCents(feeForWin(worth))} only if the bank says yes.`}
+              ? copy.payNothing
+              : copy.payOnWin(formatCents(feeForWin(worth)))}
           </p>
         </div>
       </motion.aside>
@@ -270,18 +280,29 @@ export function MissedForm() {
 }
 
 /** The asks in plain words, from the card the form built. */
-function asksFor(card: CardAccount): string[] {
+function asksFor(card: CardAccount, locale: Locale): string[] {
+  const copy = MISSED_COPY[locale];
   const asks: string[] = [];
-  if (card.lateFeeCents > 0) asks.push(`Refund the ${formatCents(card.lateFeeCents)} late fee`);
+  if (card.lateFeeCents > 0) asks.push(copy.askLateFee(formatCents(card.lateFeeCents)));
   const before = card.missedPayment?.aprBeforeBps ?? null;
   if (before !== null && before < card.purchaseAprBps) {
-    asks.push(`Put the APR back to ${formatApr(before)}`);
+    asks.push(copy.askAprBack(formatApr(before)));
   }
   if (card.interestChargedCents !== null && card.interestChargedCents > 0) {
-    asks.push(`Refund the ${formatCents(card.interestChargedCents)} of interest`);
+    asks.push(copy.askInterest(formatCents(card.interestChargedCents)));
   }
-  asks.push("Keep it off your credit report");
+  asks.push(copy.askCreditReport);
   return asks;
+}
+
+/** The UI kit's "Sample data" badge, with its words in the visitor's language. */
+function SampleTag({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-leak/30 bg-leak-soft px-2.5 py-0.5 text-xs font-medium text-leak">
+      <span className="size-1.5 rounded-full bg-leak" />
+      {children}
+    </span>
+  );
 }
 
 function SectionTitle({ n, title, lead }: { n: number; title: string; lead: string }) {

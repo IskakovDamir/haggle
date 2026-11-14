@@ -1,15 +1,89 @@
 // "Pay only when you save": Figma node 6:110 on "Haggle — Landing · Desktop 1440".
 import Image from "next/image";
+import type { Copy, Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
 import { BlobPanel } from "./pricing-panel";
 import { HgButton, HgHeading, HgSection } from "./ui";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 
+type Plan = { title: string; note: string; unit: [string, string]; checks: [string, string, string]; cta: string };
+
+type PricingCopy = {
+  title: string;
+  lead: string;
+  perWin: Plan;
+  unlimited: Plan;
+  typical: {
+    title: string;
+    note: string;
+    head: { win: string; saved: string; fee: string };
+    /** One label per row, in the same order as `typicalYear`. */
+    rows: [string, string, string, string];
+    saved: string;
+    paid: string;
+  };
+};
+
+const COPY: Copy<PricingCopy> = {
+  en: {
+    title: "Pay only when you save",
+    lead: "No win, no charge, your card is billed only after the bank says yes",
+    perWin: {
+      title: "Pay per win",
+      note: "The default for everyone",
+      unit: ["of first-year", "savings"],
+      checks: ["Charged per win, after the bank says yes", "No win, no payment", "Every lever included, from APR to fees"],
+      cta: "Start with a call",
+    },
+    unlimited: {
+      title: "Unlimited",
+      note: "Best if you win more than 2 or 3 times a year",
+      unit: ["per", "month"],
+      checks: ["No fee per win", "Cards, internet, phone and insurance", "Price-hike alerts and repeat calls"],
+      cta: "Go unlimited",
+    },
+    typical: {
+      title: "A typical year",
+      note: "Four wins, billed per win at 20%",
+      head: { win: "Win", saved: "Saved", fee: "Fee" },
+      rows: ["Lower APR", "Annual fee waived", "Internet after promo", "Insurance renewal"],
+      saved: "Saved",
+      paid: "Paid to Haggle",
+    },
+  },
+  es: {
+    title: "Paga solo cuando ahorras",
+    lead: "Si no ganamos, no cobramos. Tu tarjeta se cobra solo después de que el banco dice que sí",
+    perWin: {
+      title: "Pago por resultado",
+      note: "La opción estándar para todos",
+      unit: ["del ahorro del", "primer año"],
+      checks: ["Se cobra por resultado, cuando el banco dice que sí", "Sin resultado, no pagas", "Todo incluido, de la APR a los cargos"],
+      cta: "Empieza con una llamada",
+    },
+    unlimited: {
+      title: "Ilimitado",
+      note: "Ideal si ganas más de 2 o 3 veces al año",
+      unit: ["al", "mes"],
+      checks: ["Sin cargo por resultado", "Tarjetas, internet, teléfono y seguros", "Alertas de aumentos y nuevas llamadas"],
+      cta: "Elegir Ilimitado",
+    },
+    typical: {
+      title: "Un año típico",
+      note: "Cuatro resultados, cobrados al 20% cada uno",
+      head: { win: "Resultado", saved: "Ahorro", fee: "Cargo" },
+      rows: ["APR más baja", "Cuota anual eliminada", "Internet tras la promo", "Renovación del seguro"],
+      saved: "Ahorrado",
+      paid: "Pagado a Haggle",
+    },
+  },
+};
+
 const typicalYear = [
-  { win: "Lower APR", saved: "$500", fee: "$100" },
-  { win: "Annual fee waived", saved: "$95", fee: "$19" },
-  { win: "Internet after promo", saved: "$240", fee: "$48" },
-  { win: "Insurance renewal", saved: "$300", fee: "$60" },
+  { saved: "$500", fee: "$100" },
+  { saved: "$95", fee: "$19" },
+  { saved: "$240", fee: "$48" },
+  { saved: "$300", fee: "$60" },
 ];
 
 function Check({ label, inverse = false }: { label: string; inverse?: boolean }) {
@@ -69,29 +143,28 @@ function Bar({ label, value, fill }: { label: string; value: string; fill: strin
   );
 }
 
-export function Pricing() {
+export function Pricing({ locale = "en" }: { locale?: Locale }) {
+  const { title, lead, perWin, unlimited, typical } = COPY[locale];
   return (
     <HgSection id="pricing" className="flex flex-col items-center gap-10 px-4 pt-14 pb-10 font-manrope sm:px-8 lg:px-10 xl:px-[104px]">
       <Reveal amount={0.5} className="flex flex-col items-center gap-4">
-        <HgHeading title="Pay only when you save" />
-        <p className="max-w-[620px] text-center text-[18px] leading-7 font-medium tracking-[-0.01em] text-hg-muted">
-          No win, no charge, your card is billed only after the bank says yes
-        </p>
+        <HgHeading title={title} />
+        <p className="max-w-[620px] text-center text-[18px] leading-7 font-medium tracking-[-0.01em] text-hg-muted">{lead}</p>
       </Reveal>
 
       <BlobPanel dir="pricing" angle={155.85} bottoms={{ center: -190, left: -120 }} className="p-3 sm:p-7">
         <Stagger gap={0.12} className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           <StaggerItem as="article" className="flex flex-col gap-6 overflow-hidden rounded-[34px] border border-white bg-white/92 p-6 sm:p-8">
-            <PlanHead title="Pay per win" note="The default for everyone" />
-            <Price amount="20%" unit={["of first-year", "savings"]} />
+            <PlanHead title={perWin.title} note={perWin.note} />
+            <Price amount="20%" unit={perWin.unit} />
             <hr className="h-px w-full border-0 bg-hg-line" />
             <ul className="flex flex-col gap-3">
-              <Check label="Charged per win, after the bank says yes" />
-              <Check label="No win, no payment" />
-              <Check label="Every lever included, from APR to fees" />
+              {perWin.checks.map((label) => (
+                <Check key={label} label={label} />
+              ))}
             </ul>
             <HgButton href="/start" tone="dark" arrow className="mt-auto w-full">
-              Start with a call
+              {perWin.cta}
             </HgButton>
           </StaggerItem>
 
@@ -99,16 +172,16 @@ export function Pricing() {
             className="flex flex-col gap-6 overflow-hidden rounded-[34px] p-6 sm:p-8"
             style={{ backgroundImage: "linear-gradient(127.26deg, #3a76ff 14.286%, #1a3fd6 85.714%)" }}
           >
-            <PlanHead title="Unlimited" note="Best if you win more than 2 or 3 times a year" inverse />
-            <Price amount="$14.99" unit={["per", "month"]} inverse />
+            <PlanHead title={unlimited.title} note={unlimited.note} inverse />
+            <Price amount="$14.99" unit={unlimited.unit} inverse />
             <hr className="h-px w-full border-0 bg-white/20" />
             <ul className="flex flex-col gap-3">
-              <Check label="No fee per win" inverse />
-              <Check label="Cards, internet, phone and insurance" inverse />
-              <Check label="Price-hike alerts and repeat calls" inverse />
+              {unlimited.checks.map((label) => (
+                <Check key={label} label={label} inverse />
+              ))}
             </ul>
             <HgButton href="/start" tone="white" arrow className="mt-auto w-full">
-              Go unlimited
+              {unlimited.cta}
             </HgButton>
           </StaggerItem>
 
@@ -124,23 +197,23 @@ export function Pricing() {
               className="pointer-events-none absolute bottom-[-189px] left-[-41px] -z-10 block max-w-none"
             />
             <div className="flex flex-col gap-1">
-              <h3 className="text-[24px] leading-[30px] font-semibold tracking-[-0.02em] text-white">A typical year</h3>
-              <p className="text-[14px] leading-5 font-medium tracking-[-0.005em] text-white/70">Four wins, billed per win at 20%</p>
+              <h3 className="text-[24px] leading-[30px] font-semibold tracking-[-0.02em] text-white">{typical.title}</h3>
+              <p className="text-[14px] leading-5 font-medium tracking-[-0.005em] text-white/70">{typical.note}</p>
             </div>
 
             <div className="overflow-hidden rounded-[18px] bg-white/6">
               <table className="w-full">
                 <thead>
                   <tr className="text-[13px] leading-[18px] font-semibold tracking-[-0.002em] text-white/70">
-                    <th className="py-[11px] pl-4 text-left font-semibold">Win</th>
-                    <th className="w-[64px] py-[11px] pl-2 text-right font-semibold">Saved</th>
-                    <th className="w-[68px] py-[11px] pr-4 pl-2 text-right font-semibold">Fee</th>
+                    <th className="py-[11px] pl-4 text-left font-semibold">{typical.head.win}</th>
+                    <th className="w-[64px] py-[11px] pl-2 text-right font-semibold">{typical.head.saved}</th>
+                    <th className="w-[68px] py-[11px] pr-4 pl-2 text-right font-semibold">{typical.head.fee}</th>
                   </tr>
                 </thead>
                 <tbody className="text-[14px] leading-5 font-medium tracking-[-0.005em]">
-                  {typicalYear.map((row) => (
-                    <tr key={row.win} className="border-t border-white/10">
-                      <td className="py-[11px] pl-4 text-white/70">{row.win}</td>
+                  {typicalYear.map((row, i) => (
+                    <tr key={row.saved} className="border-t border-white/10">
+                      <td className="py-[11px] pl-4 text-white/70">{typical.rows[i]}</td>
                       <td className="py-[11px] pl-2 text-right text-white">{row.saved}</td>
                       <td className="py-[11px] pr-4 pl-2 text-right text-[#a9c6ff]">{row.fee}</td>
                     </tr>
@@ -150,8 +223,8 @@ export function Pricing() {
             </div>
 
             <div className="flex flex-col gap-2.5">
-              <Bar label="Saved" value="$1,135" fill="w-[99.5%] bg-white" />
-              <Bar label="Paid to Haggle" value="$227" fill="w-[20%] bg-white/45" />
+              <Bar label={typical.saved} value="$1,135" fill="w-[99.5%] bg-white" />
+              <Bar label={typical.paid} value="$227" fill="w-[20%] bg-white/45" />
             </div>
           </StaggerItem>
         </Stagger>

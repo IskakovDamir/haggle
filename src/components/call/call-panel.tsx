@@ -2,16 +2,24 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { EASE } from "@/components/motion/reveal";
+import type { Copy } from "@/lib/i18n/locale";
+import { useLocale } from "@/lib/i18n/use-locale";
 import { cn } from "@/lib/utils";
 import { panel } from "./panel-theme";
 
 export type LineState = "ready" | "connecting" | "live" | "ended";
 
-const LINE_LABELS: Record<LineState, string> = {
-  ready: "Ready",
-  connecting: "Connecting",
-  live: "Live",
-  ended: "Ended",
+const COPY: Copy<{ line: Record<LineState, string>; practiceWith: (callee: string) => string; callTime: string }> = {
+  en: {
+    line: { ready: "Ready", connecting: "Connecting", live: "Live", ended: "Ended" },
+    practiceWith: (callee) => `Practice call with ${callee}`,
+    callTime: "Call time",
+  },
+  es: {
+    line: { ready: "Lista", connecting: "Conectando", live: "En vivo", ended: "Terminada" },
+    practiceWith: (callee) => `Llamada de práctica con ${callee}`,
+    callTime: "Duración de la llamada",
+  },
 };
 
 /** Bar heights from the landing phone. They only say "on the call": they do not follow the audio. */
@@ -35,9 +43,10 @@ export function CallPanel({
   children: React.ReactNode;
 }) {
   const open = line === "live" || line === "connecting";
+  const copy = COPY[useLocale()];
   return (
     <motion.section
-      aria-label={`Practice call with ${callee}`}
+      aria-label={copy.practiceWith(callee)}
       className={panel.bezel}
       initial={{ opacity: 0, y: 20, scale: 0.985 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -52,12 +61,12 @@ export function CallPanel({
             <p className="truncate text-[15px] leading-5 text-hg-ink">{callee}</p>
             <p className={cn("flex items-center gap-1.5", line === "live" ? "text-hg-blue" : panel.dim)}>
               <StatusDot line={line} />
-              <span className="uppercase">{LINE_LABELS[line]}</span>
+              <span className="uppercase">{copy.line[line]}</span>
             </p>
           </div>
           <span
             className="tabular shrink-0 rounded-full bg-hg-surface px-3 py-1.5 text-[13px] font-semibold text-hg-ink-2"
-            aria-label="Call time"
+            aria-label={copy.callTime}
           >
             {clock}
           </span>

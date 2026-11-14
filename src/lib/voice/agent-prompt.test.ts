@@ -92,8 +92,10 @@ describe("agentConfig", () => {
     });
   });
 
-  it("lets the browser change only the voice", () => {
-    expect(config.platform_settings.overrides).toEqual({ conversation_config_override: { tts: { voice_id: true } } });
+  it("lets the browser change only the voice and the call language", () => {
+    expect(config.platform_settings.overrides).toEqual({
+      conversation_config_override: { tts: { voice_id: true }, agent: { language: true } },
+    });
     expect(config.platform_settings.auth).toEqual({ enable_auth: true });
   });
 });

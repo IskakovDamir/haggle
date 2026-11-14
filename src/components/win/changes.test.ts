@@ -51,4 +51,18 @@ describe("changesFromOutcome", () => {
     const outcome = testOutcome({ annualFeeWaivedCents: 0, lateFeeRefundCents: 0, statementCreditCents: 0 });
     expect(changesFromOutcome(testCard(), outcome)).toEqual([]);
   });
+
+  it("names the changes in Spanish with the same figures", () => {
+    const card = testCard({ creditLimitCents: 400_000, annualFeeCents: 9500 });
+    const outcome = testOutcome({ aprAfterBps: 2199, annualFeeWaivedCents: 9500, lateFeeRefundCents: 4000, creditLimitAfterCents: 500_000 });
+    const english = changesFromOutcome(card, outcome);
+    const spanish = changesFromOutcome(card, outcome, "es");
+    expect(spanish.map((change) => change.label)).toEqual([
+      "APR",
+      "Cuota anual",
+      "Cargo por pago tardío devuelto",
+      "Límite de crédito",
+    ]);
+    expect(spanish.map(({ before, after }) => ({ before, after }))).toEqual(english.map(({ before, after }) => ({ before, after })));
+  });
 });

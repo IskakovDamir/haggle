@@ -52,7 +52,13 @@ const nothing = (title: string, message: string, next: WayOut = TO_PLAN): CallPl
  * Find the step to call about and build the agent's brief for it.
  * With no step in the URL (the "Call" link in the header), take the first call in the plan that has no win yet.
  */
-export function resolveCall(caseFile: CaseFile, stepParam: string | null, today: IsoDate): CallPlan {
+export function resolveCall(
+  caseFile: CaseFile,
+  stepParam: string | null,
+  today: IsoDate,
+  /** The language the agent speaks on the call. */
+  language: "en" | "es" = "en",
+): CallPlan {
   const plan = planFor(caseFile.cards, today);
   if (!plan) return nothing("Your plan is not ready", "We could not work out your plan just now. Please reload the page.");
 
@@ -76,7 +82,7 @@ export function resolveCall(caseFile: CaseFile, stepParam: string | null, today:
   if (!step.lever.needsCall) return nothing("No call needed", "This step does not need a call. Your plan says how to do it.");
 
   try {
-    return { ok: true, card, step, brief: buildBrief({ card, holderFirstName: caseFile.holderFirstName, lever: step.lever }) };
+    return { ok: true, card, step, brief: buildBrief({ card, holderFirstName: caseFile.holderFirstName, lever: step.lever, language }) };
   } catch {
     return nothing("Call not ready", "We could not prepare this call just now. Please reload the page.");
   }

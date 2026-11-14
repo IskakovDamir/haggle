@@ -1,30 +1,63 @@
 // "From statement to phone call": six numbered step tiles, from Figma node 5:130.
 import Image from "next/image";
 import { Stagger, StaggerItem } from "@/components/motion/reveal";
+import type { Copy, Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
 import { HgHeading, HgSection } from "./ui";
 
 type Who = "you" | "haggle" | "both";
 
-type Step = {
+type StepText = { who: string; title: string; titleSoft: string; body: string };
+
+type Step = StepText & {
   n: string;
-  who: string;
   whoTone: Who;
-  title: string;
-  titleSoft: string;
-  body: string;
   /** Distance from the big number's left edge to the tile's right edge in Figma, so it bleeds off the same way at any width. */
   numberInset: number;
 };
 
-const STEPS: Step[] = [
-  { n: "01", who: "You", whoTone: "you", title: "Upload a", titleSoft: "statement", body: "A PDF or a photo, we pull rates, balances and due dates", numberInset: 108.33 },
-  { n: "02", who: "Haggle", whoTone: "haggle", title: "See what", titleSoft: "you lose", body: "$3,313 a year in interest and fees, priced lever by lever", numberInset: 128.33 },
-  { n: "03", who: "You approve", whoTone: "you", title: "Pick your", titleSoft: "plan", body: "Rate cut, fee waiver, limit increase, then a 0% transfer", numberInset: 126.33 },
-  { n: "04", who: "Haggle + you", whoTone: "both", title: "Haggle calls", titleSoft: "the bank", body: "Waits on hold, then brings you in to verify it’s you", numberInset: 130.33 },
-  { n: "05", who: "You", whoTone: "you", title: "Pay only", titleSoft: "on a win", body: "Billed only after the bank says yes", numberInset: 126.33 },
-  { n: "06", who: "Haggle", whoTone: "haggle", title: "We keep", titleSoft: "watching", body: "A promo ending or a rate hike triggers a new call", numberInset: 131.33 },
+const LAYOUT: Pick<Step, "n" | "whoTone" | "numberInset">[] = [
+  { n: "01", whoTone: "you", numberInset: 108.33 },
+  { n: "02", whoTone: "haggle", numberInset: 128.33 },
+  { n: "03", whoTone: "you", numberInset: 126.33 },
+  { n: "04", whoTone: "both", numberInset: 130.33 },
+  { n: "05", whoTone: "you", numberInset: 126.33 },
+  { n: "06", whoTone: "haggle", numberInset: 131.33 },
 ];
+
+type HowCopy = {
+  title: string;
+  lead: string;
+  /** One entry per tile, in the same order as `LAYOUT`. Titles stay on one line each; bodies fit in two or three lines. */
+  steps: [StepText, StepText, StepText, StepText, StepText, StepText];
+};
+
+const COPY: Copy<HowCopy> = {
+  en: {
+    title: "From statement to phone call",
+    lead: "You upload a statement and say yes on the call, Haggle does everything in between",
+    steps: [
+      { who: "You", title: "Upload a", titleSoft: "statement", body: "A PDF or a photo, we pull rates, balances and due dates" },
+      { who: "Haggle", title: "See what", titleSoft: "you lose", body: "$3,313 a year in interest and fees, priced lever by lever" },
+      { who: "You approve", title: "Pick your", titleSoft: "plan", body: "Rate cut, fee waiver, limit increase, then a 0% transfer" },
+      { who: "Haggle + you", title: "Haggle calls", titleSoft: "the bank", body: "Waits on hold, then brings you in to verify it’s you" },
+      { who: "You", title: "Pay only", titleSoft: "on a win", body: "Billed only after the bank says yes" },
+      { who: "Haggle", title: "We keep", titleSoft: "watching", body: "A promo ending or a rate hike triggers a new call" },
+    ],
+  },
+  es: {
+    title: "Del estado de cuenta a la llamada",
+    lead: "Tú subes un estado de cuenta y dices que sí en la llamada. Haggle hace todo lo demás",
+    steps: [
+      { who: "Tú", title: "Sube tu", titleSoft: "estado de cuenta", body: "Un PDF o una foto: leemos tasas, saldos y fechas de pago" },
+      { who: "Haggle", title: "Mira lo que", titleSoft: "estás perdiendo", body: "$3,313 al año en intereses y cargos, opción por opción" },
+      { who: "Tú apruebas", title: "Elige tu", titleSoft: "plan", body: "Tasa menor, sin cuota, más límite y una transferencia al 0%" },
+      { who: "Haggle + tú", title: "Haggle llama", titleSoft: "a tu banco", body: "Espera en línea y te conecta para confirmar que eres tú" },
+      { who: "Tú", title: "Pagas solo", titleSoft: "si ganas", body: "Solo te cobramos cuando el banco dice que sí" },
+      { who: "Haggle", title: "Seguimos", titleSoft: "vigilando", body: "Si se acaba una promo o sube la tasa, volvemos a llamar" },
+    ],
+  },
+};
 
 const PILL: Record<Who, string> = {
   you: "border border-hg-blue-tint bg-white text-hg-blue",
@@ -67,16 +100,18 @@ function StepTile({ step }: { step: Step }) {
   );
 }
 
-export function HowItWorks() {
+export function HowItWorks({ locale = "en" }: { locale?: Locale }) {
+  const copy = COPY[locale];
+  const steps: Step[] = LAYOUT.map((layout, i) => ({ ...layout, ...copy.steps[i] }));
   return (
     <HgSection id="how" className="flex flex-col items-center gap-8 px-4 pt-14 pb-10 font-manrope sm:px-8 lg:px-12 xl:px-[104px]">
       <HgHeading
-        title="From statement to phone call"
-        lead="You upload a statement and say yes on the call, Haggle does everything in between"
+        title={copy.title}
+        lead={copy.lead}
         className="[&_h2]:max-w-[900px] [&_p]:max-w-[900px] [&_p]:text-[18px] [&_p]:leading-7 [&_p]:tracking-[-0.01em] [&_p]:text-hg-muted"
       />
       <Stagger as="ol" gap={0.09} className="grid w-full max-w-[1200px] grid-cols-1 gap-x-10 gap-y-6 md:grid-cols-2 lg:grid-cols-3">
-        {STEPS.map((step, i) => (
+        {steps.map((step, i) => (
           <StaggerItem as="li" key={step.n} className="group relative">
             <StepTile step={step} />
             {/* Arrow between neighbours in a row of three; hidden when the grid wraps differently. */}

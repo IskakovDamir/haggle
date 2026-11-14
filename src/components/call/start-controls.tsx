@@ -6,25 +6,98 @@ import { Keyboard, Mic, Phone, Smartphone, Volume2 } from "lucide-react";
 import { EASE } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/primitives";
+import type { Copy } from "@/lib/i18n/locale";
+import { useLocale } from "@/lib/i18n/use-locale";
 import { toE164 } from "@/lib/voice/phone";
 import type { VoiceStatus } from "@/lib/voice/use-voice-call";
-import { AGENT_VOICES, DEFAULT_AGENT_VOICE, voicePreviewPath, type AgentVoice } from "@/lib/voice/voices";
+import {
+  AGENT_VOICES,
+  DEFAULT_AGENT_VOICE,
+  SPANISH_AGENT_VOICES,
+  voicePreviewPathFor,
+  type AgentVoice,
+} from "@/lib/voice/voices";
 import { cn } from "@/lib/utils";
 import { Notice } from "./page-states";
 import { panel } from "./panel-theme";
 import type { CapabilitiesState } from "./use-capabilities";
 import type { CallMode } from "./use-call-session";
 
-const MODES: { mode: CallMode; label: string; hint: string; Icon: typeof Mic }[] = [
-  { mode: "voice", label: "Voice", hint: "You speak as the bank. The agent answers out loud.", Icon: Mic },
-  { mode: "text", label: "Typing", hint: "You type the bank's lines. The agent answers in text.", Icon: Keyboard },
-  {
-    mode: "phone",
-    label: "Phone",
-    hint: "The agent rings your phone. Answer it and play the bank. The transcript shows up here.",
-    Icon: Smartphone,
-  },
+const MODES: { mode: CallMode; Icon: typeof Mic }[] = [
+  { mode: "voice", Icon: Mic },
+  { mode: "text", Icon: Keyboard },
+  { mode: "phone", Icon: Smartphone },
 ];
+
+type StartCopy = {
+  modes: Record<CallMode, { label: string; hint: string }>;
+  willAsk: string;
+  practice: string;
+  notSetUp: string;
+  modeGroup: string;
+  phoneLabel: string;
+  phoneError: string;
+  phoneNote: string;
+  voicesTitle: string;
+  voiceGroup: string;
+  /** The voice's kind ("Female"), shown above its name. */
+  voiceKind: Record<AgentVoice, string>;
+  voiceAria: (kind: string, name: string) => string;
+  callPhone: string;
+  start: string;
+  checking: string;
+  noVoiceServer: string;
+  noVoiceBrowser: string;
+};
+
+const COPY: Copy<StartCopy> = {
+  en: {
+    modes: {
+      voice: { label: "Voice", hint: "You speak as the bank. The agent answers out loud." },
+      text: { label: "Typing", hint: "You type the bank's lines. The agent answers in text." },
+      phone: { label: "Phone", hint: "The agent rings your phone. Answer it and play the bank. The transcript shows up here." },
+    },
+    willAsk: "The agent will ask",
+    practice: "This is a practice call. You play the bank's representative.",
+    notSetUp: "Calls are not set up on this server yet, so the agent cannot start one.",
+    modeGroup: "How you will play the bank",
+    phoneLabel: "Your phone number",
+    phoneError: "Type your phone number, like (555) 234-5678.",
+    phoneNote: "Used for this one call and not saved. Only numbers the owner of this server approved can be rung.",
+    voicesTitle: "The agent sounds · tap to hear",
+    voiceGroup: "The agent voice",
+    voiceKind: { female: AGENT_VOICES.female.label, male: AGENT_VOICES.male.label },
+    voiceAria: (kind, name) => `${kind} voice, ${name}. Plays a sample.`,
+    callPhone: "Call my phone",
+    start: "Start the call",
+    checking: "Checking what is switched on",
+    noVoiceServer: "Voice is not set up on this server.",
+    noVoiceBrowser: "Voice is not available in this browser.",
+  },
+  es: {
+    modes: {
+      voice: { label: "Voz", hint: "Tú hablas como el banco. El agente responde en voz alta." },
+      text: { label: "Texto", hint: "Escribes lo que dice el banco. El agente responde por escrito." },
+      phone: { label: "Teléfono", hint: "El agente llama a tu teléfono. Contesta y haz de banco. La transcripción aparece aquí." },
+    },
+    willAsk: "El agente va a pedir",
+    practice: "Esta es una llamada de práctica. Tú haces de representante del banco.",
+    notSetUp: "Las llamadas todavía no están configuradas en este servidor, así que el agente no puede empezar una.",
+    modeGroup: "Cómo vas a hacer de banco",
+    phoneLabel: "Tu número de teléfono",
+    phoneError: "Escribe tu número de teléfono, como (555) 234-5678.",
+    phoneNote: "Solo se usa para esta llamada y no se guarda. Solo se puede llamar a números que aprobó quien administra este servidor.",
+    voicesTitle: "Así suena el agente · toca para escuchar",
+    voiceGroup: "La voz del agente",
+    voiceKind: { female: "Femenina", male: "Masculina" },
+    voiceAria: (kind, name) => `Voz ${kind.toLowerCase()}, ${name}. Reproduce una muestra.`,
+    callPhone: "Llamar a mi teléfono",
+    start: "Empezar la llamada",
+    checking: "Revisando qué está activado",
+    noVoiceServer: "La voz no está configurada en este servidor.",
+    noVoiceBrowser: "La voz no está disponible en este navegador.",
+  },
+};
 
 const eyebrow = cn("text-[11px] font-semibold tracking-[0.08em] uppercase", panel.dim);
 
@@ -81,12 +154,17 @@ export function StartControls({
   const [agentVoice, setAgentVoice] = useState<AgentVoice>(DEFAULT_AGENT_VOICE);
   const [playing, setPlaying] = useState<AgentVoice | null>(null);
   const preview = useRef<HTMLAudioElement | null>(null);
+  const locale = useLocale();
+  const copy = COPY[locale];
+  // A Spanish call speaks with the Spanish voices. The picker still hands AGENT_VOICES ids to onStart:
+  // the session swaps in the Spanish voice itself.
+  const voiceName = (voice: AgentVoice) => (locale === "es" ? SPANISH_AGENT_VOICES[voice].name : AGENT_VOICES[voice].name);
 
   /** Pick a voice and play its clip, so the visitor hears it before the call. */
   function chooseVoice(voice: AgentVoice) {
     setAgentVoice(voice);
     preview.current?.pause();
-    const audio = new Audio(voicePreviewPath(voice));
+    const audio = new Audio(voicePreviewPathFor(voice, locale));
     preview.current = audio;
     setPlaying(voice);
     audio.onended = () => setPlaying((current) => (current === voice ? null : current));
@@ -105,7 +183,7 @@ export function StartControls({
   const mode: CallMode = picked && available[picked] ? picked : canSpeak ? "voice" : canType ? "text" : "phone";
   const modes = MODES.filter((option) => available[option.mode]);
   const phoneE164 = toE164(phoneNumber);
-  const phoneError = triedPhone && !phoneE164 ? "Type your phone number, like (555) 234-5678." : null;
+  const phoneError = triedPhone && !phoneE164 ? copy.phoneError : null;
 
   function startCall() {
     if (mode === "phone") {
@@ -123,31 +201,31 @@ export function StartControls({
   return (
     <div className="flex flex-col gap-4">
       <Rise>
-        <p className={eyebrow}>The agent will ask</p>
+        <p className={eyebrow}>{copy.willAsk}</p>
         <p className="mt-1.5 text-[22px] leading-[1.25] font-semibold tracking-[-0.02em] text-hg-ink sm:text-[26px]">{ask}</p>
       </Rise>
 
       <Rise delay={0.08}>
         <p className="flex items-start gap-2.5 rounded-2xl bg-hg-blue-soft px-3.5 py-3 text-[15px] leading-snug font-medium text-hg-ink-2">
           <span aria-hidden className="mt-[7px] size-1.5 shrink-0 rounded-full bg-hg-blue" />
-          This is a practice call. You play the bank&apos;s representative.
+          {copy.practice}
         </p>
       </Rise>
 
       {notice && <Notice tone="dark">{notice}</Notice>}
       {capabilities.status === "error" && <Notice tone="dark">{capabilities.message}</Notice>}
       {switchedOn && !canType && !canSpeak && !canRing && (
-        <Notice tone="dark">Calls are not set up on this server yet, so the agent cannot start one.</Notice>
+        <Notice tone="dark">{copy.notSetUp}</Notice>
       )}
 
       {modes.length > 1 && (
         <Rise delay={0.16}>
           <div
             role="radiogroup"
-            aria-label="How you will play the bank"
+            aria-label={copy.modeGroup}
             className={cn("grid gap-1 rounded-full bg-hg-surface p-1", modes.length === 3 ? "grid-cols-3" : "grid-cols-2")}
           >
-            {modes.map(({ mode: option, label, Icon }) => {
+            {modes.map(({ mode: option, Icon }) => {
               const selected = mode === option;
               return (
                 <button
@@ -170,7 +248,7 @@ export function StartControls({
                     />
                   )}
                   <Icon className={cn("relative size-4", selected && "text-hg-blue")} aria-hidden />
-                  <span className="relative">{label}</span>
+                  <span className="relative">{copy.modes[option].label}</span>
                 </button>
               );
             })}
@@ -189,7 +267,7 @@ export function StartControls({
             className="overflow-hidden"
           >
             <label htmlFor="call-phone-number" className={cn(eyebrow, "mb-2 block")}>
-              Your phone number
+              {copy.phoneLabel}
             </label>
             <Input
               id="call-phone-number"
@@ -204,7 +282,7 @@ export function StartControls({
               className={cn(phoneError && "border-alarm")}
             />
             <p id="call-phone-note" className={cn("mt-1.5 text-xs", phoneError ? "text-alarm" : panel.dim)}>
-              {phoneError ?? "Used for this one call and not saved. Only numbers the owner of this server approved can be rung."}
+              {phoneError ?? copy.phoneNote}
             </p>
           </motion.div>
         )}
@@ -217,8 +295,8 @@ export function StartControls({
             transition={{ duration: 0.4, ease: EASE }}
             className="overflow-hidden"
           >
-            <p className={cn(eyebrow, "mb-2")}>The agent sounds · tap to hear</p>
-            <div role="radiogroup" aria-label="The agent voice" className="grid grid-cols-2 gap-2">
+            <p className={cn(eyebrow, "mb-2")}>{copy.voicesTitle}</p>
+            <div role="radiogroup" aria-label={copy.voiceGroup} className="grid grid-cols-2 gap-2">
               {(Object.keys(AGENT_VOICES) as AgentVoice[]).map((option) => {
                 const selected = agentVoice === option;
                 return (
@@ -228,7 +306,7 @@ export function StartControls({
                     role="radio"
                     aria-checked={selected}
                     onClick={() => chooseVoice(option)}
-                    aria-label={`${AGENT_VOICES[option].label} voice, ${AGENT_VOICES[option].name}. Plays a sample.`}
+                    aria-label={copy.voiceAria(copy.voiceKind[option], voiceName(option))}
                     className={cn(
                       "group relative flex cursor-pointer items-center gap-3 rounded-[18px] border p-3 text-left transition-[border-color,transform] duration-200 active:scale-[0.98]",
                       selected ? "border-transparent" : "border-line hover:border-hg-blue-tint",
@@ -252,8 +330,8 @@ export function StartControls({
                       {playing === option ? <Playing /> : <Volume2 className="size-4" />}
                     </span>
                     <span className="relative flex min-w-0 flex-col text-sm leading-tight">
-                      <span className="font-semibold text-hg-ink">{AGENT_VOICES[option].label}</span>
-                      <span className="truncate text-hg-muted">{AGENT_VOICES[option].name}</span>
+                      <span className="font-semibold text-hg-ink">{copy.voiceKind[option]}</span>
+                      <span className="truncate text-hg-muted">{voiceName(option)}</span>
                     </span>
                   </button>
                 );
@@ -271,18 +349,18 @@ export function StartControls({
             onClick={startCall}
           >
             <Phone className="size-4 transition-transform duration-300 group-hover:-rotate-12" aria-hidden />
-            {mode === "phone" ? "Call my phone" : "Start the call"}
+            {mode === "phone" ? copy.callPhone : copy.start}
           </Button>
           <p className={cn("text-sm", panel.dim)}>
-            {MODES.find((option) => option.mode === mode)?.hint}
-            {!canSpeak && mode !== "phone" && ` ${whyNoVoice(switchedOn?.voice ?? false, voice.error)}`}
+            {copy.modes[mode].hint}
+            {!canSpeak && mode !== "phone" && ` ${whyNoVoice(switchedOn?.voice ?? false, voice.error, copy)}`}
           </p>
         </Rise>
       )}
 
       {capabilities.status === "loading" && (
         <Button size="lg" className="hg-shimmer w-full text-hg-ink-2 shadow-none" disabled>
-          Checking what is switched on
+          {copy.checking}
         </Button>
       )}
     </div>
@@ -290,7 +368,7 @@ export function StartControls({
 }
 
 /** One sentence on why this call is typed, not spoken. */
-function whyNoVoice(voiceIsConfigured: boolean, voiceError: string | null): string {
-  if (!voiceIsConfigured) return "Voice is not set up on this server.";
-  return voiceError ?? "Voice is not available in this browser.";
+function whyNoVoice(voiceIsConfigured: boolean, voiceError: string | null, copy: StartCopy): string {
+  if (!voiceIsConfigured) return copy.noVoiceServer;
+  return voiceError ?? copy.noVoiceBrowser;
 }

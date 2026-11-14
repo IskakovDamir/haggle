@@ -3,6 +3,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { CountText, GrowBar } from "@/components/motion/grow";
 import { Stagger, StaggerItem } from "@/components/motion/reveal";
+import type { Copy, Locale } from "@/lib/i18n/locale";
 import { HgSection } from "./ui";
 
 const A = "/landing/insight";
@@ -42,15 +43,55 @@ function Track({ fill, className, fillClassName }: { fill: string; className: st
 
 const card = "relative flex flex-col justify-between rounded-[36px] border p-7 backdrop-blur-[20px]";
 
-export function Insight() {
+type InsightCopy = {
+  title: string;
+  lead: string;
+  asked: { title: string; note: string };
+  ever: { title: string; caption: string; unit: string };
+  apr: { title: string; caption: string; unit: string; typical: string; after: string };
+  balance: { title: string; caption: string };
+  retention: { title: string; body: string; note: string };
+};
+
+const COPY: Copy<InsightCopy> = {
+  en: {
+    title: "Almost everyone who asks wins, almost nobody asks",
+    lead: "Banks cut the rate for 84% of people who call, yet fewer than one in four cardholders ever pick up the phone",
+    asked: { title: "Asked their bank", note: "got a lower APR, out of every 100 who asked" },
+    ever: { title: "Ever asked for a lower rate", caption: "Share of cardholders", unit: "in 4" },
+    apr: { title: "APR after one call", caption: "Average cut", unit: "pts", typical: "Typical", after: "After one call" },
+    balance: { title: "Carry a balance", caption: "Month to month" },
+    retention: {
+      title: "Retention team",
+      body: "Every big bank has one, and it can cut your rate",
+      note: "Haggle asks for it by name",
+    },
+  },
+  es: {
+    title: "Casi todos los que piden ganan, pero casi nadie pide",
+    lead: "Los bancos le bajan la tasa al 84% de quienes llaman, pero menos de uno de cada cuatro tarjetahabientes levanta el teléfono",
+    asked: { title: "Le pidieron a su banco", note: "consiguieron una APR más baja, de cada 100 que la pidieron" },
+    ever: { title: "Alguna vez pidieron una tasa más baja", caption: "Porcentaje de tarjetahabientes", unit: "de 4" },
+    apr: { title: "APR tras una llamada", caption: "Baja promedio", unit: "pts", typical: "Típica", after: "Tras una llamada" },
+    balance: { title: "Dejan saldo pendiente", caption: "Mes a mes" },
+    retention: {
+      title: "Equipo de retención",
+      body: "Todo banco grande tiene uno, y puede bajarte la tasa",
+      note: "Haggle lo pide por su nombre",
+    },
+  },
+};
+
+export function Insight({ locale = "en" }: { locale?: Locale }) {
+  const t = COPY[locale];
   return (
     <HgSection className="flex flex-col items-center gap-8 px-4 pt-10 pb-8 font-manrope md:px-10 md:pt-14 md:pb-10">
       <Stagger gap={0.12} amount={0.6} className="flex max-w-[1200px] flex-col items-center gap-4 text-center">
         <StaggerItem as="h2" className="text-[clamp(32px,4.5vw,48px)] leading-[1.125] font-semibold tracking-[-0.035em] text-hg-ink">
-          Almost everyone who asks wins, almost nobody asks
+          {t.title}
         </StaggerItem>
         <StaggerItem as="p" className="max-w-[900px] text-[18px] leading-7 font-medium tracking-[-0.01em] text-hg-muted">
-          Banks cut the rate for 84% of people who call, yet fewer than one in four cardholders ever pick up the phone
+          {t.lead}
         </StaggerItem>
       </Stagger>
 
@@ -70,12 +111,12 @@ export function Insight() {
             className={cn(card, "min-h-[264px] gap-6 border-white/[0.22]")}
             style={{ backgroundImage: "linear-gradient(158.32deg, #2453e6 14.286%, #0f2a9e 85.714%)" }}
           >
-            <CardTitle title="Asked their bank" caption="LendingTree, 2026" dark />
+            <CardTitle title={t.asked.title} caption="LendingTree, 2026" dark />
             <div className="flex flex-col gap-5">
               <div className="flex flex-wrap items-end gap-x-5 gap-y-2">
                 <BigNumber value="84" unit="%" dark />
                 <p className="max-w-[260px] pb-3.5 text-[16px] leading-6 font-medium tracking-[-0.005em] text-white/75">
-                  got a lower APR, out of every 100 who asked
+                  {t.asked.note}
                 </p>
               </div>
               {/* 509 of 608px in Figma */}
@@ -84,9 +125,9 @@ export function Insight() {
           </StaggerItem>
 
           <StaggerItem className={cn(card, "min-h-[264px] gap-1 border-white/90 bg-white/[0.94]")}>
-            <CardTitle title="Ever asked for a lower rate" caption="Share of cardholders" />
+            <CardTitle title={t.ever.title} caption={t.ever.caption} />
             <div className="flex flex-1 flex-wrap items-end justify-between gap-x-4 gap-y-3">
-              <BigNumber value="<1" unit="in 4" />
+              <BigNumber value="<1" unit={t.ever.unit} />
               <div aria-hidden className="flex w-[232px] max-w-full gap-2 pb-2">
                 <Track fill="73%" className="flex-1 bg-hg-blue-tint" fillClassName="bg-hg-blue" />
                 <div className="h-4 flex-1 rounded-lg bg-hg-blue-tint" />
@@ -104,21 +145,21 @@ export function Insight() {
           >
             <Glow src={`${A}/apr-glow.svg`} width={560} height={360} style={{ right: -149, bottom: -223 }} />
             <div className="relative">
-              <CardTitle title="APR after one call" caption="Average cut" dark />
+              <CardTitle title={t.apr.title} caption={t.apr.caption} dark />
             </div>
             <div className="relative flex flex-col items-start gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <BigNumber value="−6.3" unit="pts" dark />
+              <BigNumber value="−6.3" unit={t.apr.unit} dark />
               <div className="flex w-full flex-col gap-3 pb-2 text-[13px] leading-[normal] font-semibold sm:w-[240px] sm:min-w-[180px] sm:shrink">
                 <div className="flex flex-col gap-2">
                   <p className="flex justify-between text-white/60">
-                    <span>Typical</span>
+                    <span>{t.apr.typical}</span>
                     <span>22%</span>
                   </p>
                   <Track fill="87.9%" className="w-full bg-white/[0.16]" fillClassName="bg-white/45" />
                 </div>
                 <div className="flex flex-col gap-2">
                   <p className="flex justify-between">
-                    <span className="text-white/60">After one call</span>
+                    <span className="text-white/60">{t.apr.after}</span>
                     <span className="text-white">15.7%</span>
                   </p>
                   <Track fill="62.9%" className="w-full bg-white/[0.16]" fillClassName="bg-white" />
@@ -128,7 +169,7 @@ export function Insight() {
           </StaggerItem>
 
           <StaggerItem className={cn(card, "min-h-[216px] gap-6 border-white/90 bg-gradient-to-b from-[#eaf3fe] to-white")}>
-            <CardTitle title="Carry a balance" caption="Month to month" />
+            <CardTitle title={t.balance.title} caption={t.balance.caption} />
             <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
               <BigNumber value="47" unit="%" />
               <div aria-hidden className="pb-2">
@@ -142,12 +183,12 @@ export function Insight() {
             style={{ backgroundImage: "linear-gradient(135deg, #3a76ff 14.286%, #1a3fd6 85.714%)" }}
           >
             <div className="flex items-start gap-2.5">
-              <p className="flex-1 text-[16px] leading-6 font-medium tracking-[-0.005em] text-white">Retention team</p>
+              <p className="flex-1 text-[16px] leading-6 font-medium tracking-[-0.005em] text-white">{t.retention.title}</p>
               <Image src={`${A}/toggle.svg`} alt="" width={50} height={30} aria-hidden className="shrink-0" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <p className="text-[14px] leading-5 font-medium tracking-[-0.005em] text-white">Every big bank has one, and it can cut your rate</p>
-              <p className="text-[13px] leading-[18px] font-semibold tracking-[-0.002em] text-white/65">Haggle asks for it by name</p>
+              <p className="text-[14px] leading-5 font-medium tracking-[-0.005em] text-white">{t.retention.body}</p>
+              <p className="text-[13px] leading-[18px] font-semibold tracking-[-0.002em] text-white/65">{t.retention.note}</p>
             </div>
           </StaggerItem>
         </Stagger>

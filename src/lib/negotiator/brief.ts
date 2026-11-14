@@ -35,7 +35,13 @@ function oldRateBack(card: CardAccount): { askAprBps: Bps | null; acceptAprBps: 
 }
 
 /** Everything the agent may know and say on one call. Deterministic: no model involved. */
-export function buildBrief(input: { card: CardAccount; holderFirstName: string; lever: Lever }): NegotiationBrief {
+export function buildBrief(input: {
+  card: CardAccount;
+  holderFirstName: string;
+  lever: Lever;
+  /** The language the agent speaks. English when left out. */
+  language?: "en" | "es";
+}): NegotiationBrief {
   const { card } = input;
   const goal = input.lever.kind;
   const holder = oneLine(input.holderFirstName, 40) || UNNAMED_HOLDER;
@@ -60,11 +66,19 @@ export function buildBrief(input: { card: CardAccount; holderFirstName: string; 
     annualFeeCents: card.annualFeeCents,
     ...targets,
     fallback: fallbackIntention(holder, goal, card.balanceCents),
-    disclosures: [
-      `This is Haggle, an AI assistant calling on behalf of ${holder}.`,
-      "This call is being recorded.",
-      `${capitalize(holder)} is on the line to verify identity.`,
-    ],
+    disclosures:
+      input.language === "es"
+        ? [
+            `Le habla Haggle, un asistente de inteligencia artificial que llama en nombre de ${holder === UNNAMED_HOLDER ? "el titular de la tarjeta" : holder}.`,
+            "Esta llamada está siendo grabada.",
+            `${holder === UNNAMED_HOLDER ? "El titular" : capitalize(holder)} está en la línea para verificar su identidad.`,
+          ]
+        : [
+            `This is Haggle, an AI assistant calling on behalf of ${holder}.`,
+            "This call is being recorded.",
+            `${capitalize(holder)} is on the line to verify identity.`,
+          ],
+    ...(input.language === "es" ? { language: "es" as const } : {}),
   };
 }
 

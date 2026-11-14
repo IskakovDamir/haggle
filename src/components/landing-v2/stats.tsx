@@ -1,11 +1,11 @@
 // Stats row from the Figma frame "Stats" (13:194): four cards, each with a 3D object tucked into the corner.
 import Image from "next/image";
 import { Stagger, StaggerItem } from "@/components/motion/reveal";
+import type { Copy, Locale } from "@/lib/i18n/locale";
 import { HgSection } from "./ui";
 
 type Stat = {
   value: string;
-  label: string;
   bg: React.CSSProperties;
   dark: boolean;
   labelColor: string;
@@ -13,10 +13,25 @@ type Stat = {
   art: { src: string; size: number; rotate: number; right: number; top: number };
 };
 
+/** One label per card, in the same order as `stats`. */
+const LABELS: Copy<[string, string, string, string]> = {
+  en: [
+    "of annual fee waiver requests succeed",
+    "a year saved on one card from a single call",
+    "on hold that you never sit through",
+    "saved in a typical year with Haggle",
+  ],
+  es: [
+    "de las solicitudes para quitar la cuota anual se aprueban",
+    "al año ahorrados en una tarjeta con una sola llamada",
+    "en espera que nunca tienes que aguantar",
+    "ahorrados en un año típico con Haggle",
+  ],
+};
+
 const stats: Stat[] = [
   {
     value: "94%",
-    label: "of annual fee waiver requests succeed",
     bg: { backgroundImage: "linear-gradient(133.83deg, #1e2740 14.286%, #0b1220 85.714%)" },
     dark: true,
     labelColor: "text-white/70",
@@ -24,7 +39,6 @@ const stats: Stat[] = [
   },
   {
     value: "$609",
-    label: "a year saved on one card from a single call",
     bg: { backgroundImage: "linear-gradient(133.83deg, #2448f0 14.286%, #2f6bff 57.143%, #8db6ff 85.714%)" },
     dark: true,
     labelColor: "text-white/80",
@@ -32,7 +46,6 @@ const stats: Stat[] = [
   },
   {
     value: "40 min",
-    label: "on hold that you never sit through",
     bg: { backgroundColor: "#f4f6fa" },
     dark: false,
     labelColor: "text-[#5b6475]",
@@ -40,7 +53,6 @@ const stats: Stat[] = [
   },
   {
     value: "$1,135",
-    label: "saved in a typical year with Haggle",
     bg: { backgroundImage: "linear-gradient(133.83deg, #c4ddf6 14.286%, #eaf3fe 85.714%)" },
     dark: false,
     labelColor: "text-hg-ink-2",
@@ -48,7 +60,7 @@ const stats: Stat[] = [
   },
 ];
 
-function StatCard({ stat, index }: { stat: Stat; index: number }) {
+function StatCard({ stat, label, index }: { stat: Stat; label: string; index: number }) {
   const { art } = stat;
   return (
     <StaggerItem
@@ -59,7 +71,7 @@ function StatCard({ stat, index }: { stat: Stat; index: number }) {
       <p className={`relative text-[40px] leading-11 font-semibold tracking-[-0.03em] ${stat.dark ? "text-white" : "text-hg-ink"}`}>
         {stat.value}
       </p>
-      <p className={`relative w-full max-w-[190px] text-[14px] leading-5 font-medium tracking-[-0.005em] ${stat.labelColor}`}>{stat.label}</p>
+      <p className={`relative w-full max-w-[190px] text-[14px] leading-5 font-medium tracking-[-0.005em] ${stat.labelColor}`}>{label}</p>
       <span
         aria-hidden
         className="hg-float pointer-events-none absolute"
@@ -79,12 +91,12 @@ function StatCard({ stat, index }: { stat: Stat; index: number }) {
   );
 }
 
-export function Stats() {
+export function Stats({ locale = "en" }: { locale?: Locale }) {
   return (
     <HgSection className="px-4 pt-14 pb-6 font-manrope sm:px-6 xl:px-[104px]">
       <Stagger as="ul" gap={0.1} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat, i) => (
-          <StatCard key={stat.value} stat={stat} index={i} />
+          <StatCard key={stat.value} stat={stat} label={LABELS[locale][i]} index={i} />
         ))}
       </Stagger>
     </HgSection>

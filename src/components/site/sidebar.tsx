@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { ArrowRight, Bell, ChartColumn, CreditCard, Layers, LayoutGrid, Phone, type LucideIcon } from "lucide-react";
+import { LocaleSwitch } from "@/components/i18n/locale-switch";
 import { HgLogo } from "@/components/landing-v2/ui";
+import { useLocale } from "@/lib/i18n/use-locale";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS, type NavId } from "./nav";
 import type { ShellData } from "./shell-model";
+import { SHELL_COPY } from "./site-copy";
 
 const ICONS: Record<NavId, LucideIcon> = {
   overview: LayoutGrid,
@@ -37,11 +40,12 @@ export function SidebarContent({
   header?: React.ReactNode;
 }) {
   const alertCount = data?.alertCount ?? 0;
+  const copy = SHELL_COPY[useLocale()];
   return (
     <div className="flex h-full flex-col gap-1">
       <div className="flex items-center justify-between gap-2 px-1.5 pb-[18px]">{header ?? <HgLogo />}</div>
 
-      <nav aria-label="Main">
+      <nav aria-label={copy.navLabel}>
         <ul className="flex flex-col gap-1">
           {NAV_ITEMS.map((item) => {
             const Icon = ICONS[item.id];
@@ -65,7 +69,7 @@ export function SidebarContent({
                     strokeWidth={2.1}
                     aria-hidden
                   />
-                  <span className="flex-1">{item.label}</span>
+                  <span className="flex-1">{copy.nav[item.id]}</span>
                   {item.id === "alerts" && alertCount > 0 && (
                     <>
                       <span
@@ -77,7 +81,7 @@ export function SidebarContent({
                       >
                         {alertCount > 99 ? "99+" : alertCount}
                       </span>
-                      <span className="sr-only">, {alertCount} open</span>
+                      <span className="sr-only">{copy.openCount(alertCount)}</span>
                     </>
                   )}
                 </Link>
@@ -97,13 +101,15 @@ export function SidebarContent({
         )}
       >
         <span className={cn(caption, "flex items-center justify-between text-hg-blue")}>
-          Missed a payment?
+          {copy.missedTitle}
           <ArrowRight className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
         </span>
-        <span className="text-[13px] leading-[18px] font-medium text-hg-ink-2">Ask for the late fee and your old rate back.</span>
+        <span className="text-[13px] leading-[18px] font-medium text-hg-ink-2">{copy.missedLead}</span>
       </Link>
 
       <div className="flex-1" />
+
+      <LocaleSwitch className="mb-2 self-start bg-hg-surface" />
 
       <div className="flex w-full items-center gap-2.5 rounded-[14px] bg-hg-surface p-2.5">
         <span aria-hidden className={cn(caption, "flex size-8 shrink-0 items-center justify-center rounded-2xl bg-hg-blue text-white")}>
@@ -111,11 +117,11 @@ export function SidebarContent({
         </span>
         <div className={cn(caption, "flex min-w-0 flex-col")}>
           {data ? (
-            <span className="truncate text-hg-ink">{data.name ?? "Welcome"}</span>
+            <span className="truncate text-hg-ink">{data.name ?? copy.welcome}</span>
           ) : (
             <span aria-hidden className="hg-shimmer my-0.5 block h-3.5 w-16 rounded-md" />
           )}
-          <span className="text-hg-muted">Pay-per-win plan</span>
+          <span className="text-hg-muted">{copy.plan}</span>
         </div>
       </div>
     </div>

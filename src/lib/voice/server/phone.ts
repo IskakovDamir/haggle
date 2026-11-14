@@ -4,7 +4,7 @@ import type { Turn } from "@/lib/types";
 import { briefSchema } from "../brief-schema";
 import { MAX_VARIABLES_BYTES, dynamicVariablesFor, variablesBytes } from "../dynamic-variables";
 import { allowedNumbers, maskNumber, readConversation, toE164, type ConversationRecord, type PhoneCallStatus } from "../phone";
-import { AGENT_VOICES } from "../voices";
+import { AGENT_VOICES, SPANISH_AGENT_VOICES } from "../voices";
 import { ElevenLabsError, getConversation, startOutboundCall } from "./elevenlabs";
 
 type PhoneSetup = { apiKey: string; agentId: string; phoneNumberId: string; allowed: Set<string> };
@@ -19,7 +19,7 @@ function phoneSetup(): PhoneSetup | null {
 }
 
 const NOT_SET_UP = "Phone calls are not set up on this server. Use a voice or typed call instead.";
-const KNOWN_VOICES = new Set<string>(Object.values(AGENT_VOICES).map((voice) => voice.id));
+const KNOWN_VOICES = new Set<string>([...Object.values(AGENT_VOICES), ...Object.values(SPANISH_AGENT_VOICES)].map((voice) => voice.id));
 
 export type Dial = typeof startOutboundCall;
 export type Lookup = typeof getConversation;
@@ -59,6 +59,7 @@ export async function handleStartPhoneCall(request: Request, dial: Dial = startO
       toNumber,
       dynamicVariables,
       voiceId,
+      language: brief.data.language,
     });
     console.info(`[phone] ringing ${maskNumber(toNumber)}, conversation ${conversationId}`);
     return ok({ conversationId });

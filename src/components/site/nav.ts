@@ -1,4 +1,5 @@
 // The app's navigation and the small words around it. Pure, so the active item and the greeting can be tested.
+import type { Locale } from "@/lib/i18n/locale";
 
 export type NavId = "overview" | "cards" | "calls" | "plan" | "savings" | "alerts";
 
@@ -31,8 +32,16 @@ export function activeNav(pathname: string): NavId | null {
   return extra ? extra[1] : null;
 }
 
-/** "Good morning!" before noon, "Good afternoon!" until five, "Good evening!" after. Night counts as evening. */
-export function greetingFor(hour: number): string {
+/**
+ * "Good morning!" before noon, "Good afternoon!" until five, "Good evening!" after. Night counts as evening.
+ * In Spanish the afternoon runs until eight, as "buenas tardes" does.
+ */
+export function greetingFor(hour: number, locale: Locale = "en"): string {
+  if (locale === "es") {
+    if (hour >= 5 && hour < 12) return "¡Buenos días!";
+    if (hour >= 12 && hour < 20) return "¡Buenas tardes!";
+    return "¡Buenas noches!";
+  }
   if (hour >= 5 && hour < 12) return "Good morning!";
   if (hour >= 12 && hour < 17) return "Good afternoon!";
   return "Good evening!";

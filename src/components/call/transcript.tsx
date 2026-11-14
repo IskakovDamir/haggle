@@ -3,12 +3,20 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { EASE } from "@/components/motion/reveal";
+import type { Copy } from "@/lib/i18n/locale";
+import { useLocale } from "@/lib/i18n/use-locale";
 import type { Turn } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { formatClock } from "./clock";
 import { panel } from "./panel-theme";
 
-const bubble = "max-w-[88%] rounded-[18px] border px-3.5 py-2.5 text-[15px] leading-snug";
+/** Only the screen-reader names follow the language here: the visible labels come from the caller. */
+const COPY: Copy<{ log: string; replying: string }> = {
+  en: { log: "Call transcript", replying: "Haggle is replying" },
+  es: { log: "Transcripción de la llamada", replying: "Haggle está respondiendo" },
+};
+
+const bubble ="max-w-[88%] rounded-[18px] border px-3.5 py-2.5 text-[15px] leading-snug";
 const agentShape = "self-start rounded-tl-[6px]";
 const bankShape = "self-end rounded-tr-[6px]";
 
@@ -41,6 +49,7 @@ export function Transcript({
   emptyText?: string | null;
   className?: string;
 }) {
+  const copy = COPY[useLocale()];
   const list = useRef<HTMLOListElement>(null);
   // Lines already there when the list opens (a past call, or coming back to one) fade in together; new lines slide.
   const [linesAtOpen] = useState(turns.length);
@@ -53,7 +62,7 @@ export function Transcript({
     <ol
       ref={list}
       role="log"
-      aria-label="Call transcript"
+      aria-label={copy.log}
       className={cn("flex flex-col gap-2.5 overflow-y-auto overscroll-contain", className)}
     >
       {turns.length === 0 && !agentIsReplying && emptyText && (
@@ -92,7 +101,7 @@ export function Transcript({
           transition={{ duration: 0.3, ease: EASE }}
           style={{ originX: 0, originY: 1 }}
           className={cn(bubble, panel.agentBubble, agentShape)}
-          aria-label="Haggle is replying"
+          aria-label={copy.replying}
         >
           <Speaker name="Haggle" />
           <span className="flex h-5 items-center gap-1" aria-hidden>

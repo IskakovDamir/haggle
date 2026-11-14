@@ -144,7 +144,10 @@ export function useVoiceCall(options: Options): VoiceCall {
         conversationToken,
         connectionType: "webrtc",
         dynamicVariables,
-        ...(voiceId ? { overrides: { tts: { voiceId } } } : {}),
+        overrides: {
+          ...(voiceId ? { tts: { voiceId } } : {}),
+          ...(brief.language === "es" ? { agent: { language: "es" } } : {}),
+        },
         // Voice models may write tags such as [laughs] into the text. The transcript is for reading.
         stripAudioTags: true,
         onMessage: (message) => {

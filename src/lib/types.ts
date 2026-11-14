@@ -176,6 +176,8 @@ export type NegotiationBrief = {
   fallback: string;
   /** Lines the agent must say: it is an AI assistant, the call is recorded, the holder is present. */
   disclosures: string[];
+  /** The language the agent speaks on the call. English when absent. Facts stay in English; the agent says them in this language. */
+  language?: "en" | "es";
 };
 
 export type CallOutcome = {

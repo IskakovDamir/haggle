@@ -5,12 +5,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Bell, Menu, X } from "lucide-react";
+import { LocaleSwitch } from "@/components/i18n/locale-switch";
 import { HgButton, HgLogo } from "@/components/landing-v2/ui";
 import { EASE } from "@/components/motion/reveal";
+import { useLocale } from "@/lib/i18n/use-locale";
 import { useCaseFile } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { activeNav, greetingFor } from "./nav";
 import { shellData, type ShellData } from "./shell-model";
+import { SHELL_COPY } from "./site-copy";
 import { SidebarContent } from "./sidebar";
 import { useClock } from "./use-clock";
 
@@ -22,13 +25,15 @@ const caption = "text-[13px] leading-[18px] font-semibold tracking-[-0.002em]";
 
 /** "Hi Maria," / "Good evening!", the most pressing alert, and "New call". */
 function TopBar({ data, hour }: { data: ShellData | null; hour: number | null }) {
+  const locale = useLocale();
+  const copy = SHELL_COPY[locale];
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-3">
       <div className="flex min-w-0 flex-1 flex-col gap-0.5 font-semibold">
         {data && hour !== null ? (
           <>
-            <p className={cn(caption, "truncate text-hg-muted")}>Hi {data.name ?? "there"},</p>
-            <p className="text-[22px] leading-7 tracking-[-0.02em] text-hg-ink sm:text-[24px] sm:leading-[30px]">{greetingFor(hour)}</p>
+            <p className={cn(caption, "truncate text-hg-muted")}>{copy.hi(data.name)}</p>
+            <p className="text-[22px] leading-7 tracking-[-0.02em] text-hg-ink sm:text-[24px] sm:leading-[30px]">{greetingFor(hour, locale)}</p>
           </>
         ) : (
           <div aria-hidden className="flex flex-col gap-1.5">
@@ -63,7 +68,7 @@ function TopBar({ data, hour }: { data: ShellData | null; hour: number | null })
       </AnimatePresence>
 
       <HgButton href={data?.newCallHref ?? "/calls"} size="s" arrow>
-        New call
+        {copy.newCall}
       </HgButton>
     </div>
   );
@@ -82,6 +87,7 @@ function MobileMenu({
   children: (closeButton: React.ReactNode) => React.ReactNode;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const copy = SHELL_COPY[useLocale()];
 
   useEffect(() => {
     if (!open) return;
@@ -121,7 +127,7 @@ function MobileMenu({
       type="button"
       data-autofocus
       onClick={onClose}
-      aria-label="Close menu"
+      aria-label={copy.closeMenu}
       className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-hg-surface text-hg-ink-2 transition-colors hover:bg-hg-blue-soft hover:text-hg-blue"
     >
       <X className="size-4" aria-hidden />
@@ -146,7 +152,7 @@ function MobileMenu({
             id="app-menu"
             role="dialog"
             aria-modal="true"
-            aria-label="Menu"
+            aria-label={copy.menu}
             className="absolute inset-y-0 left-0 flex w-[min(288px,86vw)] flex-col overflow-y-auto bg-white px-3.5 py-[18px] shadow-[24px_0_60px_-30px_rgb(11_18_32/0.45)]"
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
@@ -167,6 +173,7 @@ function MobileMenu({
  */
 export function SiteShell({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
   const pathname = usePathname();
+  const copy = SHELL_COPY[useLocale()];
   const active = activeNav(pathname);
   const onMissed = pathname === "/missed" || pathname.startsWith("/missed/");
   const { caseFile, ready } = useCaseFile();
@@ -211,9 +218,10 @@ export function SiteShell({ children, wide = false }: { children: React.ReactNod
         <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-hg-line bg-white/85 px-4 backdrop-blur-xl sm:px-6 lg:hidden">
           <HgLogo className="[&>span:last-child]:text-[22px]" />
           <div className="flex items-center gap-1.5">
+            <LocaleSwitch className="bg-hg-surface" />
             <Link
               href="/alerts"
-              aria-label={alertCount > 0 ? `Alerts, ${alertCount} open` : "Alerts"}
+              aria-label={copy.alerts(alertCount)}
               className="relative flex size-10 items-center justify-center rounded-full text-hg-ink-2 transition-colors hover:bg-hg-surface"
             >
               <Bell className="size-[18px]" aria-hidden />
@@ -227,7 +235,7 @@ export function SiteShell({ children, wide = false }: { children: React.ReactNod
               onClick={() => setMenuOpen(true)}
               aria-expanded={menuOpen}
               aria-controls="app-menu"
-              aria-label="Open menu"
+              aria-label={copy.openMenu}
               className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-hg-surface text-hg-ink transition-colors hover:bg-hg-blue-soft hover:text-hg-blue"
             >
               <Menu className="size-[18px]" aria-hidden />

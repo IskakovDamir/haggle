@@ -69,7 +69,8 @@ export function agentConfig(settings: AgentSettings) {
       // A private agent: a call can only start with a token minted by our server (POST /api/voice/session).
       auth: { enable_auth: true },
       // The visitor picks the agent's voice per call. Nothing else may be changed from the browser.
-      overrides: { conversation_config_override: { tts: { voice_id: true } } },
+      // A call in Spanish also switches the agent's language (speech recognition and voice).
+      overrides: { conversation_config_override: { tts: { voice_id: true }, agent: { language: true } } },
     },
   };
 }

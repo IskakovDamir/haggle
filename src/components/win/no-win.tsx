@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { CalendarClock } from "lucide-react";
 import { formatDate } from "@/lib/format";
+import type { Copy } from "@/lib/i18n/locale";
+import { useLocale } from "@/lib/i18n/use-locale";
 import { Stagger, StaggerItem } from "@/components/motion/reveal";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge, Card } from "@/components/ui/primitives";
@@ -12,37 +16,107 @@ import type { OutcomeKind } from "./outcome-kind";
 
 type Story = { title: React.ReactNode; body: string };
 
-function storyFor(kind: Exclude<OutcomeKind, "win">, bankName: string): Story {
-  switch (kind) {
-    case "declined":
-      return {
-        title: (
-          <>
-            {bankName} said <em>no</em> this time
-          </>
-        ),
-        body: "Nothing changed on the card, and you pay nothing. Haggle charges only after a win.",
-      };
-    case "unconfirmed":
-      return {
-        title: (
-          <>
-            We could not <em>confirm</em> this result
-          </>
-        ),
-        body: "The agent heard an offer, but its numbers are not in the bank's own words on the call. Haggle does not count it and does not charge for it.",
-      };
-    case "unclear":
-      return {
-        title: (
-          <>
-            The call ended <em>without an answer</em>
-          </>
-        ),
-        body: "The bank did not say yes or no, so nothing changed and you pay nothing.",
-      };
-  }
-}
+type NoWinCopy = {
+  story: (kind: Exclude<OutcomeKind, "win">, bankName: string) => Story;
+  badge: string;
+  next: string;
+  askAgain: (bankName: string, months: number) => string;
+  callToday: string;
+  noted: (note: string) => string;
+  onDashboard: string;
+  callAgain: string;
+  backToPlan: string;
+  dashboard: string;
+};
+
+const COPY: Copy<NoWinCopy> = {
+  en: {
+    story: (kind, bankName) => {
+      switch (kind) {
+        case "declined":
+          return {
+            title: (
+              <>
+                {bankName} said <em>no</em> this time
+              </>
+            ),
+            body: "Nothing changed on the card, and you pay nothing. Haggle charges only after a win.",
+          };
+        case "unconfirmed":
+          return {
+            title: (
+              <>
+                We could not <em>confirm</em> this result
+              </>
+            ),
+            body: "The agent heard an offer, but its numbers are not in the bank's own words on the call. Haggle does not count it and does not charge for it.",
+          };
+        case "unclear":
+          return {
+            title: (
+              <>
+                The call ended <em>without an answer</em>
+              </>
+            ),
+            body: "The bank did not say yes or no, so nothing changed and you pay nothing.",
+          };
+      }
+    },
+    badge: "No win, no fee · practice call",
+    next: "What happens next",
+    askAgain: (bankName, months) =>
+      `Ask ${bankName} again in about ${months} months. Banks often say yes once more on-time payments are on file.`,
+    callToday: "You can call again today. A clear yes or no from the bank, with the numbers said out loud, gives a result.",
+    noted: (note) => `Noted on the call: ${note}`,
+    onDashboard: "The date is on your dashboard, with a calendar file to download.",
+    callAgain: "Call again",
+    backToPlan: "Back to your plan",
+    dashboard: "See your dashboard",
+  },
+  es: {
+    story: (kind, bankName) => {
+      switch (kind) {
+        case "declined":
+          return {
+            title: (
+              <>
+                {bankName} dijo que <em>no</em> esta vez
+              </>
+            ),
+            body: "No cambió nada en la tarjeta y no pagas nada. Haggle cobra solo después de una victoria.",
+          };
+        case "unconfirmed":
+          return {
+            title: (
+              <>
+                No pudimos <em>confirmar</em> este resultado
+              </>
+            ),
+            body: "El agente escuchó una oferta, pero sus números no están en las propias palabras del banco en la llamada. Haggle no la cuenta y no cobra por ella.",
+          };
+        case "unclear":
+          return {
+            title: (
+              <>
+                La llamada terminó <em>sin respuesta</em>
+              </>
+            ),
+            body: "El banco no dijo ni sí ni no, así que nada cambió y no pagas nada.",
+          };
+      }
+    },
+    badge: "Sin victoria, sin cargo · llamada de práctica",
+    next: "Lo que sigue",
+    askAgain: (bankName, months) =>
+      `Vuelve a pedírselo a ${bankName} en unos ${months} meses. Los bancos suelen decir que sí cuando ya hay más pagos a tiempo en tu historial.`,
+    callToday: "Puedes volver a llamar hoy. Un sí o un no claro del banco, con los números dichos en voz alta, da un resultado.",
+    noted: (note) => `Anotado en la llamada: ${note}`,
+    onDashboard: "La fecha está en tu panel, con un archivo de calendario para descargar.",
+    callAgain: "Llamar otra vez",
+    backToPlan: "Volver a tu plan",
+    dashboard: "Ver tu panel",
+  },
+};
 
 /** After a call with no confirmed win: what happened, and what happens next and on which date. */
 export function NoWin({
@@ -56,7 +130,8 @@ export function NoWin({
   bankName: string;
   today: IsoDate;
 }) {
-  const story = storyFor(kind, bankName);
+  const copy = COPY[useLocale()];
+  const story = copy.story(kind, bankName);
   const declined = kind === "declined";
   const noted = call.outcome?.followUp ?? null;
 
@@ -67,7 +142,7 @@ export function NoWin({
       <Stagger onMount gap={0.1} className="relative">
         <StaggerItem>
           <Badge tone="outline" className="bg-white px-3 py-1">
-            No win, no fee · practice call
+            {copy.badge}
           </Badge>
         </StaggerItem>
         <StaggerItem
@@ -85,31 +160,29 @@ export function NoWin({
             <CalendarClock className="size-5" />
           </span>
           <div className="min-w-0">
-            <p className="text-xs font-semibold tracking-widest text-muted uppercase">What happens next</p>
+            <p className="text-xs font-semibold tracking-widest text-muted uppercase">{copy.next}</p>
             <p className="tabular mt-1 text-2xl font-semibold tracking-[-0.02em] text-hg-ink">
               {declined ? formatDate(askAgainDate(call)) : formatDate(today)}
             </p>
             <p className="mt-1 max-w-[60ch] text-hg-ink-2">
-              {declined
-                ? `Ask ${bankName} again in about ${ASK_AGAIN_AFTER_MONTHS} months. Banks often say yes once more on-time payments are on file.`
-                : "You can call again today. A clear yes or no from the bank, with the numbers said out loud, gives a result."}
+              {declined ? copy.askAgain(bankName, ASK_AGAIN_AFTER_MONTHS) : copy.callToday}
             </p>
-            {noted && <p className="mt-2 max-w-[60ch] text-sm text-muted">Noted on the call: {noted}</p>}
-            {declined && <p className="mt-2 text-sm text-muted">The date is on your dashboard, with a calendar file to download.</p>}
+            {noted && <p className="mt-2 max-w-[60ch] text-sm text-muted">{copy.noted(noted)}</p>}
+            {declined && <p className="mt-2 text-sm text-muted">{copy.onDashboard}</p>}
           </div>
         </StaggerItem>
 
         <StaggerItem className="mt-7 flex flex-col gap-2 sm:flex-row">
           {!declined && (
             <Link href={callHref(stepIdOf(call))} className={buttonVariants({ size: "lg" })}>
-              Call again
+              {copy.callAgain}
             </Link>
           )}
           <Link href="/plan" className={cn(buttonVariants({ size: "lg", variant: declined ? "default" : "outline" }))}>
-            Back to your plan
+            {copy.backToPlan}
           </Link>
           <Link href="/dashboard" className={buttonVariants({ size: "lg", variant: "ghost" })}>
-            See your dashboard
+            {copy.dashboard}
           </Link>
         </StaggerItem>
       </Stagger>

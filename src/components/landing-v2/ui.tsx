@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Stagger, StaggerItem } from "@/components/motion/reveal";
+import { landingPath, type Copy, type Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
 
 /** The three-ribbon mark on brand blue. Scales with `size`; the blades are positioned as in Figma. */
@@ -33,10 +34,12 @@ export function HgMark({ size = 34, className }: { size?: number; className?: st
   );
 }
 
-/** Mark plus the lowercase wordmark. */
-export function HgLogo({ className, href = "/" }: { className?: string; href?: string }) {
+const LOGO_LABEL: Copy<string> = { en: "Haggle home", es: "Inicio de Haggle" };
+
+/** Mark plus the lowercase wordmark. Links to the landing page in the same language unless `href` says otherwise. */
+export function HgLogo({ className, href, locale = "en" }: { className?: string; href?: string; locale?: Locale }) {
   return (
-    <Link href={href} className={cn("inline-flex items-center gap-2.5", className)} aria-label="Haggle home">
+    <Link href={href ?? landingPath(locale)} className={cn("inline-flex items-center gap-2.5", className)} aria-label={LOGO_LABEL[locale]}>
       <HgMark />
       <span className="text-[24px] leading-none font-bold tracking-[-0.05em] text-hg-ink">haggle</span>
     </Link>
