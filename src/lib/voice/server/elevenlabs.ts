@@ -1,0 +1,67 @@
+// The three ElevenLabs REST calls Haggle makes. Server only: every call carries the API key.
+//
+//   GET   /v1/convai/conversation/token?agent_id=   a token for one WebRTC call with a private agent
+//   POST  /v1/convai/agents/create                  create the agent (scripts/setup-agent.ts)
+//   PATCH /v1/convai/agents/{agent_id}              update it
+import type { AgentConfig } from "../agent-config";
+
+const API_ORIGIN = "https://api.elevenlabs.io";
+const TIMEOUT_MS = 15_000;
+
+export type Fetch = typeof fetch;
+
+/** ElevenLabs answered with an error status. `detail` is its own explanation, for logs and the setup script. */
+export class ElevenLabsError extends Error {
+  constructor(
+    readonly status: number,
+    readonly detail: string,
+  ) {
+    super(`ElevenLabs answered ${status}: ${detail}`);
+    this.name = "ElevenLabsError";
+  }
+}
+
+/** Errors come as { detail: { message } }, { detail: "..." } or a list of validation issues. */
+function describeError(body: unknown): string {
+  const detail = body && typeof body === "object" && "detail" in body ? body.detail : body;
+  if (typeof detail === "string") return detail;
+  if (detail && typeof detail === "object" && "message" in detail && typeof detail.message === "string") return detail.message;
+  return JSON.stringify(detail ?? "no details").slice(0, 600);
+}
+
+async function call(apiKey: string, path: string, init: { method: string; body?: unknown }, fetcher: Fetch): Promise<unknown> {
+  const response = await fetcher(`${API_ORIGIN}${path}`, {
+    method: init.method,
+    headers: { "xi-api-key": apiKey, ...(init.body === undefined ? {} : { "Content-Type": "application/json" }) },
+    body: init.body === undefined ? undefined : JSON.stringify(init.body),
+    cache: "no-store",
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) throw new ElevenLabsError(response.status, describeError(body));
+  return body;
+}
+
+/** A string field of a JSON answer, or an error that names what was missing. */
+function field(body: unknown, name: string): string {
+  const value = body && typeof body === "object" ? (body as Record<string, unknown>)[name] : undefined;
+  if (typeof value !== "string" || value === "") throw new Error(`ElevenLabs sent no "${name}".`);
+  return value;
+}
+
+/** A short-lived token that lets one browser join one call with the agent. */
+export async function mintConversationToken(access: { apiKey: string; agentId: string }, fetcher: Fetch = fetch): Promise<string> {
+  const path = `/v1/convai/conversation/token?agent_id=${encodeURIComponent(access.agentId)}`;
+  return field(await call(access.apiKey, path, { method: "GET" }, fetcher), "token");
+}
+
+/** Create the agent and return its id. */
+export async function createAgent(apiKey: string, config: AgentConfig, fetcher: Fetch = fetch): Promise<string> {
+  return field(await call(apiKey, "/v1/convai/agents/create", { method: "POST", body: config }, fetcher), "agent_id");
+}
+
+/** Update an existing agent in place and return its id. */
+export async function updateAgent(apiKey: string, agentId: string, config: AgentConfig, fetcher: Fetch = fetch): Promise<string> {
+  const path = `/v1/convai/agents/${encodeURIComponent(agentId)}`;
+  return field(await call(apiKey, path, { method: "PATCH", body: config }, fetcher), "agent_id");
+}
