@@ -26,3 +26,8 @@ export function telHref(display: string): string {
 export function directoryPath(issuer: Pick<Issuer, "slug">): string {
   return `/phone/${issuer.slug}`;
 }
+
+/** "Chase credit card customer service", but "Apple Card customer service" when the name already says card. */
+export function serviceName(issuer: Pick<Issuer, "name">): string {
+  return /\bcard\b/i.test(issuer.name) ? `${issuer.name} customer service` : `${issuer.name} credit card customer service`;
+}

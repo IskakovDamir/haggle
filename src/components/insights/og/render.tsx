@@ -125,7 +125,7 @@ export async function renderStatImage(stat: Stat, format: "landscape" | "portrai
 }
 
 /** A phone directory page: the issuer, its official number and where it was checked. */
-export async function renderPhoneImage({ name, label, number, checked }: { name: string; label: string; number: string; checked: string }) {
+export async function renderPhoneImage({ title, label, number, checked }: { title: string; label: string; number: string; checked: string }) {
   return new ImageResponse(
     (
       <div
@@ -145,7 +145,7 @@ export async function renderPhoneImage({ name, label, number, checked }: { name:
           <div style={{ display: "flex", fontSize: 22, fontWeight: 600, color: INK_2 }}>Phone numbers</div>
         </div>
         <div style={{ display: "flex", fontSize: 54, lineHeight: 1.1, fontWeight: 800, letterSpacing: -2.2, color: INK, maxWidth: 1000 }}>
-          {`${name} credit card customer service`}
+          {title}
         </div>
         <div
           style={{

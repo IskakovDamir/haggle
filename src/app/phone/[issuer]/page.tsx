@@ -10,7 +10,7 @@ import { InlineStat, SourceLink } from "@/components/insights/provenance";
 import { HgSection } from "@/components/landing-v2/ui";
 import { getBank, getMarketStat } from "@/lib/benchmarks";
 import { faqJsonLd } from "@/lib/benchmarks/seo";
-import { ISSUERS, directoryPath, getIssuer, issuersAtoZ, mainLine } from "@/lib/directory";
+import { ISSUERS, directoryPath, getIssuer, issuersAtoZ, mainLine, serviceName } from "@/lib/directory";
 import { issuerFaq } from "@/lib/directory/faq";
 import { breadcrumbJsonLd } from "@/lib/directory/seo";
 import type { Issuer } from "@/lib/directory/types";
@@ -20,11 +20,16 @@ export function generateStaticParams() {
   return ISSUERS.map((issuer) => ({ issuer: issuer.slug }));
 }
 
+/** "chase credit card customer service" -> "Chase Credit Card Customer Service", keeping words like "U.S." as written. */
+function titleCase(text: string): string {
+  return text.replace(/\b([a-z])/g, (c) => c.toUpperCase());
+}
+
 function copy(issuer: Issuer) {
   const line = mainLine(issuer);
   return {
-    title: `${issuer.name} Credit Card Customer Service Phone Number: ${line.display}`,
-    description: `Call ${issuer.name} credit card customer service at ${line.display}. The official number${line.hours ? " and hours" : ""}, what to have ready, and what to say to get a late fee back or a lower rate.`,
+    title: `${titleCase(serviceName(issuer))} Phone Number: ${line.display}`,
+    description: `Call ${serviceName(issuer)} at ${line.display}. The official number${line.hours ? " and hours" : ""}, what to have ready, and what to say to get a late fee back or a lower rate.`,
   };
 }
 
@@ -72,7 +77,7 @@ async function IssuerView({ params }: { params: PageProps<"/phone/[issuer]">["pa
       <HgSection className={cn("flex flex-col gap-6 pt-10 pb-6 lg:pt-14", sectionPad)}>
         <Breadcrumbs items={[{ href: "/", label: "Home" }, { href: "/phone", label: "Phone numbers" }, { label: name }]} />
         <h1 className="max-w-[22ch] text-[clamp(34px,5vw,56px)] leading-[1.08] font-semibold tracking-[-0.04em] text-hg-ink">
-          {name} credit card customer service <em>phone number</em>
+          {serviceName(issuer)} <em>phone number</em>
         </h1>
         {issuer.aliases.length > 0 && <p className="text-[15px] leading-6 font-medium text-hg-muted">Also searched as {issuer.aliases.join(", ")}.</p>}
 

@@ -1,7 +1,7 @@
 // GET /llms.txt: a plain summary of Haggle, its insights pages and the phone directory for AI search (llmstxt.org format).
 import { BANKS, DATASET_AS_OF, formatStatValue, getMarketStat, provenanceText } from "@/lib/benchmarks";
 import { siteUrl } from "@/lib/benchmarks/site";
-import { directoryPath, issuersAtoZ, mainLine } from "@/lib/directory";
+import { directoryPath, issuersAtoZ, mainLine, serviceName } from "@/lib/directory";
 
 function line(id: string): string {
   const stat = getMarketStat(id);
@@ -42,7 +42,7 @@ Official customer service numbers, each read from the issuer's own website on th
 ${issuersAtoZ()
   .map((issuer) => {
     const main = mainLine(issuer);
-    return `- [${issuer.name} credit card customer service](${base}${directoryPath(issuer)}): ${main.display}${main.hours ? `, ${main.hours}` : ""} (checked ${issuer.checkedOn} on ${issuer.source.url})`;
+    return `- [${serviceName(issuer)}](${base}${directoryPath(issuer)}): ${main.display}${main.hours ? `, ${main.hours}` : ""} (checked ${issuer.checkedOn} on ${issuer.source.url})`;
   })
   .join("\n")}
 

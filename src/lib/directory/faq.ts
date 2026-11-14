@@ -1,7 +1,7 @@
 // FAQ for an issuer's phone page, written from the directory and benchmark data. Same segment format as /insights.
 import { getBank, getMarketStat } from "@/lib/benchmarks";
 import type { FaqItem, Segment } from "@/lib/benchmarks/faq";
-import { mainLine } from "./index";
+import { mainLine, serviceName } from "./index";
 import type { Issuer } from "./types";
 
 export function issuerFaq(issuer: Issuer): FaqItem[] {
@@ -12,11 +12,11 @@ export function issuerFaq(issuer: Issuer): FaqItem[] {
 
   const items: FaqItem[] = [
     {
-      question: `What is the ${name} credit card customer service phone number?`,
-      answer: [`${name}'s official site lists ${line.display} for ${line.label.toLowerCase()}.`, official],
+      question: `What is the ${serviceName(issuer)} phone number?`,
+      answer: [`${name}'s official site lists ${line.display} (${line.label}).${line.note ? ` ${line.note}` : ""}`, official],
     },
     {
-      question: `Is ${name} credit card customer service open 24/7?`,
+      question: `Is ${serviceName(issuer)} open 24/7?`,
       answer: line.hours
         ? [`${name}'s official site lists these hours for that line: ${line.hours}.`, official]
         : [`${name}'s contact page does not list hours for this line. The number on the back of your card is the one ${name} expects you to use.`],

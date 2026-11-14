@@ -1,6 +1,6 @@
 // JSON-LD for the phone directory.
 import { siteUrl } from "@/lib/benchmarks/site";
-import { directoryPath, mainLine } from "./index";
+import { directoryPath, mainLine, serviceName } from "./index";
 import type { Issuer } from "./types";
 
 export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
@@ -19,7 +19,7 @@ export function directoryListJsonLd(issuers: Issuer[]) {
     itemListElement: issuers.map((issuer, i) => ({
       "@type": "ListItem",
       position: i + 1,
-      name: `${issuer.name} credit card customer service: ${mainLine(issuer).display}`,
+      name: `${serviceName(issuer)}: ${mainLine(issuer).display}`,
       url: `${siteUrl()}${directoryPath(issuer)}`,
     })),
   };
