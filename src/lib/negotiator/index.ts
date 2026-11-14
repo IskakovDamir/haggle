@@ -1,32 +1,14 @@
-// CONTRACT STUB. The negotiator owner replaces the bodies (and may split into files) but keeps these
-// exports and signatures. See SPEC.md, "Negotiator".
-import type { CallOutcome, CardAccount, Lever, NegotiationBrief, Turn } from "@/lib/types";
-
-const todo = (name: string): never => {
-  throw new Error(`negotiator.${name} is not implemented yet`);
-};
-
-/** Everything the agent may know and say on one call. Deterministic: no model involved. */
-export function buildBrief(input: { card: CardAccount; holderFirstName: string; lever: Lever }): NegotiationBrief {
-  void input;
-  return todo("buildBrief");
-}
-
-/** The agent's instructions. The same text drives the text route and the voice agent. */
-export function systemPrompt(brief: NegotiationBrief): string {
-  void brief;
-  return todo("systemPrompt");
-}
-
-/** The agent's first line, with the disclosures. Deterministic. */
-export function openingLine(brief: NegotiationBrief): string {
-  void brief;
-  return todo("openingLine");
-}
-
-/** Code check on a model-read outcome: every granted number must appear in a bank turn. */
-export function verifyOutcome(draft: Omit<CallOutcome, "verified">, turns: Turn[]): CallOutcome {
-  void draft;
-  void turns;
-  return todo("verifyOutcome");
-}
+// The negotiator: Haggle's agent on a call with the bank. See SPEC.md, "Negotiator".
+//
+//   brief.ts      what the agent may know and say, built by code from the confirmed card
+//   prompt.ts     the agent's instructions (text and voice) and its fixed opening line
+//   playbooks.ts  per-issuer strategy notes for the agent
+//   verify.ts     the code check on what a model read from the transcript
+//   server/       the route handlers and the one Claude call (server only)
+//
+// Everything exported here is pure and safe to import in the browser. Nothing in this file may
+// import from ./server.
+export { ASK_APR_CUT_BPS, ASK_APR_FLOOR_BPS, WIN_APR_CUT_BPS, aprTargets, buildBrief } from "./brief";
+export { playbookFor, type Playbook } from "./playbooks";
+export { openingLine, systemPrompt } from "./prompt";
+export { verifyOutcome } from "./verify";
