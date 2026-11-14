@@ -1,22 +1,26 @@
-// "Be the bank, we'll call you": the blue demo band with the 3D phone, from Figma node 6:78.
-// The design has a phone-number form; this build can't place real calls, so it links to the in-browser practice call.
+// "Be the bank, we'll call you": the blue demo band from Figma node 6:78. The button opens /demo, where
+// the visitor types their own phone number and Haggle rings it (or they type the call instead).
+// The 3D phone from the design is replaced by a short recording of a real practice call (demo-video.tsx).
 import Image from "next/image";
 import type { Copy, Locale } from "@/lib/i18n/locale";
+import { DemoVideo } from "./demo-video";
 import { HgButton, HgSection } from "./ui";
 import { Reveal } from "@/components/motion/reveal";
 
-const COPY: Copy<{ title: string; lead: string; cta: string; note: string }> = {
+const COPY: Copy<{ title: string; lead: string; cta: string; note: string; video: string }> = {
   en: {
     title: "Be the bank, we’ll call you",
-    lead: "Play a Chase rep and try to say no, then watch the transcript live on screen",
-    cta: "Try a demo call",
-    note: "A practice call in your browser: you play the bank and the agent negotiates with you.",
+    lead: "Type your number and Haggle rings your phone for real. Play the Chase rep, try to say no, and watch the transcript live on screen",
+    cta: "Call my phone",
+    note: "A practice call with sample data, to +1 and +7 numbers. No phone handy? Type the call in your browser.",
+    video: "Recorded from a real practice call with sample data. A person played Chase using the suggested replies.",
   },
   es: {
     title: "Tú eres el banco, nosotros te llamamos",
-    lead: "Hazte pasar por un agente de Chase e intenta decir que no, mientras ves la transcripción en vivo",
-    cta: "Prueba una llamada demo",
-    note: "Una llamada de práctica en tu navegador: tú haces de banco y el agente negocia contigo.",
+    lead: "Escribe tu número y Haggle llama de verdad a tu teléfono. Haz de agente de Chase, intenta decir que no y mira la transcripción en vivo",
+    cta: "Llamar a mi teléfono",
+    note: "Una llamada de práctica con datos de ejemplo, a números +1 y +7. ¿Sin teléfono a mano? Escribe la llamada en tu navegador.",
+    video: "Grabado de una llamada de práctica real con datos de muestra. Una persona hizo de Chase con las respuestas sugeridas.",
   },
 };
 
@@ -37,23 +41,15 @@ export function Demo({ locale = "en" }: { locale?: Locale }) {
         <div className="relative flex min-w-0 flex-1 flex-col items-start gap-6">
           <h2 className="text-[clamp(32px,4.5vw,48px)] leading-[1.125] font-semibold tracking-[-0.035em] text-white">{t.title}</h2>
           <p className="text-[18px] leading-7 font-medium tracking-[-0.01em] text-white/78">{t.lead}</p>
-          <HgButton href="/start?sample=maria-chase" tone="white" arrow>
+          <HgButton href="/demo" tone="white" arrow>
             {t.cta}
           </HgButton>
           <p className="text-[13px] leading-[18px] font-semibold tracking-[-0.002em] text-white/65">{t.note}</p>
         </div>
-        {/* In the row layout this is the 360px "Phone space"; the phone itself hangs off the banner's right edge as in Figma. */}
-        <div className="relative size-[240px] shrink-0 self-center lg:static lg:h-[10px] lg:w-[360px]">
-          <div className="hg-float absolute inset-0 flex items-center justify-center lg:inset-auto lg:top-[25px] lg:right-[54.63px] lg:size-[316.368px]">
-            <Image
-              src="/landing/demo/3d-phone.png"
-              alt=""
-              width={300}
-              height={300}
-              className="size-[227px] max-w-none rotate-[-176.7deg] -scale-y-100 object-contain lg:size-[299.608px]"
-            />
-          </div>
-        </div>
+        <figure className="relative mx-auto flex w-full max-w-[300px] shrink-0 flex-col items-center gap-3 lg:mx-0 lg:w-[320px] lg:max-w-[320px]">
+          <DemoVideo locale={locale} className="w-full" />
+          <figcaption className="text-center text-[12px] leading-4 font-semibold text-white/65">{t.video}</figcaption>
+        </figure>
       </Reveal>
     </HgSection>
   );
