@@ -36,9 +36,9 @@ function capitalize(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-/** "$271 a year" */
+/** "$271". The engine's figure is first-year savings, so the card says "in the first year" under it. */
 export function savingsLine(payload: SharePayload): string {
-  return `${formatDollars(payload.annualSavingsCents)} a year`;
+  return formatDollars(payload.annualSavingsCents);
 }
 
 /**
@@ -50,9 +50,9 @@ export function shareText(payload: SharePayload): string {
   const list = parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}` : parts[0];
   const saves = formatDollars(payload.annualSavingsCents);
   if (payload.practice) {
-    return `I tried Haggle in a practice call with ${payload.bank}: ${list}. That would save ${saves} a year.`;
+    return `I tried Haggle in a practice call with ${payload.bank}: ${list}. That would save ${saves} in the first year.`;
   }
-  return `Haggle called ${payload.bank} for me. ${capitalize(parts.join(", "))}. Saves ${saves} a year.`;
+  return `Haggle called ${payload.bank} for me. ${capitalize(parts.join(", "))}. Saves ${saves} in the first year.`;
 }
 
 export function footerLabel(status: CardStatus): string {

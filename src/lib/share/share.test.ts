@@ -94,11 +94,11 @@ describe("share text", () => {
     expect(winLine({ kind: "late_fee", amountCents: 4000 })).toBe("Late fee $40 refunded");
     expect(winLine({ kind: "apr", fromBps: 2999, toBps: 2724, restored: true })).toBe("APR back to 27.24%");
     expect(winLine({ kind: "apr", fromBps: 2999, toBps: 2299, restored: false })).toBe("APR down from 29.99% to 22.99%");
-    expect(savingsLine(payload)).toBe("$271 a year");
+    expect(savingsLine(payload)).toBe("$271");
   });
 
   it("never claims Haggle called the bank on a practice call", () => {
-    expect(shareText(payload)).toBe("I tried Haggle in a practice call with Chase: late fee refunded and APR back to 27.24%. That would save $271 a year.");
-    expect(shareText({ ...payload, practice: false })).toBe("Haggle called Chase for me. Late fee refunded, APR back to 27.24%. Saves $271 a year.");
+    expect(shareText(payload)).toBe("I tried Haggle in a practice call with Chase: late fee refunded and APR back to 27.24%. That would save $271 in the first year.");
+    expect(shareText({ ...payload, practice: false })).toBe("Haggle called Chase for me. Late fee refunded, APR back to 27.24%. Saves $271 in the first year.");
   });
 });
