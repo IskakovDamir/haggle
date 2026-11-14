@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Keyboard, Mic, Phone } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Keyboard, Mic, Phone, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { VoiceStatus } from "@/lib/voice/use-voice-call";
-import { AGENT_VOICES, DEFAULT_AGENT_VOICE, type AgentVoice } from "@/lib/voice/voices";
+import { AGENT_VOICES, DEFAULT_AGENT_VOICE, voicePreviewPath, type AgentVoice } from "@/lib/voice/voices";
 import { cn } from "@/lib/utils";
 import { Notice } from "./page-states";
 import { panel } from "./panel-theme";
@@ -35,6 +35,22 @@ export function StartControls({
 }) {
   const [picked, setPicked] = useState<CallMode | null>(null);
   const [agentVoice, setAgentVoice] = useState<AgentVoice>(DEFAULT_AGENT_VOICE);
+  const [playing, setPlaying] = useState<AgentVoice | null>(null);
+  const preview = useRef<HTMLAudioElement | null>(null);
+
+  /** Pick a voice and play its clip, so the visitor hears it before the call. */
+  function chooseVoice(voice: AgentVoice) {
+    setAgentVoice(voice);
+    preview.current?.pause();
+    const audio = new Audio(voicePreviewPath(voice));
+    preview.current = audio;
+    setPlaying(voice);
+    audio.onended = () => setPlaying((current) => (current === voice ? null : current));
+    audio.play().catch(() => setPlaying(null));
+  }
+
+  // Leaving the panel (the call starts, or the page closes) stops the clip.
+  useEffect(() => () => preview.current?.pause(), []);
 
   const switchedOn = capabilities.status === "ready" ? capabilities.capabilities : null;
   const canType = switchedOn?.negotiation ?? false;
@@ -83,7 +99,7 @@ export function StartControls({
 
       {mode === "voice" && canSpeak && (
         <div>
-          <p className={cn("mb-2 text-[11px] font-semibold tracking-[0.08em] uppercase", panel.dim)}>The agent sounds</p>
+          <p className={cn("mb-2 text-[11px] font-semibold tracking-[0.08em] uppercase", panel.dim)}>The agent sounds · tap to hear</p>
           <div role="radiogroup" aria-label="The agent voice" className="grid grid-cols-2 gap-2">
             {(Object.keys(AGENT_VOICES) as AgentVoice[]).map((option) => (
               <button
@@ -91,12 +107,14 @@ export function StartControls({
                 type="button"
                 role="radio"
                 aria-checked={agentVoice === option}
-                onClick={() => setAgentVoice(option)}
+                onClick={() => chooseVoice(option)}
+                aria-label={`${AGENT_VOICES[option].label} voice, ${AGENT_VOICES[option].name}. Plays a sample.`}
                 className={cn(
                   "flex h-11 cursor-pointer items-center justify-center gap-1.5 rounded-full border text-sm font-medium transition-colors",
                   agentVoice === option ? "border-lime bg-lime/10 text-lime" : cn(panel.rule, panel.dim, "hover:text-[#e9e8e3]"),
                 )}
               >
+                <Volume2 className={cn("size-4", playing === option ? "animate-pulse" : "opacity-60")} aria-hidden />
                 {AGENT_VOICES[option].label}
                 <span className="opacity-70">· {AGENT_VOICES[option].name}</span>
               </button>

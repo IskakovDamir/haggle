@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "samples": "tsx scripts/make-samples.ts",
-    "setup:agent": "tsx --env-file-if-exists=.env.local scripts/setup-agent.ts"
+    "setup:agent": "tsx --env-file-if-exists=.env.local scripts/setup-agent.ts",
+    "voice-previews": "tsx --env-file-if-exists=.env.local scripts/make-voice-previews.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.8.0",
