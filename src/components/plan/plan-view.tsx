@@ -8,6 +8,8 @@ import { isSampleCard } from "@/components/start/sample-cards";
 import { analyze } from "@/lib/engine";
 import { todayIso } from "@/lib/format";
 import type { CaseFile } from "@/lib/types";
+import { isWin } from "@/components/dashboard/progress";
+import { cardsAfterWins, winSummary } from "./apply-wins";
 import { CardPanel } from "./card-panel";
 import { Headline } from "./headline";
 import { cardLabel, lastCallFor } from "./labels";
@@ -31,13 +33,18 @@ function Section({ title, lead, children }: { title: React.ReactNode; lead?: str
 export function PlanView({ caseFile, onRemoveCard }: { caseFile: CaseFile; onRemoveCard: (cardId: string) => void }) {
   // Read the clock once, in the browser, so a render at midnight cannot disagree with itself.
   const [today] = useState(todayIso);
-  const analysis = useMemo(() => analyze(caseFile.cards, today), [caseFile.cards, today]);
+  // The plan works from the cards as they stand after any wins: a won APR cut lowers the interest shown.
+  const cards = useMemo(() => cardsAfterWins(caseFile.cards, caseFile.calls), [caseFile.cards, caseFile.calls]);
+  const analysis = useMemo(() => analyze(cards, today), [cards, today]);
+  const wins = winSummary(caseFile.calls);
 
   const cardNames = new Map(caseFile.cards.map((card) => [card.id, cardLabel(card)]));
   const analysisOf = new Map(analysis.cards.map((card) => [card.cardId, card]));
-  const wonAlready = (result: string | undefined) => result === "won" || result === "partial";
-  const firstCall =
-    analysis.plan.find((step) => step.lever.needsCall && !wonAlready(lastCallFor(caseFile.calls, step)?.outcome?.result)) ?? null;
+  const wonStep = (step: (typeof analysis.plan)[number]) => {
+    const last = lastCallFor(caseFile.calls, step);
+    return last !== null && isWin(last);
+  };
+  const firstCall = analysis.plan.find((step) => step.lever.needsCall && !wonStep(step)) ?? null;
 
   return (
     <div>
@@ -47,11 +54,12 @@ export function PlanView({ caseFile, onRemoveCard }: { caseFile: CaseFile; onRem
         cardCount={caseFile.cards.length}
         hasSampleCard={caseFile.cards.some(isSampleCard)}
         firstCall={firstCall}
+        wins={wins}
       />
 
       <Section title={caseFile.cards.length === 1 ? "Your card" : "Your cards"}>
         <div className="space-y-3">
-          {caseFile.cards.map((card) => {
+          {cards.map((card) => {
             const numbers = analysisOf.get(card.id);
             return numbers ? (
               <CardPanel key={card.id} card={card} analysis={numbers} onRemove={() => onRemoveCard(card.id)} />
