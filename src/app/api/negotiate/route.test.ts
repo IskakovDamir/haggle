@@ -14,6 +14,7 @@ afterEach(() => {
 describe("POST /api/negotiate", () => {
   it("opens the call with the fixed opening line, even without a key", async () => {
     vi.stubEnv("ANTHROPIC_API_KEY", "");
+    vi.stubEnv("GEMINI_API_KEY", "");
     const response = await POST(post("/api/negotiate", { brief, turns: [] }));
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ reply: openingLine(brief), done: false });
@@ -21,6 +22,7 @@ describe("POST /api/negotiate", () => {
 
   it("answers not_configured for the next turn when the server has no key", async () => {
     vi.stubEnv("ANTHROPIC_API_KEY", "");
+    vi.stubEnv("GEMINI_API_KEY", "");
     const turns = transcript(["agent", openingLine(brief)], ["bank", "How can I help?"]);
     const response = await POST(post("/api/negotiate", { brief, turns }));
     expect(response.status).toBe(503);

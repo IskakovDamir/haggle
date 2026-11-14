@@ -1,7 +1,9 @@
-// The one place this module talks to Claude. Server only: never import it from a client component.
-// Handlers take the model as a parameter (AskModel), so tests pass a fake and never touch the network.
+// The one place this module talks to a model (Claude or Gemini). Server only: never import it from a
+// client component. Handlers take the model as a parameter (AskModel), so tests pass a fake and never
+// touch the network.
 import Anthropic from "@anthropic-ai/sdk";
-import { claudeModel, problem, type ProblemCode } from "@/lib/server/http";
+import { askGeminiJson, GeminiError } from "@/lib/server/gemini";
+import { aiProvider, claudeModel, problem, type ProblemCode } from "@/lib/server/http";
 
 export type JsonRequest = {
   system: string;
@@ -9,6 +11,8 @@ export type JsonRequest = {
   /** JSON schema of the reply. Every object needs additionalProperties: false and all keys required. */
   schema: Record<string, unknown>;
   maxTokens: number;
+  /** Latency over depth: a live call turn. Reading documents and outcomes leaves this off. */
+  fast?: boolean;
 };
 
 /** Ask the model for one JSON value that follows the schema. Rejects with ModelError. */
@@ -47,6 +51,30 @@ export const askClaude: AskModel = async ({ system, user, schema, maxTokens }) =
     throw fromProviderError(error);
   }
   return readJsonReply(message);
+};
+
+/** The same request answered by Gemini. */
+export const askGemini: AskModel = async ({ system, user, schema, maxTokens, fast }) => {
+  try {
+    return await askGeminiJson({ system, user, schema, maxTokens, thinkingLevel: fast ? "minimal" : undefined });
+  } catch (error) {
+    if (error instanceof GeminiError) {
+      console.error("[negotiator] gemini:", error.detail);
+      if (error.code === "not_configured") {
+        throw new ModelError("not_configured", "The negotiator needs an AI key on the server. It is not set.");
+      }
+      if (error.code === "rate_limited") throw new ModelError("rate_limited", "The AI service is busy. Wait a moment and try again.");
+      throw new ModelError("failed", "The AI service returned an error. Try again.");
+    }
+    throw fromProviderError(error);
+  }
+};
+
+/** The provider the server is set up for (see aiProvider). Routes use this by default. */
+export const askModel: AskModel = (request) => {
+  const provider = aiProvider();
+  if (provider === "gemini") return askGemini(request);
+  return askClaude(request);
 };
 
 /** The JSON in a finished reply. A refusal or a reply cut off by the token limit is a failed call. */

@@ -91,6 +91,7 @@ describe("modelProblem", () => {
 describe("askClaude", () => {
   it("answers not_configured without a key, before any request is made", async () => {
     vi.stubEnv("ANTHROPIC_API_KEY", "");
+    vi.stubEnv("GEMINI_API_KEY", "");
     const request = { system: "s", user: "u", schema: { type: "object" }, maxTokens: 100 };
     await expect(askClaude(request)).rejects.toMatchObject({ name: "ModelError", code: "not_configured" });
   });

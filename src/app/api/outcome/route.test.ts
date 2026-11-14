@@ -14,6 +14,7 @@ afterEach(() => {
 describe("POST /api/outcome", () => {
   it("answers not_configured when the server has no key", async () => {
     vi.stubEnv("ANTHROPIC_API_KEY", "");
+    vi.stubEnv("GEMINI_API_KEY", "");
     const turns = transcript(["agent", openingLine(brief)], ["bank", "I can lower your APR to 19.99%."]);
     const response = await POST(post("/api/outcome", { brief, turns }));
     expect(response.status).toBe(503);

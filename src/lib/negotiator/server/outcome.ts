@@ -9,7 +9,7 @@ import type { CallOutcome, LeverKind, NegotiationBrief, Turn } from "@/lib/types
 import { gradeAprResult } from "../grade";
 import { OUTCOME_LIMITS, parseCallBody } from "../request";
 import { verifyOutcome } from "../verify";
-import { askClaude, ModelError, modelProblem, type AskModel } from "./model";
+import { askModel, ModelError, modelProblem, type AskModel } from "./model";
 import { transcriptLines } from "./transcript";
 
 type Draft = Omit<CallOutcome, "verified">;
@@ -153,7 +153,7 @@ export async function readOutcome(brief: NegotiationBrief, turns: Turn[], ask: A
   return gradeAprResult(verifyOutcome(toDraft(reading.data), turns), brief);
 }
 
-export async function handleOutcome(request: Request, ask: AskModel = askClaude): Promise<Response> {
+export async function handleOutcome(request: Request, ask: AskModel = askModel): Promise<Response> {
   if (!allow(request, "outcome", 20, 60_000)) {
     return problem("rate_limited", "Too many calls read in a short time. Wait a minute and try again.");
   }

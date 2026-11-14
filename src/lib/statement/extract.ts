@@ -1,8 +1,9 @@
-// Reads one credit card statement (a PDF or a photo) with Claude. Server only.
+// Reads one credit card statement (a PDF or a photo) with Claude or Gemini. Server only.
 // The model copies what is printed into a fixed schema; schema.ts converts and cross-checks it.
 // Sample statements and uploads take exactly this path.
 import Anthropic from "@anthropic-ai/sdk";
-import { claudeModel } from "@/lib/server/http";
+import { askGeminiJson, GeminiError } from "@/lib/server/gemini";
+import { aiProvider, claudeModel } from "@/lib/server/http";
 import type { Extraction } from "@/lib/types";
 import { StatementError } from "./errors";
 import { STATEMENT_JSON_SCHEMA, statementReadingSchema, toExtraction, type StatementReading } from "./schema";
@@ -100,22 +101,55 @@ function parseReading(response: Pick<Anthropic.Message, "content" | "stop_reason
   return reading.data;
 }
 
+/** The same reading done by Gemini. Its JSON goes through the same zod schema as Claude's. */
+async function readWithGemini(file: StatementFile & { mediaType: StatementMediaType }): Promise<StatementReading> {
+  let data: unknown;
+  try {
+    data = await askGeminiJson({
+      system: READING_INSTRUCTIONS,
+      user: "Copy the fields from this statement.",
+      schema: STATEMENT_JSON_SCHEMA,
+      maxTokens: 4000,
+      file: { mediaType: file.mediaType, bytes: file.bytes },
+    });
+  } catch (error) {
+    if (error instanceof GeminiError) {
+      console.error("[extract] gemini:", error.detail);
+      if (error.code === "not_configured") throw new StatementError("not_configured", NOT_CONFIGURED);
+      if (error.code === "rate_limited") throw new StatementError("rate_limited", "Statement reading is busy right now. Try again in a minute.");
+      if (error.code === "unreadable") {
+        throw new StatementError("unreadable", "We could not open that file. Try another PDF or a clear photo, or type the numbers.");
+      }
+    }
+    throw new StatementError("failed", FAILED);
+  }
+  const reading = statementReadingSchema.safeParse(data);
+  if (!reading.success) {
+    console.error("[extract] gemini's answer did not match the schema");
+    throw new StatementError("failed", FAILED);
+  }
+  return reading.data;
+}
+
 /**
  * Reads a statement into a card for the visitor to confirm.
  * Throws a StatementError: `unreadable` when the document is not a credit card statement (or shows
  * neither a balance nor a rate), `not_configured` without a key, `rate_limited` or `failed` otherwise.
+ * With no client passed, the provider follows aiProvider(): Claude, or Gemini when only its key is set.
  */
-export async function extractStatement(
-  file: StatementFile,
-  client: StatementModelClient = defaultClient(),
-): Promise<Extraction> {
+export async function extractStatement(file: StatementFile, client?: StatementModelClient): Promise<Extraction> {
   if (!isAccepted(file.mediaType)) {
     throw new StatementError("unsupported", "Upload a PDF, or a PNG, JPEG or WebP photo of the statement.");
   }
 
+  if (!client && aiProvider() === "gemini") {
+    return finish(await readWithGemini({ ...file, mediaType: file.mediaType }));
+  }
+  const claude = client ?? defaultClient();
+
   let reading: StatementReading;
   try {
-    const response = await client.messages.create({
+    const response = await claude.messages.create({
       model: claudeModel(),
       max_tokens: 4000,
       system: READING_INSTRUCTIONS,
@@ -134,7 +168,11 @@ export async function extractStatement(
   } catch (error) {
     throw fromProviderError(error);
   }
+  return finish(reading);
+}
 
+/** Refuse a document that is not a statement, then convert and cross-check what was read. */
+function finish(reading: StatementReading): Extraction {
   const nothingToWorkWith = reading.newBalance === null && reading.purchaseApr === null;
   if (!reading.isCreditCardStatement || nothingToWorkWith) {
     throw new StatementError("unreadable", NOT_A_STATEMENT);

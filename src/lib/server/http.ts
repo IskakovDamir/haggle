@@ -68,12 +68,27 @@ export function allow(request: Request, bucket: string, limit: number, windowMs:
   return true;
 }
 
+/**
+ * Which model provider reads statements and negotiates. AI_PROVIDER ("claude" or "gemini") picks one
+ * explicitly; otherwise Claude when its key is set, then Gemini. null when neither key is set.
+ */
+export function aiProvider(): "claude" | "gemini" | null {
+  const claude = Boolean(process.env.ANTHROPIC_API_KEY);
+  const gemini = Boolean(process.env.GEMINI_API_KEY);
+  const wanted = process.env.AI_PROVIDER;
+  if (wanted === "gemini" && gemini) return "gemini";
+  if (wanted === "claude" && claude) return "claude";
+  if (claude) return "claude";
+  if (gemini) return "gemini";
+  return null;
+}
+
 /** Which parts of the product the server's keys switch on. */
 export function capabilities(): Capabilities {
-  const claude = Boolean(process.env.ANTHROPIC_API_KEY);
+  const model = aiProvider() !== null;
   return {
-    reading: claude,
-    negotiation: claude,
+    reading: model,
+    negotiation: model,
     voice: Boolean(process.env.ELEVENLABS_API_KEY && process.env.ELEVENLABS_AGENT_ID),
     payments: Boolean(process.env.STRIPE_SECRET_KEY),
   };

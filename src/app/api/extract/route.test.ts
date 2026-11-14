@@ -53,6 +53,7 @@ describe("POST /api/extract", () => {
 
   it("answers not_configured without a key, before reading anything", async () => {
     vi.stubEnv("ANTHROPIC_API_KEY", "");
+    vi.stubEnv("GEMINI_API_KEY", "");
     const response = await POST(upload(PDF_BYTES));
 
     expect(response.status).toBe(503);

@@ -193,6 +193,7 @@ describe("extractStatement", () => {
 
   it("answers not_configured when there is no key and no client was passed", async () => {
     vi.stubEnv("ANTHROPIC_API_KEY", "");
+    vi.stubEnv("GEMINI_API_KEY", "");
     expect(await codeOf(extractStatement(PDF))).toBe("not_configured");
   });
 });

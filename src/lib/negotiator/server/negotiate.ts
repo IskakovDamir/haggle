@@ -4,7 +4,7 @@ import { allow, ok, problem, readJson } from "@/lib/server/http";
 import type { NegotiationBrief, Turn } from "@/lib/types";
 import { openingLine, systemPrompt } from "../prompt";
 import { NEGOTIATE_LIMITS, parseCallBody } from "../request";
-import { askClaude, ModelError, modelProblem, type AskModel } from "./model";
+import { askModel, ModelError, modelProblem, type AskModel } from "./model";
 import { transcriptLines } from "./transcript";
 
 /**
@@ -50,13 +50,15 @@ export async function nextAgentTurn(brief: NegotiationBrief, turns: Turn[], ask:
     user: nextTurnRequest(turns),
     schema: agentTurnJsonSchema,
     maxTokens: TURN_MAX_TOKENS,
+    // A spoken turn has to come back in a few seconds.
+    fast: true,
   });
   const turn = agentTurnSchema.safeParse(raw);
   if (!turn.success) throw new ModelError("failed", "The agent's answer was not in a form we could use. Try again.");
   return turn.data;
 }
 
-export async function handleNegotiate(request: Request, ask: AskModel = askClaude): Promise<Response> {
+export async function handleNegotiate(request: Request, ask: AskModel = askModel): Promise<Response> {
   if (!allow(request, "negotiate", 60, 60_000)) {
     return problem("rate_limited", "Too many turns in a short time. Wait a minute and try again.");
   }
