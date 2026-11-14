@@ -22,16 +22,18 @@ export function WaysIn({
   readingOff,
   startWith,
   problem,
-  onFile,
+  onFiles,
   onSample,
+  onAllSamples,
   onEntry,
 }: {
   readingOff: boolean;
   startWith: Way;
   /** Why the last attempt failed, as one sentence. */
   problem: string | null;
-  onFile: (file: File) => void;
+  onFiles: (files: File[]) => void;
   onSample: (sample: SampleStatement) => void;
+  onAllSamples: () => void;
   onEntry: (extraction: Extraction) => void;
 }) {
   const [chosen, setChosen] = useState<Way | null>(null);
@@ -40,10 +42,10 @@ export function WaysIn({
   return (
     <div>
       <h1 className="text-3xl leading-[1.1] font-extrabold sm:text-[2.75rem]">
-        Start with one <em>statement</em>
+        Bring in your <em>statements</em>
       </h1>
       <p className="mt-3 max-w-[60ch] text-lg text-muted">
-        One credit card statement is enough to see what the debt costs you and what is worth asking the bank for.
+        One statement is enough to start. Add every card you have, from every bank, and Haggle builds one plan and one list of calls.
       </p>
 
       {readingOff && (
@@ -85,8 +87,8 @@ export function WaysIn({
       </div>
 
       <div role="tabpanel" id="way-panel" aria-labelledby={`way-${way}`} className="mt-5 max-w-2xl">
-        {way === "upload" && <UploadPanel onFile={onFile} />}
-        {way === "sample" && <SamplePanel onSample={onSample} />}
+        {way === "upload" && <UploadPanel onFiles={onFiles} />}
+        {way === "sample" && <SamplePanel onSample={onSample} onAll={onAllSamples} />}
         {way === "type" && <ManualPanel onEntry={onEntry} />}
       </div>
     </div>

@@ -110,12 +110,17 @@ export function ConfirmForm({
   caseFile,
   onConfirm,
   onStartOver,
+  position,
+  startOverLabel = "Start over",
 }: {
   extraction: Extraction;
   /** The case this card will join, if there is one. */
   caseFile: CaseFile | null;
   onConfirm: (card: CardAccount, holderFirstName: string) => void;
   onStartOver: () => void;
+  /** "Statement 2 of 3", when several statements are confirmed in turn. */
+  position?: string;
+  startOverLabel?: string;
 }) {
   const [today] = useState(todayIso);
   const [values, setValues] = useState<CardFormValues>(() => formValuesFrom(extraction, caseFile?.holderFirstName));
@@ -151,6 +156,7 @@ export function ConfirmForm({
       }}
     >
       <div className="flex flex-wrap items-center gap-2">
+        {position && <Badge tone="lime">{position}</Badge>}
         {extraction.source === "sample" && <SampleBadge />}
         {warningCount > 0 && <Badge tone="leak">{warningCount === 1 ? "1 thing to check" : `${warningCount} things to check`}</Badge>}
       </div>
@@ -196,7 +202,7 @@ export function ConfirmForm({
           <ArrowRight className="size-4" aria-hidden />
         </Button>
         <Button variant="ghost" size="lg" onClick={onStartOver}>
-          Start over
+          {startOverLabel}
         </Button>
       </div>
       <div className="mt-3 space-y-1 text-sm text-muted" aria-live="polite">

@@ -1,9 +1,17 @@
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight, ExternalLink, Layers } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { SampleBadge } from "@/components/ui/primitives";
 import { SAMPLE_STATEMENTS, type SampleStatement } from "@/lib/statement/samples";
 
 /** The sample statements. Picking one sends its PDF through the same reading as an upload. */
-export function SamplePanel({ onSample }: { onSample: (sample: SampleStatement) => void }) {
+export function SamplePanel({
+  onSample,
+  onAll,
+}: {
+  onSample: (sample: SampleStatement) => void;
+  /** Read every sample at once: one person with cards at several banks. */
+  onAll: () => void;
+}) {
   return (
     <div>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
@@ -12,6 +20,11 @@ export function SamplePanel({ onSample }: { onSample: (sample: SampleStatement) 
           Made-up people and numbers. Each one is a PDF file that is read the same way an upload is.
         </p>
       </div>
+      <Button size="lg" className="mt-4 w-full sm:w-auto" onClick={onAll}>
+        <Layers className="size-4" aria-hidden />
+        Read all {SAMPLE_STATEMENTS.length} of Maria&apos;s cards
+      </Button>
+      <p className="mt-2 text-sm text-muted">Three banks, one plan, one list of calls. Or pick one:</p>
       <ul className="mt-4 space-y-3">
         {SAMPLE_STATEMENTS.map((sample) => (
           <li key={sample.id} className="rounded-2xl border border-line bg-card transition-colors hover:border-ink/40">
