@@ -123,3 +123,47 @@ export async function renderStatImage(stat: Stat, format: "landscape" | "portrai
     { ...size, fonts: await fonts() },
   );
 }
+
+/** A phone directory page: the issuer, its official number and where it was checked. */
+export async function renderPhoneImage({ name, label, number, checked }: { name: string; label: string; number: string; checked: string }) {
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          padding: 56,
+          fontFamily: "Manrope",
+          backgroundImage: "linear-gradient(135deg, #c4ddf6 0%, #e6f1fc 45%, #ffffff 100%)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Logo />
+          <div style={{ display: "flex", fontSize: 22, fontWeight: 600, color: INK_2 }}>Phone numbers</div>
+        </div>
+        <div style={{ display: "flex", fontSize: 54, lineHeight: 1.1, fontWeight: 800, letterSpacing: -2.2, color: INK, maxWidth: 1000 }}>
+          {`${name} credit card customer service`}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+            padding: "28px 36px",
+            borderRadius: 32,
+            color: "#ffffff",
+            backgroundImage: "linear-gradient(161.82deg, #2453e6 14.286%, #0f2a9e 85.714%)",
+          }}
+        >
+          <div style={{ display: "flex", fontSize: 22, fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>{label}</div>
+          <div style={{ display: "flex", fontSize: 84, lineHeight: 1, fontWeight: 800, letterSpacing: -3 }}>{number}</div>
+          <div style={{ display: "flex", fontSize: 20, fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>{checked}</div>
+        </div>
+      </div>
+    ),
+    { ...PAGE_IMAGE_SIZE, fonts: await fonts() },
+  );
+}
