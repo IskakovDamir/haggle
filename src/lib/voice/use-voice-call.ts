@@ -17,7 +17,8 @@ export type VoiceCall = {
   status: VoiceStatus;
   /** A sentence for the user when status is "error" or "unavailable". */
   error: string | null;
-  start: () => Promise<void>;
+  /** Starts the call. voiceId picks the agent voice (see voices.ts); without it the agent keeps its default. */
+  start: (voiceId?: string) => Promise<void>;
   stop: () => Promise<void>;
 };
 
@@ -85,7 +86,7 @@ export function useVoiceCall(options: Options): VoiceCall {
     latest.current = options;
   });
 
-  const start = useCallback(async () => {
+  const start = useCallback(async (voiceId?: string) => {
     if (current.current && !current.current.over) return;
     const brief = latest.current.brief;
     if (!brief) {
@@ -143,6 +144,7 @@ export function useVoiceCall(options: Options): VoiceCall {
         conversationToken,
         connectionType: "webrtc",
         dynamicVariables,
+        ...(voiceId ? { overrides: { tts: { voiceId } } } : {}),
         // Voice models may write tags such as [laughs] into the text. The transcript is for reading.
         stripAudioTags: true,
         onMessage: (message) => {

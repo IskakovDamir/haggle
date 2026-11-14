@@ -159,14 +159,14 @@ export function useCallSession(input: {
     if (result.data.done) void close();
   }
 
-  function start(mode: CallMode) {
+  function start(mode: CallMode, voiceId?: string) {
     closing.current = false;
     setProblem(null);
     setNotice(null);
     setPhase("live");
     commit(newCall({ cardId: card.id, goal: brief.goal, mode }));
     if (mode === "text") void askAgent();
-    else void voice.start();
+    else void voice.start(voiceId);
   }
 
   function say(text: string) {

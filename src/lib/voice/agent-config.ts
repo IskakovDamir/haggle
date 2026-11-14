@@ -2,6 +2,7 @@
 // Field names follow the Agents Platform REST API (POST /v1/convai/agents/create).
 import { AGENT_FIRST_MESSAGE, PINNED_RULES, agentPrompt } from "./agent-prompt";
 import { MAX_CALL_MS } from "./session";
+import { AGENT_TTS_MODEL, AGENT_VOICES, DEFAULT_AGENT_VOICE } from "./voices";
 
 /** Used when ELEVENLABS_AGENT_LLM is not set. Any model id the Agents Platform lists works. */
 export const DEFAULT_AGENT_LLM = "claude-haiku-5-5";
@@ -45,10 +46,19 @@ export function agentConfig(settings: AgentSettings) {
         },
       },
       conversation: { max_duration_seconds: AGENT_MAX_SECONDS, client_events: CLIENT_EVENTS },
-      ...(settings.voiceId ? { tts: { voice_id: settings.voiceId } } : {}),
+      tts: {
+        model_id: AGENT_TTS_MODEL,
+        voice_id: settings.voiceId ?? AGENT_VOICES[DEFAULT_AGENT_VOICE].id,
+        // Lets the voice carry tone (warmth, a pause, emphasis) instead of reading flat.
+        expressive_mode: true,
+      },
     },
-    // A private agent: a call can only start with a token minted by our server (POST /api/voice/session).
-    platform_settings: { auth: { enable_auth: true } },
+    platform_settings: {
+      // A private agent: a call can only start with a token minted by our server (POST /api/voice/session).
+      auth: { enable_auth: true },
+      // The visitor picks the agent's voice per call. Nothing else may be changed from the browser.
+      overrides: { conversation_config_override: { tts: { voice_id: true } } },
+    },
   };
 }
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_AGENT_LLM, agentConfig } from "./agent-config";
 import { AGENT_FIRST_MESSAGE, CALL_INSTRUCTIONS, OPENING_LINE, PINNED_RULES, agentPrompt, placeholdersIn } from "./agent-prompt";
+import { AGENT_TTS_MODEL, AGENT_VOICES, DEFAULT_AGENT_VOICE } from "./voices";
 import { MAX_CALL_MS } from "./session";
 
 describe("agentPrompt", () => {
@@ -84,10 +85,15 @@ describe("agentConfig", () => {
     expect(conversation.client_events).toContain("agent_tool_response");
   });
 
-  it("sets a voice only when one is chosen", () => {
-    expect(config.conversation_config).not.toHaveProperty("tts");
+  it("uses the default voice on the expressive model unless one is chosen", () => {
+    expect(config.conversation_config.tts).toMatchObject({ voice_id: AGENT_VOICES[DEFAULT_AGENT_VOICE].id, model_id: AGENT_TTS_MODEL });
     expect(agentConfig({ llm: DEFAULT_AGENT_LLM, voiceId: "voice_123" }).conversation_config).toMatchObject({
       tts: { voice_id: "voice_123" },
     });
+  });
+
+  it("lets the browser change only the voice", () => {
+    expect(config.platform_settings.overrides).toEqual({ conversation_config_override: { tts: { voice_id: true } } });
+    expect(config.platform_settings.auth).toEqual({ enable_auth: true });
   });
 });

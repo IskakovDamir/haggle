@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Keyboard, Mic, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { VoiceStatus } from "@/lib/voice/use-voice-call";
+import { AGENT_VOICES, DEFAULT_AGENT_VOICE, type AgentVoice } from "@/lib/voice/voices";
 import { cn } from "@/lib/utils";
 import { Notice } from "./page-states";
 import { panel } from "./panel-theme";
@@ -29,9 +30,11 @@ export function StartControls({
   voice: { status: VoiceStatus; error: string | null };
   /** A sentence about the previous call, when there is one to tell. */
   notice: string | null;
-  onStart: (mode: CallMode) => void;
+  /** voiceId is set for a voice call: the agent voice the visitor picked. */
+  onStart: (mode: CallMode, voiceId?: string) => void;
 }) {
   const [picked, setPicked] = useState<CallMode | null>(null);
+  const [agentVoice, setAgentVoice] = useState<AgentVoice>(DEFAULT_AGENT_VOICE);
 
   const switchedOn = capabilities.status === "ready" ? capabilities.capabilities : null;
   const canType = switchedOn?.negotiation ?? false;
@@ -78,9 +81,37 @@ export function StartControls({
         </div>
       )}
 
+      {mode === "voice" && canSpeak && (
+        <div>
+          <p className={cn("mb-2 text-[11px] font-semibold tracking-[0.08em] uppercase", panel.dim)}>The agent sounds</p>
+          <div role="radiogroup" aria-label="The agent voice" className="grid grid-cols-2 gap-2">
+            {(Object.keys(AGENT_VOICES) as AgentVoice[]).map((option) => (
+              <button
+                key={option}
+                type="button"
+                role="radio"
+                aria-checked={agentVoice === option}
+                onClick={() => setAgentVoice(option)}
+                className={cn(
+                  "flex h-11 cursor-pointer items-center justify-center gap-1.5 rounded-full border text-sm font-medium transition-colors",
+                  agentVoice === option ? "border-lime bg-lime/10 text-lime" : cn(panel.rule, panel.dim, "hover:text-[#e9e8e3]"),
+                )}
+              >
+                {AGENT_VOICES[option].label}
+                <span className="opacity-70">· {AGENT_VOICES[option].name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {(canType || canSpeak) && (
         <>
-          <Button size="lg" className="w-full bg-lime text-ink hover:bg-lime/90" onClick={() => onStart(mode)}>
+          <Button
+            size="lg"
+            className="w-full bg-lime text-ink hover:bg-lime/90"
+            onClick={() => onStart(mode, mode === "voice" ? AGENT_VOICES[agentVoice].id : undefined)}
+          >
             <Phone className="size-4" aria-hidden />
             Start the call
           </Button>
