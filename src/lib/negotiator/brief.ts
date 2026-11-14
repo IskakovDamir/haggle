@@ -71,12 +71,12 @@ export function buildBrief(input: {
         ? [
             `Le habla Haggle, un asistente de inteligencia artificial que llama en nombre de ${holder === UNNAMED_HOLDER ? "el titular de la tarjeta" : holder}.`,
             "Esta llamada está siendo grabada.",
-            `${holder === UNNAMED_HOLDER ? "El titular" : capitalize(holder)} está en la línea para verificar su identidad.`,
+            `${holder === UNNAMED_HOLDER ? "El titular" : capitalize(holder)} puede unirse a la llamada para verificar su identidad.`,
           ]
         : [
             `This is Haggle, an AI assistant calling on behalf of ${holder}.`,
             "This call is being recorded.",
-            `${capitalize(holder)} is on the line to verify identity.`,
+            `${capitalize(holder)} can join the call to verify identity.`,
           ],
     ...(input.language === "es" ? { language: "es" as const } : {}),
   };

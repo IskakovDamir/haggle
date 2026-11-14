@@ -30,6 +30,31 @@ const AGENT_MAX_SECONDS = MAX_CALL_MS / 1000 + 15;
 /** Sounds a listener makes while the agent talks. They mean "go on", not "stop". */
 const INTERRUPTION_IGNORE_TERMS = ["okay", "ok", "yeah", "yep", "uh huh", "mhm", "mm", "right", "sure", "got it", "go ahead", "hmm"];
 
+/**
+ * The transfer tool for one phone call: dial the cardholder, give them a short summary, join them to
+ * the bank and drop the agent. ElevenLabs does not fill dynamic variables inside a transfer destination
+ * (it dialed the placeholder text), so the real number is written onto the agent before the call.
+ */
+export function transferToolFor(cardholderNumber: string | null) {
+  return {
+    type: "system",
+    name: "transfer_to_number",
+    description: "",
+    params: {
+      system_tool_type: "transfer_to_number",
+      transfers: cardholderNumber
+        ? [{ transfer_destination: { type: "phone", phone_number: cardholderNumber }, condition: TRANSFER_CONDITION, transfer_type: "conference" }]
+        : [],
+      // An update merges into the stored agent, so the other transfer format is cleared on purpose.
+      transfer_rules: [],
+    },
+  };
+}
+
+/** When the agent may hand the call to the cardholder. The call instructions say whether it can at all. */
+const TRANSFER_CONDITION =
+  "The representative asks to speak with the cardholder directly, needs the cardholder to verify identity, or will not continue with an assistant, and the call instructions say the cardholder can be connected.";
+
 export type AgentSettings = { llm: string; voiceId?: string };
 
 export function agentConfig(settings: AgentSettings) {
@@ -47,6 +72,9 @@ export function agentConfig(settings: AgentSettings) {
           // Lets the agent hang up after the goodbye. An empty description keeps ElevenLabs' default wording.
           built_in_tools: {
             end_call: { type: "system", name: "end_call", description: "", params: { system_tool_type: "end_call" } },
+            // Brings the cardholder in when the bank wants them. Empty here: the phone route writes the
+            // cardholder's number in right before each phone call (see transferToolFor).
+            transfer_to_number: transferToolFor(null),
           },
         },
       },

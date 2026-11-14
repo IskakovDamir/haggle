@@ -41,7 +41,12 @@ export type PhoneCallStatus = "dialing" | "live" | "wrapping" | "done" | "failed
 export type ConversationRecord = {
   agent_id?: string;
   status?: string;
-  transcript?: { role?: string; message?: string | null; time_in_call_secs?: number }[] | null;
+  transcript?: {
+    role?: string;
+    message?: string | null;
+    time_in_call_secs?: number;
+    tool_calls?: { tool_name?: string | null }[] | null;
+  }[] | null;
   metadata?: {
     termination_reason?: string | null;
     error?: unknown;
@@ -57,7 +62,21 @@ const CALL_RESULT_SENTENCE: Record<string, string> = {
 };
 
 /** Our status and turns for one conversation record. */
-export function readConversation(record: ConversationRecord): { status: PhoneCallStatus; reason: string | null; turns: Turn[] } {
+export function readConversation(record: ConversationRecord): {
+  status: PhoneCallStatus;
+  reason: string | null;
+  turns: Turn[];
+  /** True once the agent handed the call to the cardholder. What was said after that is not in the transcript. */
+  transferred: boolean;
+} {
+  const transferred = (record.transcript ?? []).some((line) =>
+    (line.tool_calls ?? []).some((call) => call.tool_name === "transfer_to_number"),
+  );
+  const read = readStatus(record);
+  return { ...read, transferred };
+}
+
+function readStatus(record: ConversationRecord): { status: PhoneCallStatus; reason: string | null; turns: Turn[] } {
   const turns = (record.transcript ?? []).flatMap((line) => {
     if (typeof line.message !== "string" || (line.role !== "user" && line.role !== "agent")) return [];
     const turn = turnFromMessage({ role: line.role, message: line.message }, (line.time_in_call_secs ?? 0) * 1000);

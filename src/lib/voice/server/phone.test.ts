@@ -3,6 +3,11 @@ import { mariaBrief as briefFor } from "../test-support";
 import { ElevenLabsError } from "./elevenlabs";
 import { handlePhoneStatus, handleStartPhoneCall } from "./phone";
 
+/** Every start goes through a fake transfer setter, so no test talks to ElevenLabs. */
+const setTransfer = vi.fn().mockResolvedValue(undefined);
+const handleStartPhoneCall_ = (request: Request, dial: Parameters<typeof handleStartPhoneCall>[1] = vi.fn()) =>
+  handleStartPhoneCall(request, dial, setTransfer);
+
 const mariaBrief = briefFor();
 
 const ENV = {
@@ -29,20 +34,20 @@ afterEach(() => vi.unstubAllEnvs());
 describe("POST /api/voice/phone", () => {
   it("is switched off without the allow list", async () => {
     vi.stubEnv("PHONE_ALLOWED_NUMBERS", "");
-    const response = await handleStartPhoneCall(post({ brief: mariaBrief, toNumber: "+15552345678" }));
+    const response = await handleStartPhoneCall_(post({ brief: mariaBrief, toNumber: "+15552345678" }));
     expect(response.status).toBe(503);
   });
 
   it("rings only approved numbers", async () => {
     const dial = vi.fn();
-    const response = await handleStartPhoneCall(post({ brief: mariaBrief, toNumber: "(555) 999-0000" }), dial);
+    const response = await handleStartPhoneCall_(post({ brief: mariaBrief, toNumber: "(555) 999-0000" }), dial);
     expect(response.status).toBe(400);
     expect(dial).not.toHaveBeenCalled();
   });
 
   it("rings an approved number with the call instructions and a known voice only", async () => {
     const dial = vi.fn().mockResolvedValue({ conversationId: "conv_123456" });
-    const response = await handleStartPhoneCall(
+    const response = await handleStartPhoneCall_(
       post({ brief: mariaBrief, toNumber: "(555) 234-5678", voiceId: "not-a-voice" }),
       dial,
     );
@@ -53,14 +58,36 @@ describe("POST /api/voice/phone", () => {
     expect(Object.keys(input.dynamicVariables)).toEqual(expect.arrayContaining(["call_instructions", "opening_line"]));
   });
 
+  it("points the transfer at the cardholder before dialing, and only at an approved, different phone", async () => {
+    vi.stubEnv("PHONE_ALLOWED_NUMBERS", "+15552345678, +15553334444");
+    setTransfer.mockClear();
+    const dial = vi.fn().mockResolvedValue({ conversationId: "conv_123456" });
+    const ok = await handleStartPhoneCall_(post({ brief: mariaBrief, toNumber: "+15552345678", cardholderNumber: "(555) 333-4444" }), dial);
+    expect(ok.status).toBe(200);
+    const [, , tool] = setTransfer.mock.calls[0];
+    expect(tool.params.transfers[0].transfer_destination.phone_number).toBe("+15553334444");
+    expect(dial.mock.calls[0][1].dynamicVariables.call_instructions).toContain("use the transfer_to_number tool");
+
+    const unknown = await handleStartPhoneCall_(post({ brief: mariaBrief, toNumber: "+15552345678", cardholderNumber: "+15559990000" }), dial);
+    expect(unknown.status).toBe(400);
+    const same = await handleStartPhoneCall_(post({ brief: mariaBrief, toNumber: "+15552345678", cardholderNumber: "+15552345678" }), dial);
+    expect(same.status).toBe(400);
+  });
+
+  it("clears the transfer when no cardholder phone is given", async () => {
+    setTransfer.mockClear();
+    await handleStartPhoneCall_(post({ brief: mariaBrief, toNumber: "+15552345678" }), vi.fn().mockResolvedValue({ conversationId: "conv_123456" }));
+    expect(setTransfer.mock.calls[0][2].params.transfers).toEqual([]);
+  });
+
   it("refuses a bad brief", async () => {
-    const response = await handleStartPhoneCall(post({ brief: { goal: "x" }, toNumber: "+15552345678" }), vi.fn());
+    const response = await handleStartPhoneCall_(post({ brief: { goal: "x" }, toNumber: "+15552345678" }), vi.fn());
     expect(response.status).toBe(400);
   });
 
   it("reports a refused setup as not configured", async () => {
     const dial = vi.fn().mockRejectedValue(new ElevenLabsError(401, "bad key"));
-    const response = await handleStartPhoneCall(post({ brief: mariaBrief, toNumber: "+15552345678" }), dial);
+    const response = await handleStartPhoneCall_(post({ brief: mariaBrief, toNumber: "+15552345678" }), dial);
     expect(response.status).toBe(503);
   });
 });
@@ -77,6 +104,7 @@ describe("GET /api/voice/phone/{id}", () => {
       status: "live",
       reason: null,
       turns: [{ role: "bank", text: "Card services, how can I help?", at: 2000 }],
+      transferred: false,
     });
 
     const theirs = vi.fn().mockResolvedValue({ agent_id: "someone_else", status: "done" });

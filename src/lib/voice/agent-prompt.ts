@@ -13,6 +13,7 @@
 export const CALL_INSTRUCTIONS = "call_instructions";
 export const OPENING_LINE = "opening_line";
 
+
 const placeholder = (name: string) => `{{${name}}}`;
 
 /** The agent's first line. ElevenLabs fills it in before the agent speaks. */

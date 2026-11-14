@@ -164,7 +164,7 @@ describe("buildBrief: fallback and disclosures", () => {
     expect(disclosures).toEqual([
       "This is Haggle, an AI assistant calling on behalf of Maria.",
       "This call is being recorded.",
-      "Maria is on the line to verify identity.",
+      "Maria can join the call to verify identity.",
     ]);
   });
 });
@@ -175,7 +175,7 @@ describe("buildBrief: text from the statement and the form", () => {
     expect(brief.holderFirstName).toBe("the cardholder");
     expect(brief.issuerName).toBe("the bank");
     expect(brief.cardName).toBe("credit card");
-    expect(brief.disclosures[2]).toBe("The cardholder is on the line to verify identity.");
+    expect(brief.disclosures[2]).toBe("The cardholder can join the call to verify identity.");
   });
 
   it("keeps every string on one line", () => {

@@ -7,6 +7,7 @@ import { formatShort } from "@/lib/money";
 import { allow, ok, problem, readJson } from "@/lib/server/http";
 import type { CallOutcome, LeverKind, NegotiationBrief, Turn } from "@/lib/types";
 import { gradeAprResult } from "../grade";
+import { quotedRequest } from "../own-request";
 import { OUTCOME_LIMITS, parseCallBody } from "../request";
 import { verifyOutcome } from "../verify";
 import { askModel, ModelError, modelProblem, type AskModel } from "./model";
@@ -114,7 +115,9 @@ const ASKED_FOR: Record<LeverKind, string> = {
 
 function readingRequest(brief: NegotiationBrief, turns: Turn[]): string {
   const context = [
-    `The call asked for ${ASKED_FOR[brief.goal]}.`,
+    brief.request
+      ? `The cardholder wrote what the call was for, in their own words (quoted): ${quotedRequest(brief.request)}.`
+      : `The call asked for ${ASKED_FOR[brief.goal]}.`,
     `The purchase APR before the call was ${formatApr(brief.currentAprBps)}.`,
     brief.askAprBps === null ? "" : `The agent's opening ask was ${formatApr(brief.askAprBps)}.`,
     brief.annualFeeCents > 0 ? `The annual fee is ${formatShort(brief.annualFeeCents)}.` : "",

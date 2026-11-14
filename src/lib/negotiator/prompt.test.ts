@@ -18,7 +18,7 @@ describe("openingLine", () => {
     for (const disclosure of mariaBrief.disclosures) expect(line).toContain(disclosure);
     expect(line).toMatch(/AI assistant/);
     expect(line).toMatch(/recorded/);
-    expect(line).toMatch(/Maria is on the line/);
+    expect(line).toMatch(/Maria can join the call/);
   });
 
   it("says the disclosures before the reason for the call", () => {
@@ -29,7 +29,7 @@ describe("openingLine", () => {
   it("names the card and the reason", () => {
     expect(openingLine(mariaBrief)).toBe(
       "Hello. This is Haggle, an AI assistant calling on behalf of Maria. This call is being recorded. " +
-        "Maria is on the line to verify identity. " +
+        "Maria can join the call to verify identity. " +
         "We are calling about the Chase Freedom Unlimited card ending in 4821, to ask for a lower interest rate.",
     );
   });
@@ -51,12 +51,12 @@ describe("systemPrompt: the honesty rules", () => {
     ["disclosures come first", /Your first turn gives all three disclosures/],
     ["it is an AI assistant", /This is Haggle, an AI assistant calling on behalf of Maria\./],
     ["the call is recorded", /This call is being recorded\./],
-    ["the cardholder is on the line", /Maria is on the line to verify identity\./],
+    ["the cardholder can join", /Maria can join the call to verify identity\./],
     ["only the brief's facts", /State only the facts listed above/],
     ["no invented offer, hardship, competitor quote or deadline", /Never invent an offer, a hardship, a competitor quote or a deadline/],
     ["the fallback is an intention, not an offer", /It is not an offer from anyone, and you must never present it as one/],
     ["no personal data", /Never give personal data\. No Social Security number, no date of birth, no full card number/],
-    ["the cardholder verifies identity herself", /Maria is on the line and will verify it directly/],
+    ["the cardholder verifies identity herself", /Maria can join the call and verify it directly/],
     ["one ask at a time", /One ask at a time/],
     ["one escalation after a refusal", /After the first refusal, ask once for the retention team or a supervisor/],
     ["then the fallback, truthfully", /state the cardholder's intention from "IF THE BANK SAYS NO" truthfully/],

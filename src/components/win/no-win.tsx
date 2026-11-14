@@ -18,6 +18,9 @@ type Story = { title: React.ReactNode; body: string };
 
 type NoWinCopy = {
   story: (kind: Exclude<OutcomeKind, "win">, bankName: string) => Story;
+  /** The bank asked for the cardholder and the agent handed the call over before any answer. */
+  handedOff: (bankName: string) => Story;
+  handedOffNext: string;
   badge: string;
   next: string;
   askAgain: (bankName: string, months: number) => string;
@@ -62,6 +65,15 @@ const COPY: Copy<NoWinCopy> = {
           };
       }
     },
+    handedOff: (bankName) => ({
+      title: (
+        <>
+          Handed to the <em>cardholder</em>
+        </>
+      ),
+      body: `${bankName} asked to speak with the cardholder, so the agent connected them and left the call. What was agreed after that is not in the transcript, so Haggle counts nothing and charges nothing.`,
+    }),
+    handedOffNext: "Call again to get the agreement on record. If the bank already said yes to the cardholder, the agent can confirm the terms.",
     badge: "No win, no fee · practice call",
     next: "What happens next",
     askAgain: (bankName, months) =>
@@ -105,6 +117,15 @@ const COPY: Copy<NoWinCopy> = {
           };
       }
     },
+    handedOff: (bankName) => ({
+      title: (
+        <>
+          Pasada al <em>titular</em>
+        </>
+      ),
+      body: `${bankName} pidió hablar con el titular, así que el agente lo conectó y salió de la llamada. Lo que se acordó después no está en la transcripción, así que Haggle no cuenta nada y no cobra nada.`,
+    }),
+    handedOffNext: "Vuelve a llamar para dejar el acuerdo registrado. Si el banco ya le dijo que sí al titular, el agente puede confirmar los términos.",
     badge: "Sin victoria, sin cargo · llamada de práctica",
     next: "Lo que sigue",
     askAgain: (bankName, months) =>
@@ -131,7 +152,8 @@ export function NoWin({
   today: IsoDate;
 }) {
   const copy = COPY[useLocale()];
-  const story = copy.story(kind, bankName);
+  const handedOff = kind === "unclear" && call.handedOff === true;
+  const story = handedOff ? copy.handedOff(bankName) : copy.story(kind, bankName);
   const declined = kind === "declined";
   const noted = call.outcome?.followUp ?? null;
 
@@ -165,7 +187,7 @@ export function NoWin({
               {declined ? formatDate(askAgainDate(call)) : formatDate(today)}
             </p>
             <p className="mt-1 max-w-[60ch] text-hg-ink-2">
-              {declined ? copy.askAgain(bankName, ASK_AGAIN_AFTER_MONTHS) : copy.callToday}
+              {declined ? copy.askAgain(bankName, ASK_AGAIN_AFTER_MONTHS) : handedOff ? copy.handedOffNext : copy.callToday}
             </p>
             {noted && <p className="mt-2 max-w-[60ch] text-sm text-muted">{copy.noted(noted)}</p>}
             {declined && <p className="mt-2 text-sm text-muted">{copy.onDashboard}</p>}

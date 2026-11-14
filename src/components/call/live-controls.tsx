@@ -33,6 +33,8 @@ type LiveCopy = {
   stopFollowing: string;
   endCall: string;
   phoneLine: Record<PhoneStatus, string>;
+  /** The agent handed the call to the cardholder and left. */
+  transferred: string;
   lineLabel: string;
   answer: string;
   wait: string;
@@ -62,6 +64,7 @@ const COPY: Copy<LiveCopy> = {
       done: "The call ended.",
       failed: "The call did not connect.",
     },
+    transferred: "The bank asked for the cardholder. The agent connected them and left the call.",
     lineLabel: "Your line, as the bank",
     answer: "Answer as the bank",
     wait: "Wait for the agent",
@@ -89,6 +92,7 @@ const COPY: Copy<LiveCopy> = {
       done: "La llamada terminó.",
       failed: "La llamada no se conectó.",
     },
+    transferred: "El banco pidió hablar con el titular. El agente lo conectó y salió de la llamada.",
     lineLabel: "Lo que dices, como el banco",
     answer: "Responde como el banco",
     wait: "Espera al agente",
@@ -183,7 +187,7 @@ export function LiveControls({ session }: { session: CallSession }) {
 
       {mode === "text" && <BankComposer session={session} />}
 
-      {mode === "phone" && <PhoneLine status={session.phone.status} />}
+      {mode === "phone" && <PhoneLine status={session.phone.status} transferred={session.phone.transferred} />}
 
       {mode === "voice" && !voiceFailed && (
         <p role="status" className={cn("flex items-center gap-3 text-[15px] font-medium", micLive ? "text-hg-ink-2" : panel.dim)}>
@@ -222,7 +226,7 @@ export function LiveControls({ session }: { session: CallSession }) {
 }
 
 /** Where a phone call stands. The phone itself is the microphone, so this row only reports. */
-function PhoneLine({ status }: { status: PhoneStatus }) {
+function PhoneLine({ status, transferred }: { status: PhoneStatus; transferred: boolean }) {
   const copy = COPY[useLocale()];
   const ringing = status === "placing" || status === "dialing";
   const live = status === "live";
@@ -250,7 +254,7 @@ function PhoneLine({ status }: { status: PhoneStatus }) {
           <Smartphone className="size-4" />
         </motion.span>
       </span>
-      {copy.phoneLine[status]}
+      {transferred && status === "live" ? copy.transferred : copy.phoneLine[status]}
     </p>
   );
 }

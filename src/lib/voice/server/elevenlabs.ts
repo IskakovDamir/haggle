@@ -55,6 +55,11 @@ export async function mintConversationToken(access: { apiKey: string; agentId: s
   return field(await call(access.apiKey, path, { method: "GET" }, fetcher), "token");
 }
 
+/** A short-lived token that lets one browser stream its microphone to realtime speech to text (the live coach). */
+export async function mintScribeToken(apiKey: string, fetcher: Fetch = fetch): Promise<string> {
+  return field(await call(apiKey, "/v1/single-use-token/realtime_scribe", { method: "POST" }, fetcher), "token");
+}
+
 /** Create the agent and return its id. */
 export async function createAgent(apiKey: string, config: AgentConfig, fetcher: Fetch = fetch): Promise<string> {
   return field(await call(apiKey, "/v1/convai/agents/create", { method: "POST", body: config }, fetcher), "agent_id");
@@ -118,6 +123,17 @@ export async function startOutboundCall(
     throw new ElevenLabsError(502, typeof message === "string" ? message : "The call was not placed.");
   }
   return { conversationId: field(answer, "conversation_id") };
+}
+
+/** Point the agent's transfer tool at one cardholder's phone, or at nobody. Other settings are left as they are. */
+export async function setTransferNumber(
+  apiKey: string,
+  agentId: string,
+  tool: unknown,
+  fetcher: Fetch = fetch,
+): Promise<void> {
+  const body = { conversation_config: { agent: { prompt: { built_in_tools: { transfer_to_number: tool } } } } };
+  await call(apiKey, `/v1/convai/agents/${encodeURIComponent(agentId)}`, { method: "PATCH", body }, fetcher);
 }
 
 /** The raw conversation record: status, transcript and call metadata. */

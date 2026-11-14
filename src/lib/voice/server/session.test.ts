@@ -1,6 +1,6 @@
 // POST /api/voice/session with a fake token mint. Nothing here touches the network.
+import { dynamicVariablesFor } from "../dynamic-variables";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { openingLine, systemPrompt } from "@/lib/negotiator";
 import { mariaBrief, sessionRequest } from "../test-support";
 import { ElevenLabsError } from "./elevenlabs";
 import { handleVoiceSession, type MintToken } from "./session";
@@ -48,7 +48,7 @@ describe("POST /api/voice/session: a call", () => {
     expect(await response.json()).toEqual({
       configured: true,
       conversationToken: "token-for-one-call",
-      dynamicVariables: { call_instructions: systemPrompt(brief), opening_line: openingLine(brief) },
+      dynamicVariables: dynamicVariablesFor(brief),
     });
     expect(calls).toEqual([{ apiKey: "test-key", agentId: "agent_test" }]);
   });

@@ -5,7 +5,8 @@ import { briefSchema } from "../brief-schema";
 import { MAX_VARIABLES_BYTES, dynamicVariablesFor, variablesBytes } from "../dynamic-variables";
 import { allowedNumbers, maskNumber, readConversation, toE164, type ConversationRecord, type PhoneCallStatus } from "../phone";
 import { AGENT_VOICES, SPANISH_AGENT_VOICES } from "../voices";
-import { ElevenLabsError, getConversation, startOutboundCall } from "./elevenlabs";
+import { transferToolFor } from "../agent-config";
+import { ElevenLabsError, getConversation, setTransferNumber, startOutboundCall } from "./elevenlabs";
 
 type PhoneSetup = { apiKey: string; agentId: string; phoneNumberId: string; allowed: Set<string> };
 
@@ -22,9 +23,14 @@ const NOT_SET_UP = "Phone calls are not set up on this server. Use a voice or ty
 const KNOWN_VOICES = new Set<string>([...Object.values(AGENT_VOICES), ...Object.values(SPANISH_AGENT_VOICES)].map((voice) => voice.id));
 
 export type Dial = typeof startOutboundCall;
+export type SetTransfer = (apiKey: string, agentId: string, tool: unknown) => Promise<void>;
 export type Lookup = typeof getConversation;
 
-export async function handleStartPhoneCall(request: Request, dial: Dial = startOutboundCall): Promise<Response> {
+export async function handleStartPhoneCall(
+  request: Request,
+  dial: Dial = startOutboundCall,
+  setTransfer: SetTransfer = setTransferNumber,
+): Promise<Response> {
   const setup = phoneSetup();
   if (!setup) return problem("not_configured", NOT_SET_UP);
 
@@ -33,7 +39,7 @@ export async function handleStartPhoneCall(request: Request, dial: Dial = startO
     return problem("rate_limited", "Too many phone calls were started. Wait a few minutes and try again.");
   }
 
-  const body = (await readJson(request)) as { brief?: unknown; toNumber?: unknown; voiceId?: unknown } | null;
+  const body = (await readJson(request)) as { brief?: unknown; toNumber?: unknown; voiceId?: unknown; cardholderNumber?: unknown } | null;
   const brief = briefSchema.safeParse(body?.brief);
   if (!brief.success) return problem("bad_request", "A phone call needs a valid brief.");
 
@@ -47,12 +53,27 @@ export async function handleStartPhoneCall(request: Request, dial: Dial = startO
   }
   const voiceId = typeof body?.voiceId === "string" && KNOWN_VOICES.has(body.voiceId) ? body.voiceId : undefined;
 
-  const dynamicVariables = dynamicVariablesFor(brief.data);
+  // The number the agent may connect if the bank asks for the cardholder. Same allow list: nobody gets dialed unasked.
+  const rawCardholder = typeof body?.cardholderNumber === "string" ? body.cardholderNumber.trim() : "";
+  const cardholderNumber = rawCardholder === "" ? undefined : toE164(rawCardholder);
+  if (cardholderNumber === null) return problem("bad_request", "Type the cardholder's phone number, like (555) 234-5678.");
+  if (cardholderNumber && !setup.allowed.has(cardholderNumber)) {
+    return problem("bad_request", "The cardholder's number is not on this server's approved list, so the agent cannot connect it.");
+  }
+  if (cardholderNumber && cardholderNumber === toNumber) {
+    return problem("bad_request", "The cardholder needs a different phone from the one playing the bank.");
+  }
+
+  const dynamicVariables = dynamicVariablesFor(brief.data, { cardholderPhone: cardholderNumber });
   if (variablesBytes(dynamicVariables) > MAX_VARIABLES_BYTES) {
     return problem("too_large", "This call has too much detail for a phone call. Type the call instead.");
   }
 
   try {
+    // One agent serves every call, so this call's cardholder (or nobody) is written onto it just before
+    // dialing. Two phone calls started in the same second could cross; the allow list keeps that among
+    // the owner's own approved phones.
+    await setTransfer(setup.apiKey, setup.agentId, transferToolFor(cardholderNumber ?? null));
     const { conversationId } = await dial(setup.apiKey, {
       agentId: setup.agentId,
       phoneNumberId: setup.phoneNumberId,
@@ -72,7 +93,7 @@ export async function handleStartPhoneCall(request: Request, dial: Dial = startO
   }
 }
 
-export type PhoneStatusBody = { status: PhoneCallStatus; reason: string | null; turns: Turn[] };
+export type PhoneStatusBody = { status: PhoneCallStatus; reason: string | null; turns: Turn[]; transferred: boolean };
 
 const CONVERSATION_ID = /^[A-Za-z0-9_-]{6,80}$/;
 
@@ -93,7 +114,7 @@ export async function handlePhoneStatus(request: Request, conversationId: string
   } catch (error) {
     if (error instanceof ElevenLabsError && error.status === 404) {
       // Right after the call is placed the record can take a moment to appear.
-      return ok<PhoneStatusBody>({ status: "dialing", reason: null, turns: [] });
+      return ok<PhoneStatusBody>({ status: "dialing", reason: null, turns: [], transferred: false });
     }
     console.error("[phone] could not read the call:", error instanceof Error ? error.message : error);
     return problem("failed", "We could not check on the call. Trying again.");

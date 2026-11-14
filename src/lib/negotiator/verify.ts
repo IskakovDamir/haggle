@@ -27,18 +27,21 @@ function toHundredths(figure: string): number | null {
   return Number(whole) * 100 + Number(fraction.slice(0, 2).padEnd(2, "0"));
 }
 
+/** Every figure in one piece of text, in hundredths, written in digits or in words. */
+export function figuresIn(text: string, into: Set<number> = new Set()): Set<number> {
+  for (const match of text.match(NUMBER_IN_TEXT) ?? []) {
+    const value = toHundredths(match);
+    if (value !== null) into.add(value);
+  }
+  // Speech to text on a phone call often writes numbers as words: "forty dollar".
+  for (const value of spokenFigures(text)) into.add(value);
+  return into;
+}
+
 /** Every figure the bank said during the call, in hundredths. */
 function figuresSaidByBank(turns: Turn[]): Set<number> {
   const figures = new Set<number>();
-  for (const turn of turns) {
-    if (turn.role !== "bank") continue;
-    for (const match of turn.text.match(NUMBER_IN_TEXT) ?? []) {
-      const value = toHundredths(match);
-      if (value !== null) figures.add(value);
-    }
-    // Speech to text on a phone call often writes numbers as words: "forty dollar".
-    for (const value of spokenFigures(turn.text)) figures.add(value);
-  }
+  for (const turn of turns) if (turn.role === "bank") figuresIn(turn.text, figures);
   return figures;
 }
 

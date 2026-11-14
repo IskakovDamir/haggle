@@ -1,6 +1,7 @@
 // The body both routes accept: { brief, turns }. The brief is built in the browser and comes back to
 // us on every request, so it is checked like any other input: known shape, short single-line strings.
 import { z } from "zod";
+import { MAX_REQUEST_CHARS } from "@/lib/negotiator/own-request";
 import type { NegotiationBrief, Turn } from "@/lib/types";
 
 export type CallLimits = { maxTurns: number; maxTurnChars: number };
@@ -36,7 +37,7 @@ const GOALS = [
   "penalty_apr_review",
 ] as const;
 
-const briefSchema: z.ZodType<NegotiationBrief> = z.object({
+export const briefSchema: z.ZodType<NegotiationBrief> = z.object({
   holderFirstName: line(40),
   issuer: z.enum(ISSUERS),
   issuerName: line(60),
@@ -55,9 +56,10 @@ const briefSchema: z.ZodType<NegotiationBrief> = z.object({
   fallback: line(200),
   disclosures: z.array(line(200)).min(1).max(5),
   language: z.enum(["en", "es"]).optional(),
+  request: line(MAX_REQUEST_CHARS).optional(),
 });
 
-const turnSchema: z.ZodType<Turn> = z.object({
+export const turnSchema: z.ZodType<Turn> = z.object({
   role: z.enum(["agent", "bank"]),
   text: z.string().trim().min(1),
   at: z.number().min(0),

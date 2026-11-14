@@ -1,7 +1,7 @@
 // The browser's calls to our own API routes. Every response is checked against a schema, and every
 // failure becomes one plain sentence the page can print as is.
 import { z } from "zod";
-import type { CallOutcome, Capabilities, NegotiationBrief, Turn } from "@/lib/types";
+import type { CallOutcome, Capabilities, CoachTip, NegotiationBrief, Turn } from "@/lib/types";
 
 export type ApiResult<T> = { ok: true; data: T } | { ok: false; error: string; code: string };
 
@@ -90,6 +90,8 @@ const phoneStatusSchema = z.object({
   /** Why the line did not connect, in plain words. Set when the status is "failed". */
   reason: z.string().nullable(),
   turns: z.array(z.object({ role: z.enum(["agent", "bank"]), text: z.string(), at: z.number() })),
+  /** The agent handed the call to the cardholder. */
+  transferred: z.boolean().default(false),
 });
 
 export type PhoneStatus = z.infer<typeof phoneStatusSchema>;
@@ -99,6 +101,8 @@ export function startPhoneCall(input: {
   brief: NegotiationBrief;
   toNumber: string;
   voiceId?: string;
+  /** The cardholder's own phone, for the agent to connect if the bank asks. */
+  cardholderNumber?: string;
 }): Promise<ApiResult<{ conversationId: string }>> {
   return request("/api/voice/phone", phoneStartSchema, input);
 }
@@ -106,6 +110,37 @@ export function startPhoneCall(input: {
 /** Where a phone call stands, with the transcript so far. */
 export function fetchPhoneStatus(conversationId: string): Promise<ApiResult<PhoneStatus>> {
   return request(`/api/voice/phone/${encodeURIComponent(conversationId)}`, phoneStatusSchema);
+}
+
+const scribeSchema = z.union([
+  z.object({ configured: z.literal(false) }),
+  z.object({ configured: z.literal(true), token: z.string().min(1) }),
+]);
+
+/** A one-time token for the live coach's speech to text, or { configured: false }. */
+export function fetchScribeToken(): Promise<ApiResult<z.infer<typeof scribeSchema>>> {
+  return request("/api/voice/scribe", scribeSchema, {});
+}
+
+const coachSchema = z.object({
+  tip: z.object({
+    say: z.string(),
+    why: z.string(),
+    avoid: z.string().nullable(),
+    stage: z.enum(["opening", "asking", "counter", "accept", "wrap_up", "listen"]),
+    offers: z.array(
+      z.object({
+        kind: z.enum(["apr", "late_fee_refund", "interest_refund", "other_credit"]),
+        value: z.number(),
+        verdict: z.enum(["good", "counter", "no_better", "heard"]),
+      }),
+    ),
+  }),
+});
+
+/** The coach's next tip for a cardholder on their own call. `heard` is what the microphone transcribed. */
+export function fetchCoachTip(brief: NegotiationBrief, earlier: Turn[], heard: string[]): Promise<ApiResult<{ tip: CoachTip }>> {
+  return request("/api/coach", coachSchema, { brief, earlier, heard });
 }
 
 /** A Stripe Checkout page for the fee on one win. The server computes the fee itself. */

@@ -1,15 +1,19 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { Headphones } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { MotionConfig } from "framer-motion";
 import { Stagger, StaggerItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/primitives";
 import type { Copy } from "@/lib/i18n/locale";
 import { useLocale } from "@/lib/i18n/use-locale";
+import { cleanRequest } from "@/lib/negotiator/own-request";
 import type { CardAccount, NegotiationBrief } from "@/lib/types";
 import { askSentence, cardLabel } from "./ask";
 import { BankGuide } from "./bank-guide";
+import { CoachPanel } from "./coach-panel";
+import { Button } from "@/components/ui/button";
 import { CallPanel, type LineState } from "./call-panel";
 import { formatClock, useElapsedMs } from "./clock";
 import { LiveControls } from "./live-controls";
@@ -25,6 +29,10 @@ const COPY: Copy<{
   bankLabel: string;
   phoneEmpty: string;
   agentFirst: string;
+  soloAsk: string;
+  soloOpen: string;
+  soloBack: string;
+  offCall: string;
 }> = {
   en: {
     practice: "Practice call",
@@ -33,6 +41,10 @@ const COPY: Copy<{
     bankLabel: "You, as the bank",
     phoneEmpty: "The transcript shows up here as the call goes.",
     agentFirst: "The agent speaks first.",
+    soloAsk: "Rather call the bank yourself?",
+    soloOpen: "Get live tips",
+    soloBack: "Back",
+    offCall: "I'm off the call",
   },
   es: {
     practice: "Llamada de práctica",
@@ -41,6 +53,10 @@ const COPY: Copy<{
     bankLabel: "Tú, como el banco",
     phoneEmpty: "La transcripción aparece aquí mientras avanza la llamada.",
     agentFirst: "El agente habla primero.",
+    soloAsk: "¿Prefieres llamar tú al banco?",
+    soloOpen: "Consejos en vivo",
+    soloBack: "Volver",
+    offCall: "Ya colgué",
   },
 };
 
@@ -65,7 +81,11 @@ export function CallSession(props: { card: CardAccount; brief: NegotiationBrief 
   const copy = COPY[locale];
   // The call runs on the card as it stood when this screen opened. The case file is saved again with
   // every line, and a brief that changed identity mid-call would only disturb the voice session.
-  const [{ card, brief }] = useState(props);
+  const [{ card, brief: suggested }] = useState(props);
+  /** The cardholder's own words for the ask, as typed. Empty means the suggested ask. */
+  const [requestText, setRequestText] = useState("");
+  const request = cleanRequest(requestText);
+  const brief = useMemo<NegotiationBrief>(() => (request ? { ...suggested, request } : suggested), [request, suggested]);
 
   const showResult = useCallback(
     (callId: string) => router.push(`/win?call=${encodeURIComponent(callId)}`),
@@ -74,6 +94,10 @@ export function CallSession(props: { card: CardAccount; brief: NegotiationBrief 
   const session = useCallSession({ card, brief, onResult: showResult });
   const capabilities = useCapabilities();
   const elapsedMs = useElapsedMs(session.startedAtMs, session.phase === "live");
+  /** The cardholder calls the bank themselves and the coach gives tips. No agent, no call record. */
+  const [solo, setSolo] = useState(false);
+  /** The agent handed the call over: the cardholder is on with the bank, and the coach takes over the panel. */
+  const handedOff = session.phase === "live" && session.mode === "phone" && session.phone.transferred;
 
   return (
     <MotionConfig reducedMotion="user">
@@ -96,13 +120,52 @@ export function CallSession(props: { card: CardAccount; brief: NegotiationBrief 
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,23rem)] lg:gap-8">
         <CallPanel line={lineState(session)} callee={brief.issuerName} clock={formatClock(elapsedMs)}>
-          {session.phase === "briefing" ? (
-            <StartControls
-              ask={askSentence(brief, card, locale)}
-              capabilities={capabilities}
-              voice={session.voice}
-              notice={session.notice}
-              onStart={session.start}
+          {session.phase === "briefing" && solo ? (
+            <CoachPanel
+              brief={brief}
+              earlier={[]}
+              handoff={false}
+              footer={
+                <Button variant="ghost" size="lg" onClick={() => setSolo(false)}>
+                  {copy.soloBack}
+                </Button>
+              }
+            />
+          ) : session.phase === "briefing" ? (
+            <>
+              <StartControls
+                ask={askSentence(suggested, card, locale)}
+                request={requestText}
+                onRequest={setRequestText}
+                capabilities={capabilities}
+                voice={session.voice}
+                notice={session.notice}
+                onStart={session.start}
+              />
+              {capabilities.status === "ready" && capabilities.capabilities.voice && capabilities.capabilities.negotiation && (
+                <p className="mt-4 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm font-medium text-hg-muted">
+                  {copy.soloAsk}
+                  <button
+                    type="button"
+                    onClick={() => setSolo(true)}
+                    className="inline-flex items-center gap-1.5 font-semibold text-hg-blue underline-offset-4 hover:underline"
+                  >
+                    <Headphones className="size-4" aria-hidden />
+                    {copy.soloOpen}
+                  </button>
+                </p>
+              )}
+            </>
+          ) : handedOff ? (
+            <CoachPanel
+              brief={brief}
+              earlier={session.turns}
+              handoff
+              footer={
+                <Button variant="outline" size="lg" onClick={session.end}>
+                  {copy.offCall}
+                </Button>
+              }
             />
           ) : (
             <>

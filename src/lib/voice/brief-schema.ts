@@ -2,6 +2,7 @@
 // strings end up inside the agent's instructions, so it is checked like any other input: a known
 // shape and short single-line strings.
 import { z } from "zod";
+import { MAX_REQUEST_CHARS } from "@/lib/negotiator/own-request";
 import type { NegotiationBrief } from "@/lib/types";
 
 /** One short line. Line breaks are refused so a field cannot pose as a new section of the prompt. */
@@ -43,4 +44,5 @@ export const briefSchema: z.ZodType<NegotiationBrief> = z.object({
   fallback: line(200),
   disclosures: z.array(line(200)).min(1).max(5),
   language: z.enum(["en", "es"]).optional(),
+  request: line(MAX_REQUEST_CHARS).optional(),
 });

@@ -178,6 +178,11 @@ export type NegotiationBrief = {
   disclosures: string[];
   /** The language the agent speaks on the call. English when absent. Facts stay in English; the agent says them in this language. */
   language?: "en" | "es";
+  /**
+   * What the cardholder typed this call is for, in their own words. When set it replaces the suggested
+   * ask. What it says about the cardholder counts as something they told us; nothing is added to it.
+   */
+  request?: string;
 };
 
 export type CallOutcome = {
@@ -217,6 +222,8 @@ export type CallRecord = {
   outcome: CallOutcome | null;
   savings: Savings | null;
   paid: { amountCents: Cents; sessionId: string; at: string } | null;
+  /** On a phone call: the bank asked for the cardholder and the agent connected them, then left the call. */
+  handedOff?: boolean;
 };
 
 /** Everything we keep for one visitor. Lives in the browser, no login. */
@@ -244,3 +251,25 @@ export type Capabilities = {
 };
 
 export type ApiError = { error: string; code: string };
+
+/** Where the cardholder's own call stands, as the live coach reads it. */
+export type CoachStage = "opening" | "asking" | "counter" | "accept" | "wrap_up" | "listen";
+
+/** One figure the bank offered, heard on the call and checked by code against the brief. */
+export type CoachOffer = {
+  kind: "apr" | "late_fee_refund" | "interest_refund" | "other_credit";
+  /** Basis points for "apr", cents for the rest. */
+  value: number;
+  /** "good": at or under the ask. "counter": better than now, short of the ask. "no_better": not lower than today. "heard": nothing to compare it with. */
+  verdict: "good" | "counter" | "no_better" | "heard";
+};
+
+/** What the live coach shows the cardholder next. */
+export type CoachTip = {
+  /** Words the cardholder can read out. Empty when they should just listen or answer the bank themselves. */
+  say: string;
+  why: string;
+  avoid: string | null;
+  stage: CoachStage;
+  offers: CoachOffer[];
+};

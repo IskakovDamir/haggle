@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Keyboard, Mic, Phone, Smartphone, Volume2 } from "lucide-react";
+import { Keyboard, Mic, PencilLine, Phone, Smartphone, Volume2, X } from "lucide-react";
 import { EASE } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/primitives";
 import type { Copy } from "@/lib/i18n/locale";
 import { useLocale } from "@/lib/i18n/use-locale";
+import { MAX_REQUEST_CHARS } from "@/lib/negotiator/own-request";
 import { toE164 } from "@/lib/voice/phone";
 import type { VoiceStatus } from "@/lib/voice/use-voice-call";
 import {
@@ -32,12 +33,21 @@ const MODES: { mode: CallMode; Icon: typeof Mic }[] = [
 type StartCopy = {
   modes: Record<CallMode, { label: string; hint: string }>;
   willAsk: string;
+  ownAsk: string;
+  ownLabel: string;
+  ownPlaceholder: string;
+  ownNote: string;
+  useSuggested: string;
   practice: string;
   notSetUp: string;
   modeGroup: string;
   phoneLabel: string;
   phoneError: string;
   phoneNote: string;
+  cardholderLabel: string;
+  cardholderOptional: string;
+  cardholderNote: string;
+  cardholderError: string;
   voicesTitle: string;
   voiceGroup: string;
   /** The voice's kind ("Female"), shown above its name. */
@@ -58,12 +68,21 @@ const COPY: Copy<StartCopy> = {
       phone: { label: "Phone", hint: "The agent rings your phone. Answer it and play the bank. The transcript shows up here." },
     },
     willAsk: "The agent will ask",
+    ownAsk: "Ask for something else",
+    ownLabel: "What should the agent call about?",
+    ownPlaceholder: "Refund the $39 late fee from March and keep it off my credit report",
+    ownNote: "In your own words. The agent asks for this, uses only what you write here and on your statement, and never makes anything up.",
+    useSuggested: "Use the suggested ask",
     practice: "This is a practice call. You play the bank's representative.",
     notSetUp: "Calls are not set up on this server yet, so the agent cannot start one.",
     modeGroup: "How you will play the bank",
     phoneLabel: "Your phone number",
     phoneError: "Type your phone number, like (555) 234-5678.",
     phoneNote: "Used for this one call and not saved. Only numbers the owner of this server approved can be rung.",
+    cardholderLabel: "Cardholder's phone",
+    cardholderOptional: "optional",
+    cardholderNote: "If the bank asks for the cardholder, the agent rings this phone and connects them to the call, then leaves.",
+    cardholderError: "Use a phone number like (555) 234-5678, different from the one playing the bank.",
     voicesTitle: "The agent sounds · tap to hear",
     voiceGroup: "The agent voice",
     voiceKind: { female: AGENT_VOICES.female.label, male: AGENT_VOICES.male.label },
@@ -81,12 +100,21 @@ const COPY: Copy<StartCopy> = {
       phone: { label: "Teléfono", hint: "El agente llama a tu teléfono. Contesta y haz de banco. La transcripción aparece aquí." },
     },
     willAsk: "El agente va a pedir",
+    ownAsk: "Pedir otra cosa",
+    ownLabel: "¿Para qué debe llamar el agente?",
+    ownPlaceholder: "Reembolsar el cargo de $39 de marzo y que no aparezca en mi historial de crédito",
+    ownNote: "Con tus palabras. El agente pide esto, usa solo lo que escribes aquí y en tu estado de cuenta, y nunca inventa nada.",
+    useSuggested: "Usar lo sugerido",
     practice: "Esta es una llamada de práctica. Tú haces de representante del banco.",
     notSetUp: "Las llamadas todavía no están configuradas en este servidor, así que el agente no puede empezar una.",
     modeGroup: "Cómo vas a hacer de banco",
     phoneLabel: "Tu número de teléfono",
     phoneError: "Escribe tu número de teléfono, como (555) 234-5678.",
     phoneNote: "Solo se usa para esta llamada y no se guarda. Solo se puede llamar a números que aprobó quien administra este servidor.",
+    cardholderLabel: "Teléfono del titular",
+    cardholderOptional: "opcional",
+    cardholderNote: "Si el banco pide hablar con el titular, el agente llama a este teléfono, lo une a la llamada y se retira.",
+    cardholderError: "Usa un número como (555) 234-5678, distinto del que hace de banco.",
     voicesTitle: "Así suena el agente · toca para escuchar",
     voiceGroup: "La voz del agente",
     voiceKind: { female: "Femenina", male: "Masculina" },
@@ -134,6 +162,8 @@ function Playing() {
 /** What the panel shows before the call: the ask, the practice note, and the way to start. */
 export function StartControls({
   ask,
+  request,
+  onRequest,
   capabilities,
   voice,
   notice,
@@ -141,13 +171,18 @@ export function StartControls({
 }: {
   /** What the agent will ask for, as a sentence. */
   ask: string;
+  /** The cardholder's own words for the ask, as typed. Empty for the suggested ask. */
+  request: string;
+  onRequest: (text: string) => void;
   capabilities: CapabilitiesState;
   voice: { status: VoiceStatus; error: string | null };
   /** A sentence about the previous call, when there is one to tell. */
   notice: string | null;
   /** voiceId is set for a voice call: the agent voice the visitor picked. */
-  onStart: (mode: CallMode, voiceId?: string, toNumber?: string) => void;
+  onStart: (mode: CallMode, voiceId?: string, toNumber?: string, cardholderNumber?: string) => void;
 }) {
+  const [cardholderNumber, setCardholderNumber] = useState("");
+  const [writing, setWriting] = useState(request.trim() !== "");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [triedPhone, setTriedPhone] = useState(false);
   const [picked, setPicked] = useState<CallMode | null>(null);
@@ -184,6 +219,9 @@ export function StartControls({
   const modes = MODES.filter((option) => available[option.mode]);
   const phoneE164 = toE164(phoneNumber);
   const phoneError = triedPhone && !phoneE164 ? copy.phoneError : null;
+  const cardholderE164 = cardholderNumber.trim() === "" ? undefined : toE164(cardholderNumber);
+  const cardholderError =
+    triedPhone && (cardholderE164 === null || (cardholderE164 && cardholderE164 === phoneE164)) ? copy.cardholderError : null;
 
   function startCall() {
     if (mode === "phone") {
@@ -192,7 +230,12 @@ export function StartControls({
         document.getElementById("call-phone-number")?.focus();
         return;
       }
-      onStart("phone", AGENT_VOICES[agentVoice].id, phoneE164);
+      if (cardholderE164 === null || (cardholderE164 && cardholderE164 === phoneE164)) {
+        setTriedPhone(true);
+        document.getElementById("call-cardholder-number")?.focus();
+        return;
+      }
+      onStart("phone", AGENT_VOICES[agentVoice].id, phoneE164, cardholderE164);
       return;
     }
     onStart(mode, mode === "voice" ? AGENT_VOICES[agentVoice].id : undefined);
@@ -202,7 +245,52 @@ export function StartControls({
     <div className="flex flex-col gap-4">
       <Rise>
         <p className={eyebrow}>{copy.willAsk}</p>
-        <p className="mt-1.5 text-[22px] leading-[1.25] font-semibold tracking-[-0.02em] text-hg-ink sm:text-[26px]">{ask}</p>
+        {writing ? (
+          <div className="mt-2 flex flex-col gap-2">
+            <label htmlFor="call-own-request" className="text-sm font-semibold text-hg-ink-2">
+              {copy.ownLabel}
+            </label>
+            <textarea
+              id="call-own-request"
+              autoFocus
+              rows={3}
+              value={request}
+              maxLength={MAX_REQUEST_CHARS}
+              onChange={(event) => onRequest(event.target.value.replace(/[\r\n]+/g, " "))}
+              placeholder={copy.ownPlaceholder}
+              className={cn(
+                "w-full resize-none rounded-2xl border px-4 py-3 text-[17px] leading-snug font-medium outline-none focus-visible:border-hg-blue focus-visible:ring-3 focus-visible:ring-hg-blue/15",
+                panel.field,
+              )}
+            />
+            <div className="flex items-start justify-between gap-3">
+              <p className={cn("text-[13px] leading-5", panel.dim)}>{copy.ownNote}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  onRequest("");
+                  setWriting(false);
+                }}
+                className="flex shrink-0 items-center gap-1 text-[13px] font-semibold text-hg-blue hover:underline"
+              >
+                <X className="size-3.5" aria-hidden />
+                {copy.useSuggested}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <p className="mt-1.5 text-[22px] leading-[1.25] font-semibold tracking-[-0.02em] text-hg-ink sm:text-[26px]">{ask}</p>
+            <button
+              type="button"
+              onClick={() => setWriting(true)}
+              className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-hg-blue underline-offset-4 hover:underline"
+            >
+              <PencilLine className="size-4" aria-hidden />
+              {copy.ownAsk}
+            </button>
+          </>
+        )}
       </Rise>
 
       <Rise delay={0.08}>
@@ -283,6 +371,23 @@ export function StartControls({
             />
             <p id="call-phone-note" className={cn("mt-1.5 text-xs", phoneError ? "text-alarm" : panel.dim)}>
               {phoneError ?? copy.phoneNote}
+            </p>
+            <label htmlFor="call-cardholder-number" className={cn(eyebrow, "mt-4 mb-2 block")}>
+              {copy.cardholderLabel} <span className="normal-case tracking-normal">· {copy.cardholderOptional}</span>
+            </label>
+            <Input
+              id="call-cardholder-number"
+              type="tel"
+              inputMode="tel"
+              placeholder="(555) 987-6543"
+              value={cardholderNumber}
+              onChange={(event) => setCardholderNumber(event.target.value)}
+              aria-invalid={cardholderError ? true : undefined}
+              aria-describedby="call-cardholder-note"
+              className={cn(cardholderError && "border-alarm")}
+            />
+            <p id="call-cardholder-note" className={cn("mt-1.5 text-xs", cardholderError ? "text-alarm" : panel.dim)}>
+              {cardholderError ?? copy.cardholderNote}
             </p>
           </motion.div>
         )}

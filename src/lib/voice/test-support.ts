@@ -21,7 +21,7 @@ export function mariaBrief(overrides: Partial<NegotiationBrief> = {}): Negotiati
     disclosures: [
       "This is Haggle, an AI assistant calling on behalf of Maria.",
       "This call is being recorded.",
-      "Maria is on the line to verify identity.",
+      "Maria can join the call to verify identity.",
     ],
     ...overrides,
   };
