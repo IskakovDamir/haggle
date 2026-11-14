@@ -22,7 +22,7 @@ export function generateStaticParams() {
 
 /** "chase credit card customer service" -> "Chase Credit Card Customer Service", keeping words like "U.S." as written. */
 function titleCase(text: string): string {
-  return text.replace(/\b([a-z])/g, (c) => c.toUpperCase());
+  return text.replace(/(^|\s)([a-z])/g, (_, space: string, c: string) => space + c.toUpperCase());
 }
 
 function copy(issuer: Issuer) {
@@ -62,6 +62,9 @@ async function IssuerView({ params }: { params: PageProps<"/phone/[issuer]">["pa
   const faq = issuerFaq(issuer);
   const path = directoryPath(issuer);
   const others = issuersAtoZ().filter((i) => i.slug !== issuer.slug);
+  // A store card account lives with a bank, so that is who Haggle calls.
+  const store = issuer.group === "store";
+  const callee = store ? `the bank behind your ${name} card` : name;
 
   return (
     <>
@@ -79,7 +82,12 @@ async function IssuerView({ params }: { params: PageProps<"/phone/[issuer]">["pa
         <h1 className="max-w-[22ch] text-[clamp(34px,5vw,56px)] leading-[1.08] font-semibold tracking-[-0.04em] text-hg-ink">
           {serviceName(issuer)} <em>phone number</em>
         </h1>
-        {issuer.aliases.length > 0 && <p className="text-[15px] leading-6 font-medium text-hg-muted">Also searched as {issuer.aliases.join(", ")}.</p>}
+        {(issuer.issuedBy || issuer.aliases.length > 0) && (
+          <p className="text-[15px] leading-6 font-medium text-hg-muted">
+            {issuer.issuedBy && <>Issued by {issuer.issuedBy}. </>}
+            {issuer.aliases.length > 0 && <>Also searched as {issuer.aliases.join(", ")}.</>}
+          </p>
+        )}
 
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1.4fr_1fr]">
           <div
@@ -95,18 +103,18 @@ async function IssuerView({ params }: { params: PageProps<"/phone/[issuer]">["pa
           </div>
           <div className="flex flex-col gap-4 rounded-[32px] bg-hg-ink p-7 md:p-10">
             <p className="text-[24px] leading-[30px] font-semibold tracking-[-0.03em] text-white">
-              Skip the hold. <span className="text-white/55">Haggle calls {name} for you.</span>
+              Skip the hold. <span className="text-white/55">Haggle calls {callee} for you.</span>
             </p>
             <p className="text-[15px] leading-6 font-medium text-white/75">
               It says it is an AI assistant, waits on hold, and asks for a late fee refund or a lower rate. You join only to verify it is you, and you pay
-              only if {name} says yes.
+              only if {store ? "the bank" : name} says yes.
             </p>
             <div className="mt-auto flex flex-col gap-2.5">
               <ProductButton path={`/missed?bank=${issuer.slug}`} tone="white">
-                Call {name} about a missed payment
+                {store ? `Call about a missed ${name} card payment` : `Call ${name} about a missed payment`}
               </ProductButton>
               <ProductButton path={`/start?bank=${issuer.slug}`} tone="blue">
-                Ask {name} for a lower rate
+                {store ? `Ask for a lower rate on your ${name} card` : `Ask ${name} for a lower rate`}
               </ProductButton>
             </div>
           </div>

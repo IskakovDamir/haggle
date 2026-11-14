@@ -10,9 +10,9 @@ import { DIRECTORY_AS_OF, issuersAtoZ } from "@/lib/directory";
 import { breadcrumbJsonLd, directoryListJsonLd } from "@/lib/directory/seo";
 import { cn } from "@/lib/utils";
 
-const title = "Credit card customer service phone numbers for every major US issuer";
+const title = "Credit card customer service phone numbers for every major US issuer and store card";
 const description =
-  "Official customer service numbers for Chase, Amex, Citi, Capital One, Bank of America, Discover and more, each checked on the bank's own site, plus what to say when you call.";
+  "Official customer service numbers for Chase, Amex, Citi, Capital One, Bank of America, Discover, plus store cards like Amazon, Target, Costco and PayPal. Each checked on the official site, with what to say when you call.";
 
 export const metadata: Metadata = {
   title,
@@ -23,6 +23,8 @@ export const metadata: Metadata = {
 
 export default function PhoneIndex() {
   const issuers = issuersAtoZ();
+  const banks = issuersAtoZ("bank");
+  const stores = issuersAtoZ("store");
   return (
     <>
       <JsonLd data={directoryListJsonLd(issuers)} />
@@ -45,8 +47,13 @@ export default function PhoneIndex() {
       />
 
       <HgSection className={cn("flex flex-col gap-6 py-6", sectionPad)}>
-        <SectionTitle title="Card issuers, A to Z" />
-        <DirectoryTable issuers={issuers} />
+        <SectionTitle title="Banks and card issuers" />
+        <DirectoryTable issuers={banks} />
+      </HgSection>
+
+      <HgSection className={cn("flex flex-col gap-6 py-6", sectionPad)}>
+        <SectionTitle title="Store and payment cards" lead="Store cards are run by a bank, so the card line is often different from the store's own customer service." />
+        <DirectoryTable issuers={stores} />
         <p className="text-[15px] leading-6 font-medium text-hg-muted">
           Calling about a missed payment or a high rate? It usually works: <InlineStat stat={getMarketStat("market-late-fee-waived")} /> of people who asked
           got a late fee waived. See{" "}
