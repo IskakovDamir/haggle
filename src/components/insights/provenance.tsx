@@ -1,12 +1,13 @@
 // How every number on the insights pages shows where it came from: a source link, "Estimate" or "Measured by Haggle".
 import { formatDate } from "@/lib/format";
-import { formatStatValue } from "@/lib/benchmarks";
+import { formatStatValue, sourceName } from "@/lib/benchmarks";
+import type { Locale } from "@/lib/i18n/locale";
 import type { Source, Stat } from "@/lib/benchmarks/types";
 import { cn } from "@/lib/utils";
 
 type Tone = "light" | "dark";
 
-export function SourceLink({ source, tone = "light", className }: { source: Source; tone?: Tone; className?: string }) {
+export function SourceLink({ source, tone = "light", lang = "en", className }: { source: Source; tone?: Tone; lang?: Locale; className?: string }) {
   return (
     <a
       href={source.url}
@@ -18,45 +19,57 @@ export function SourceLink({ source, tone = "light", className }: { source: Sour
         className,
       )}
     >
-      {source.name}
+      {sourceName(source.name, lang)}
     </a>
   );
 }
 
 /** The label next to a number. Every stat renders one. */
-export function Provenance({ stat, tone = "light", withDate = false, className }: { stat: Stat; tone?: Tone; withDate?: boolean; className?: string }) {
+export function Provenance({
+  stat,
+  tone = "light",
+  withDate = false,
+  lang = "en",
+  className,
+}: {
+  stat: Stat;
+  tone?: Tone;
+  withDate?: boolean;
+  lang?: Locale;
+  className?: string;
+}) {
   const muted = tone === "light" ? "text-hg-muted" : "text-white/65";
-  const date = withDate ? <span className={muted}>{` · ${formatDate(stat.asOf)}`}</span> : null;
+  const date = withDate ? <span className={muted}>{` · ${formatDate(stat.asOf, lang)}`}</span> : null;
   if (stat.kind === "estimate") {
     return (
       <span className={cn(muted, className)} title={stat.note}>
-        Estimate
+        {lang === "es" ? "Estimación" : "Estimate"}
       </span>
     );
   }
   if (stat.kind === "measured") {
     return (
       <span className={cn(muted, className)}>
-        Measured by Haggle
+        {lang === "es" ? "Medido por Haggle" : "Measured by Haggle"}
         {date}
       </span>
     );
   }
   return (
     <span className={className} title={stat.note}>
-      {stat.source && <SourceLink source={stat.source} tone={tone} />}
+      {stat.source && <SourceLink source={stat.source} tone={tone} lang={lang} />}
       {date}
     </span>
   );
 }
 
 /** A number inside a sentence, followed by its label in small muted type. */
-export function InlineStat({ stat, tone = "light" }: { stat: Stat; tone?: Tone }) {
+export function InlineStat({ stat, tone = "light", lang = "en" }: { stat: Stat; tone?: Tone; lang?: Locale }) {
   return (
     <>
       <strong className={cn("font-semibold tabular-nums", tone === "light" ? "text-hg-ink" : "text-white")}>{formatStatValue(stat)}</strong>{" "}
       <span className="text-[0.8em]">
-        (<Provenance stat={stat} tone={tone} />)
+        (<Provenance stat={stat} tone={tone} lang={lang} />)
       </span>
     </>
   );

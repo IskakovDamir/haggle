@@ -57,8 +57,27 @@ export function formatStatValue(stat: Pick<Stat, "value" | "unit">): string {
   }
 }
 
+/** Source names in Spanish. Names of companies, sites and regulations stay as they are. */
+const SOURCE_NAMES_ES: Record<string, string> = {
+  "LendingTree survey, via KKTV": "Encuesta de LendingTree, vía KKTV",
+  "LendingTree survey, via FOX 5 NY": "Encuesta de LendingTree, vía FOX 5 NY",
+  "Federal Reserve G.19": "Reserva Federal, G.19",
+  "Federal Reserve Bank of New York": "Banco de la Reserva Federal de Nueva York",
+  "J.D. Power 2025, via Clark.com": "J.D. Power 2025, vía Clark.com",
+  "CFPB, 2024 penalty fees rule": "CFPB, regla de cargos por penalización de 2024",
+};
+
+export function sourceName(name: string, language: "en" | "es" = "en"): string {
+  return language === "es" ? (SOURCE_NAMES_ES[name] ?? name) : name;
+}
+
 /** Plain-text provenance for places with no link, such as JSON-LD and image alt text. */
-export function provenanceText(stat: Stat): string {
+export function provenanceText(stat: Stat, language: "en" | "es" = "en"): string {
+  if (language === "es") {
+    if (stat.kind === "estimate") return "Estimación";
+    if (stat.kind === "measured") return "Medido por Haggle";
+    return `Fuente: ${sourceName(stat.source?.name ?? "desconocida", "es")}`;
+  }
   if (stat.kind === "estimate") return "Estimate";
   if (stat.kind === "measured") return "Measured by Haggle";
   return `Source: ${stat.source?.name ?? "unknown"}`;

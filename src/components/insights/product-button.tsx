@@ -1,6 +1,7 @@
 // A call to action that leads to the Haggle product. While PRODUCT_URL is empty it shows the same pill,
 // dimmed, with "Launching soon", and is not a link, so no page sends visitors to a product that is not live.
 import { HgButton } from "@/components/landing-v2/ui";
+import type { Locale } from "@/lib/i18n/locale";
 import { productHref } from "@/lib/product";
 import { cn } from "@/lib/utils";
 
@@ -10,11 +11,13 @@ export function ProductButton({
   path,
   children,
   tone = "blue",
+  lang = "en",
   className,
 }: {
   path: string;
   children: React.ReactNode;
   tone?: Tone;
+  lang?: Locale;
   className?: string;
 }) {
   const href = productHref(path);
@@ -37,7 +40,7 @@ export function ProductButton({
       )}
     >
       <span>{children}</span>
-      <span className="text-[12px] leading-4 font-medium opacity-80">Launching soon</span>
+      <span className="text-[12px] leading-4 font-medium opacity-80">{lang === "es" ? "Muy pronto" : "Launching soon"}</span>
     </span>
   );
 }
