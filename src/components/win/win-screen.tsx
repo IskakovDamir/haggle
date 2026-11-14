@@ -20,6 +20,7 @@ import { NoWin } from "./no-win";
 import { outcomeKind } from "./outcome-kind";
 import { PayPanel } from "./pay-panel";
 import { Receipt } from "./receipt";
+import { ShareWin } from "@/components/share/share-win";
 import { ResultCard } from "./result-card";
 import { usePaymentReturn } from "./use-payment-return";
 import { Appear, BEAT } from "./win-motion";
@@ -166,6 +167,7 @@ function CallResult({
           changes={changesFromOutcome(card, outcome, locale)}
           savings={savings ?? { annualSavingsCents: 0, lines: [], feeCents: 0 }}
         />
+        <ShareWin call={call} card={card} outcome={outcome} savings={savings} bankName={bankName} />
 
         {savings === null && (
           <Appear delay={BEAT.savings}>
