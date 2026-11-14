@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { SiteShell } from "@/components/site/shell";
-import { DashboardScreen } from "@/components/dashboard/dashboard-screen";
+import { OverviewScreen } from "@/components/overview/overview-screen";
 
-export const metadata: Metadata = { title: "Your wins · Haggle" };
+export const metadata: Metadata = { title: "Overview · Haggle" };
 
-// Paid versus saved, the debt-free dates, what comes next, and every call with its transcript.
+// What the debt costs now, what the wins saved, interest month by month, the cards, next steps and recent calls.
 export default function Page() {
   return (
-    <SiteShell>
-      <DashboardScreen />
+    <SiteShell wide>
+      <OverviewScreen />
     </SiteShell>
   );
 }

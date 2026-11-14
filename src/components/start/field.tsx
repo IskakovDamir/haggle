@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { EASE } from "@/components/motion/reveal";
 import { Input } from "@/components/ui/primitives";
 import { cn } from "@/lib/utils";
+import { dollarsForEditing, typedDollars } from "./typed-values";
 
 type FieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
   id: string;
@@ -17,6 +18,20 @@ type FieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
   /** Things to check against the statement. They do not block. */
   warnings?: string[];
 };
+
+/**
+ * "8400" becomes "8,400.00" when the visitor leaves the field. Text that is not an amount is left as typed,
+ * so its error still shows. The new text goes through the input's own change event, so every form that
+ * uses Field picks it up without extra wiring.
+ */
+function tidyDollars(input: HTMLInputElement) {
+  const typed = typedDollars(input.value);
+  if (typed.kind !== "value") return;
+  const tidy = dollarsForEditing(typed.value);
+  if (tidy === input.value) return;
+  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set?.call(input, tidy);
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+}
 
 /** One labeled input with its error or warnings right under it. */
 export function Field({ id, label, hint, unit, error, warnings = [], className, ...input }: FieldProps) {
@@ -49,6 +64,10 @@ export function Field({ id, label, hint, unit, error, warnings = [], className, 
               : warnings.length > 0 && "border-leak/60 focus:shadow-[0_0_0_4px_rgb(224_83_31/0.12)]",
           )}
           {...input}
+          onBlur={(event) => {
+            if (unit === "dollars") tidyDollars(event.currentTarget);
+            input.onBlur?.(event);
+          }}
         />
         {unit === "percent" && (
           <span aria-hidden className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-muted">

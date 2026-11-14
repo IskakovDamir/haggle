@@ -66,7 +66,7 @@ function CallRow({ call, card }: { call: CallRecord; card: CardAccount | undefin
             {goalLabel(call.goal)} · {card?.issuerName ?? "A card no longer in your case"}
           </span>
           <span className="tabular mt-0.5 block text-sm text-muted">
-            {formatDate(callDate(call))} · {callLength(call)} · {call.mode === "voice" ? "voice" : "typed"} practice call
+            {formatDate(callDate(call))} · {callLength(call)} · {call.mode === "voice" ? "voice" : call.mode === "phone" ? "phone" : "typed"} practice call
           </span>
         </span>
         {badge.tone === "green" && saved > 0 && (

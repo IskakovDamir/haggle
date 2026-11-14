@@ -10,6 +10,7 @@
     "test": "vitest run",
     "samples": "tsx scripts/make-samples.ts",
     "setup:agent": "tsx --env-file-if-exists=.env.local scripts/setup-agent.ts",
+    "setup:phone": "tsx --env-file-if-exists=.env.local scripts/setup-phone.ts",
     "voice-previews": "tsx --env-file-if-exists=.env.local scripts/make-voice-previews.ts"
   },
   "dependencies": {

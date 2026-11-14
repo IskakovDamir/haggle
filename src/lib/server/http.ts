@@ -91,6 +91,12 @@ export function capabilities(): Capabilities {
     negotiation: model,
     voice: Boolean(process.env.ELEVENLABS_API_KEY && process.env.ELEVENLABS_AGENT_ID),
     payments: Boolean(process.env.STRIPE_SECRET_KEY),
+    phone: Boolean(
+      process.env.ELEVENLABS_API_KEY &&
+        process.env.ELEVENLABS_AGENT_ID &&
+        process.env.ELEVENLABS_PHONE_NUMBER_ID &&
+        process.env.PHONE_ALLOWED_NUMBERS?.trim(),
+    ),
   };
 }
 

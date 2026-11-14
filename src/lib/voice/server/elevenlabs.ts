@@ -65,3 +65,54 @@ export async function updateAgent(apiKey: string, agentId: string, config: Agent
   const path = `/v1/convai/agents/${encodeURIComponent(agentId)}`;
   return field(await call(apiKey, path, { method: "PATCH", body: config }, fetcher), "agent_id");
 }
+
+// ---- phone calls (a Twilio number connected to ElevenLabs) --------------------------------------
+//
+//   POST /v1/convai/phone-numbers                  import a Twilio number (scripts/setup-phone.ts)
+//   POST /v1/convai/twilio/outbound-call           ring a number with the agent
+//   GET  /v1/convai/conversations/{id}             the call's status and transcript
+
+/** Connect a Twilio number to ElevenLabs and return its phone number id. */
+export async function importTwilioNumber(
+  apiKey: string,
+  number: { label: string; phoneNumber: string; sid: string; token: string },
+  fetcher: Fetch = fetch,
+): Promise<string> {
+  const body = { provider: "twilio", label: number.label, phone_number: number.phoneNumber, sid: number.sid, token: number.token };
+  return field(await call(apiKey, "/v1/convai/phone-numbers", { method: "POST", body }, fetcher), "phone_number_id");
+}
+
+/** Ring one number. The agent's call instructions arrive as dynamic variables, exactly as on a browser call. */
+export async function startOutboundCall(
+  apiKey: string,
+  input: {
+    agentId: string;
+    phoneNumberId: string;
+    toNumber: string;
+    dynamicVariables: Record<string, string>;
+    voiceId?: string;
+  },
+  fetcher: Fetch = fetch,
+): Promise<{ conversationId: string }> {
+  const body = {
+    agent_id: input.agentId,
+    agent_phone_number_id: input.phoneNumberId,
+    to_number: input.toNumber,
+    conversation_initiation_client_data: {
+      dynamic_variables: input.dynamicVariables,
+      ...(input.voiceId ? { conversation_config_override: { tts: { voice_id: input.voiceId } } } : {}),
+    },
+  };
+  const answer = await call(apiKey, "/v1/convai/twilio/outbound-call", { method: "POST", body }, fetcher);
+  const placed = answer !== null && typeof answer === "object" && (answer as { success?: unknown }).success === true;
+  if (!placed) {
+    const message = answer !== null && typeof answer === "object" ? (answer as { message?: unknown }).message : null;
+    throw new ElevenLabsError(502, typeof message === "string" ? message : "The call was not placed.");
+  }
+  return { conversationId: field(answer, "conversation_id") };
+}
+
+/** The raw conversation record: status, transcript and call metadata. */
+export async function getConversation(apiKey: string, conversationId: string, fetcher: Fetch = fetch): Promise<unknown> {
+  return call(apiKey, `/v1/convai/conversations/${encodeURIComponent(conversationId)}`, { method: "GET" }, fetcher);
+}

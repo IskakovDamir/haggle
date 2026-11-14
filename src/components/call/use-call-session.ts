@@ -4,14 +4,16 @@
 //
 //   briefing -> live -> reading -> done
 //
-// The agent's lines come from /api/negotiate (typed call) or from the voice hook (spoken call).
+// The agent's lines come from /api/negotiate (typed call), from the voice hook (spoken call in the
+// browser) or from the phone call's transcript, which this hook polls (/api/voice/phone/{id}).
 // When the call ends, /api/outcome reads the transcript and the engine turns the outcome into savings.
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { savingsFromOutcome } from "@/lib/engine";
 import { newCall, useCaseFile, withCall } from "@/lib/store";
 import type { CallRecord, CardAccount, NegotiationBrief, Savings, Turn } from "@/lib/types";
 import { useVoiceCall, type VoiceStatus } from "@/lib/voice/use-voice-call";
-import { fetchAgentReply, fetchOutcome } from "./api";
+import type { PhoneCallStatus } from "@/lib/voice/phone";
+import { fetchAgentReply, fetchOutcome, fetchPhoneStatus, startPhoneCall } from "./api";
 
 export type CallMode = CallRecord["mode"];
 export type CallPhase = "briefing" | "live" | "reading" | "done";
@@ -31,7 +33,9 @@ export type CallSession = {
   /** A sentence about the previous call, shown before the next one starts. */
   notice: string | null;
   voice: { status: VoiceStatus; error: string | null };
-  start: (mode: CallMode) => void;
+  /** A phone call: "placing" until the server answers, then the line's own status. */
+  phone: { status: "idle" | "placing" | PhoneCallStatus };
+  start: (mode: CallMode, voiceId?: string, toNumber?: string) => void;
   /** The visitor's line as the bank, in a typed call. */
   say: (text: string) => void;
   retry: () => void;
@@ -43,6 +47,13 @@ export type CallSession = {
 };
 
 const msSinceStart = (call: CallRecord) => Math.max(0, Date.now() - Date.parse(call.startedAt));
+
+/** How often the page asks how a phone call is going, and when it gives up waiting. */
+const PHONE_POLL_MS = 2000;
+const PHONE_GIVE_UP_MS = 9 * 60_000;
+
+const sameTurns = (a: Turn[], b: Turn[]) =>
+  a.length === b.length && a.every((turn, index) => turn.role === b[index].role && turn.text === b[index].text);
 const bankSpoke = (call: CallRecord) => call.turns.some((turn) => turn.role === "bank");
 
 export function useCallSession(input: {
@@ -59,6 +70,18 @@ export function useCallSession(input: {
   const [agentIsReplying, setAgentIsReplying] = useState(false);
   const [problem, setProblem] = useState<CallProblem | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [phoneStatus, setPhoneStatus] = useState<CallSession["phone"]["status"]>("idle");
+  /** The phone call being followed. Clearing it stops the polling. */
+  const phoneCall = useRef<{ conversationId: string; startedAtMs: number } | null>(null);
+  const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const stopPolling = useCallback(() => {
+    phoneCall.current = null;
+    if (pollTimer.current) clearTimeout(pollTimer.current);
+    pollTimer.current = null;
+  }, []);
+  // Leaving the page stops the polling. The phone call itself carries on until someone hangs up.
+  useEffect(() => stopPolling, [stopPolling]);
 
   // The requests below outlive the render that sent them, so they read the call from a ref, not from state.
   const latest = useRef<CallRecord | null>(null);
@@ -140,6 +163,70 @@ export function useCallSession(input: {
     ),
   });
 
+  /** A phone call that never got going: back to the briefing with one sentence on why. */
+  const dropCall = useCallback(
+    (why: string) => {
+      stopPolling();
+      const current = latest.current;
+      latest.current = null;
+      setCall(null);
+      if (current) update((stored) => (stored ? { ...stored, calls: stored.calls.filter((kept) => kept.id !== current.id) } : stored));
+      setPhoneStatus("idle");
+      setPhase("briefing");
+      setNotice(why);
+    },
+    [stopPolling, update],
+  );
+
+  /**
+   * Follow one phone call: every two seconds take its transcript, until the line is down, the visitor
+   * stops following, or the call runs past the limit. Then close it like any other call.
+   */
+  const followPhone = useCallback(
+    async (following: { conversationId: string; startedAtMs: number }) => {
+      const stillFollowing = () => phoneCall.current === following && !closing.current;
+      while (stillFollowing()) {
+        await new Promise((resolve) => {
+          pollTimer.current = setTimeout(resolve, PHONE_POLL_MS);
+        });
+        if (!stillFollowing()) return;
+
+        const result = await fetchPhoneStatus(following.conversationId);
+        if (!stillFollowing()) return;
+        if (result.ok) {
+          const { status, reason, turns } = result.data;
+          setPhoneStatus(status);
+          const current = latest.current;
+          if (current && !sameTurns(current.turns, turns)) commit({ ...current, turns });
+          if (status === "failed") {
+            dropCall(reason ?? "The phone call did not connect.");
+            return;
+          }
+          if (status === "done") break;
+        }
+        if (Date.now() - following.startedAtMs > PHONE_GIVE_UP_MS) break;
+      }
+      if (phoneCall.current !== following) return;
+      stopPolling();
+      void close();
+    },
+    [close, commit, dropCall, stopPolling],
+  );
+
+  async function ringPhone(toNumber: string, voiceId?: string) {
+    setPhoneStatus("placing");
+    const result = await startPhoneCall({ brief, toNumber, voiceId });
+    if (closing.current) return;
+    if (!result.ok) {
+      dropCall(result.error);
+      return;
+    }
+    setPhoneStatus("dialing");
+    const following = { conversationId: result.data.conversationId, startedAtMs: Date.now() };
+    phoneCall.current = following;
+    void followPhone(following);
+  }
+
   /** Ask for the agent's next line. With no turns yet, the server answers with the opening line. */
   async function askAgent() {
     const asked = latest.current;
@@ -159,13 +246,14 @@ export function useCallSession(input: {
     if (result.data.done) void close();
   }
 
-  function start(mode: CallMode, voiceId?: string) {
+  function start(mode: CallMode, voiceId?: string, toNumber?: string) {
     closing.current = false;
     setProblem(null);
     setNotice(null);
     setPhase("live");
     commit(newCall({ cardId: card.id, goal: brief.goal, mode }));
     if (mode === "text") void askAgent();
+    else if (mode === "phone") void ringPhone(toNumber ?? "", voiceId);
     else void voice.start(voiceId);
   }
 
@@ -179,6 +267,8 @@ export function useCallSession(input: {
 
   function end() {
     if (latest.current?.mode === "voice") void voice.stop();
+    // A phone call cannot be hung up from here. Stop following it and read what was said so far.
+    if (latest.current?.mode === "phone") stopPolling();
     void close();
   }
 
@@ -192,6 +282,8 @@ export function useCallSession(input: {
   }
 
   function reset() {
+    stopPolling();
+    setPhoneStatus("idle");
     closing.current = false;
     latest.current = null;
     setCall(null);
@@ -210,6 +302,7 @@ export function useCallSession(input: {
     problem,
     notice,
     voice: { status: voice.status, error: voice.error },
+    phone: { status: phoneStatus },
     start,
     say,
     retry: () => void (problem?.retry === "outcome" ? close() : askAgent()),

@@ -207,7 +207,8 @@ export type CallRecord = {
   id: string;
   cardId: string;
   goal: LeverKind;
-  mode: "voice" | "text";
+  /** "phone": the agent rang a real phone and the person who answered played the bank. */
+  mode: "voice" | "text" | "phone";
   startedAt: string;
   endedAt: string | null;
   turns: Turn[];
@@ -236,6 +237,8 @@ export type Capabilities = {
   voice: boolean;
   /** Pay after a win (Stripe test mode). */
   payments: boolean;
+  /** The agent can ring a real phone number (ElevenLabs + a Twilio number). */
+  phone: boolean;
 };
 
 export type ApiError = { error: string; code: string };

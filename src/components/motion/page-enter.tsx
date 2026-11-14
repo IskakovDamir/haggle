@@ -1,10 +1,17 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { usePathname } from "next/navigation";
 import { EASE } from "./reveal";
 
-/** Every route fades and rises in when it mounts. Used by app/template.tsx. */
+/**
+ * The landing fades and rises in when it mounts. Used by app/template.tsx.
+ * App screens are left still here: their frame (the sidebar) stays put between pages and the shell
+ * animates only the screen inside it.
+ */
 export function PageEnter({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  if (pathname !== "/") return <div className="flex flex-1 flex-col">{children}</div>;
   return (
     <motion.div
       className="flex flex-1 flex-col"

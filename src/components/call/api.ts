@@ -43,6 +43,8 @@ const capabilitiesSchema = z.object({
   negotiation: z.boolean(),
   voice: z.boolean(),
   payments: z.boolean(),
+  // Older servers do not send it: no phone calls then.
+  phone: z.boolean().default(false),
 });
 
 const replySchema = z.object({ reply: z.string().min(1), done: z.boolean() });
@@ -79,6 +81,31 @@ export function fetchAgentReply(brief: NegotiationBrief, turns: Turn[]): Promise
 /** What the bank granted, read from the transcript and checked by code on the server. */
 export function fetchOutcome(brief: NegotiationBrief, turns: Turn[]): Promise<ApiResult<{ outcome: CallOutcome }>> {
   return request("/api/outcome", outcomeSchema, { brief, turns });
+}
+
+const phoneStartSchema = z.object({ conversationId: z.string().min(1) });
+
+const phoneStatusSchema = z.object({
+  status: z.enum(["dialing", "live", "wrapping", "done", "failed"]),
+  /** Why the line did not connect, in plain words. Set when the status is "failed". */
+  reason: z.string().nullable(),
+  turns: z.array(z.object({ role: z.enum(["agent", "bank"]), text: z.string(), at: z.number() })),
+});
+
+export type PhoneStatus = z.infer<typeof phoneStatusSchema>;
+
+/** Ring a phone: the agent calls the number and the person who answers plays the bank. */
+export function startPhoneCall(input: {
+  brief: NegotiationBrief;
+  toNumber: string;
+  voiceId?: string;
+}): Promise<ApiResult<{ conversationId: string }>> {
+  return request("/api/voice/phone", phoneStartSchema, input);
+}
+
+/** Where a phone call stands, with the transcript so far. */
+export function fetchPhoneStatus(conversationId: string): Promise<ApiResult<PhoneStatus>> {
+  return request(`/api/voice/phone/${encodeURIComponent(conversationId)}`, phoneStatusSchema);
 }
 
 /** A Stripe Checkout page for the fee on one win. The server computes the fee itself. */

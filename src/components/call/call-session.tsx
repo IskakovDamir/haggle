@@ -20,6 +20,11 @@ import { useCapabilities } from "./use-capabilities";
 function lineState(session: Session): LineState {
   if (session.phase === "briefing") return "ready";
   if (session.phase !== "live") return "ended";
+  if (session.mode === "phone") {
+    const status = session.phone.status;
+    if (status === "live") return "live";
+    return status === "wrapping" || status === "done" || status === "failed" ? "ended" : "connecting";
+  }
   if (session.mode !== "voice") return "live";
   if (session.voice.status === "live") return "live";
   return session.voice.status === "connecting" || session.voice.status === "idle" ? "connecting" : "ended";
@@ -76,7 +81,7 @@ export function CallSession(props: { card: CardAccount; brief: NegotiationBrief 
                 bankLabel="You, as the bank"
                 agentIsReplying={session.agentIsReplying}
                 follow
-                emptyText="The agent speaks first."
+                emptyText={session.mode === "phone" ? "The transcript shows up here as the call goes." : "The agent speaks first."}
                 className="h-[min(26rem,52vh)]"
               />
               <LiveControls session={session} />

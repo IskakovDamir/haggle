@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, LoaderCircle, Mic, PhoneOff, SendHorizontal } from "lucide-react";
+import { ArrowRight, LoaderCircle, Mic, PhoneOff, SendHorizontal, Smartphone } from "lucide-react";
 import { EASE } from "@/components/motion/reveal";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/primitives";
@@ -101,6 +101,8 @@ export function LiveControls({ session }: { session: CallSession }) {
 
       {mode === "text" && <BankComposer session={session} />}
 
+      {mode === "phone" && <PhoneLine status={session.phone.status} />}
+
       {mode === "voice" && !voiceFailed && (
         <p role="status" className={cn("flex items-center gap-3 text-[15px] font-medium", micLive ? "text-hg-ink-2" : panel.dim)}>
           <span
@@ -125,11 +127,60 @@ export function LiveControls({ session }: { session: CallSession }) {
         </p>
       )}
 
-      <Button variant="danger" size="lg" onClick={session.end}>
-        <PhoneOff className="size-4" aria-hidden />
-        End call
-      </Button>
+      {mode === "phone" ? (
+        <Button variant="outline" size="lg" onClick={session.end}>
+          Stop following and read the call
+        </Button>
+      ) : (
+        <Button variant="danger" size="lg" onClick={session.end}>
+          <PhoneOff className="size-4" aria-hidden />
+          End call
+        </Button>
+      )}
     </Phase>
+  );
+}
+
+const PHONE_LINE: Record<CallSession["phone"]["status"], string> = {
+  idle: "Getting ready to call.",
+  placing: "Placing the call.",
+  dialing: "Ringing your phone. Pick up and play the bank.",
+  live: "You are on the call. Speak as the bank, and hang up when you are done.",
+  wrapping: "The call ended. Getting the full transcript.",
+  done: "The call ended.",
+  failed: "The call did not connect.",
+};
+
+/** Where a phone call stands. The phone itself is the microphone, so this row only reports. */
+function PhoneLine({ status }: { status: CallSession["phone"]["status"] }) {
+  const ringing = status === "placing" || status === "dialing";
+  const live = status === "live";
+  return (
+    <p role="status" className={cn("flex items-center gap-3 text-[15px] font-medium", live ? "text-hg-ink-2" : panel.dim)}>
+      <span
+        aria-hidden
+        className={cn(
+          "relative flex size-9 shrink-0 items-center justify-center rounded-full transition-colors duration-300",
+          live ? "bg-hg-blue text-white" : "bg-hg-blue-soft text-hg-blue",
+        )}
+      >
+        {(ringing || live) && (
+          <motion.span
+            className="absolute inset-0 rounded-full bg-hg-blue"
+            animate={{ scale: [1, ringing ? 1.9 : 1.6], opacity: [0.35, 0] }}
+            transition={{ duration: ringing ? 1.1 : 1.6, ease: "easeOut", repeat: Infinity }}
+          />
+        )}
+        <motion.span
+          className="relative"
+          animate={ringing ? { rotate: [0, -14, 14, -10, 10, 0] } : { rotate: 0 }}
+          transition={ringing ? { duration: 0.7, repeat: Infinity, repeatDelay: 0.6 } : { duration: 0.2 }}
+        >
+          <Smartphone className="size-4" />
+        </motion.span>
+      </span>
+      {PHONE_LINE[status]}
+    </p>
   );
 }
 

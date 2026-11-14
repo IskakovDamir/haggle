@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Keyboard, Mic, Phone, Volume2 } from "lucide-react";
+import { Keyboard, Mic, Phone, Smartphone, Volume2 } from "lucide-react";
 import { EASE } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/primitives";
+import { toE164 } from "@/lib/voice/phone";
 import type { VoiceStatus } from "@/lib/voice/use-voice-call";
 import { AGENT_VOICES, DEFAULT_AGENT_VOICE, voicePreviewPath, type AgentVoice } from "@/lib/voice/voices";
 import { cn } from "@/lib/utils";
@@ -16,6 +18,12 @@ import type { CallMode } from "./use-call-session";
 const MODES: { mode: CallMode; label: string; hint: string; Icon: typeof Mic }[] = [
   { mode: "voice", label: "Voice", hint: "You speak as the bank. The agent answers out loud.", Icon: Mic },
   { mode: "text", label: "Typing", hint: "You type the bank's lines. The agent answers in text.", Icon: Keyboard },
+  {
+    mode: "phone",
+    label: "Phone",
+    hint: "The agent rings your phone. Answer it and play the bank. The transcript shows up here.",
+    Icon: Smartphone,
+  },
 ];
 
 const eyebrow = cn("text-[11px] font-semibold tracking-[0.08em] uppercase", panel.dim);
@@ -65,8 +73,10 @@ export function StartControls({
   /** A sentence about the previous call, when there is one to tell. */
   notice: string | null;
   /** voiceId is set for a voice call: the agent voice the visitor picked. */
-  onStart: (mode: CallMode, voiceId?: string) => void;
+  onStart: (mode: CallMode, voiceId?: string, toNumber?: string) => void;
 }) {
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [triedPhone, setTriedPhone] = useState(false);
   const [picked, setPicked] = useState<CallMode | null>(null);
   const [agentVoice, setAgentVoice] = useState<AgentVoice>(DEFAULT_AGENT_VOICE);
   const [playing, setPlaying] = useState<AgentVoice | null>(null);
@@ -90,8 +100,25 @@ export function StartControls({
   const canType = switchedOn?.negotiation ?? false;
   // The voice hook knows more than the server does: it also says no when this browser cannot do voice.
   const canSpeak = (switchedOn?.voice ?? false) && voice.status !== "unavailable";
-  const available = { voice: canSpeak, text: canType };
-  const mode: CallMode = picked && available[picked] ? picked : canSpeak ? "voice" : "text";
+  const canRing = switchedOn?.phone ?? false;
+  const available: Record<CallMode, boolean> = { voice: canSpeak, text: canType, phone: canRing };
+  const mode: CallMode = picked && available[picked] ? picked : canSpeak ? "voice" : canType ? "text" : "phone";
+  const modes = MODES.filter((option) => available[option.mode]);
+  const phoneE164 = toE164(phoneNumber);
+  const phoneError = triedPhone && !phoneE164 ? "Type your phone number, like (555) 234-5678." : null;
+
+  function startCall() {
+    if (mode === "phone") {
+      if (!phoneE164) {
+        setTriedPhone(true);
+        document.getElementById("call-phone-number")?.focus();
+        return;
+      }
+      onStart("phone", AGENT_VOICES[agentVoice].id, phoneE164);
+      return;
+    }
+    onStart(mode, mode === "voice" ? AGENT_VOICES[agentVoice].id : undefined);
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -109,18 +136,18 @@ export function StartControls({
 
       {notice && <Notice tone="dark">{notice}</Notice>}
       {capabilities.status === "error" && <Notice tone="dark">{capabilities.message}</Notice>}
-      {switchedOn && !canType && !canSpeak && (
+      {switchedOn && !canType && !canSpeak && !canRing && (
         <Notice tone="dark">Calls are not set up on this server yet, so the agent cannot start one.</Notice>
       )}
 
-      {canType && canSpeak && (
+      {modes.length > 1 && (
         <Rise delay={0.16}>
           <div
             role="radiogroup"
             aria-label="How you will play the bank"
-            className="grid grid-cols-2 gap-1 rounded-full bg-hg-surface p-1"
+            className={cn("grid gap-1 rounded-full bg-hg-surface p-1", modes.length === 3 ? "grid-cols-3" : "grid-cols-2")}
           >
-            {MODES.map(({ mode: option, label, Icon }) => {
+            {modes.map(({ mode: option, label, Icon }) => {
               const selected = mode === option;
               return (
                 <button
@@ -152,7 +179,36 @@ export function StartControls({
       )}
 
       <AnimatePresence initial={false}>
-        {mode === "voice" && canSpeak && (
+        {mode === "phone" && canRing && (
+          <motion.div
+            key="phone"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.4, ease: EASE }}
+            className="overflow-hidden"
+          >
+            <label htmlFor="call-phone-number" className={cn(eyebrow, "mb-2 block")}>
+              Your phone number
+            </label>
+            <Input
+              id="call-phone-number"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="(555) 234-5678"
+              value={phoneNumber}
+              onChange={(event) => setPhoneNumber(event.target.value)}
+              aria-invalid={phoneError ? true : undefined}
+              aria-describedby="call-phone-note"
+              className={cn(phoneError && "border-alarm")}
+            />
+            <p id="call-phone-note" className={cn("mt-1.5 text-xs", phoneError ? "text-alarm" : panel.dim)}>
+              {phoneError ?? "Used for this one call and not saved. Only numbers the owner of this server approved can be rung."}
+            </p>
+          </motion.div>
+        )}
+        {(mode === "voice" || mode === "phone") && (canSpeak || canRing) && (
           <motion.div
             key="voices"
             initial={{ opacity: 0, height: 0 }}
@@ -207,19 +263,19 @@ export function StartControls({
         )}
       </AnimatePresence>
 
-      {(canType || canSpeak) && (
+      {(canType || canSpeak || canRing) && (
         <Rise delay={0.24} className="flex flex-col gap-3">
           <Button
             size="lg"
             className="group w-full"
-            onClick={() => onStart(mode, mode === "voice" ? AGENT_VOICES[agentVoice].id : undefined)}
+            onClick={startCall}
           >
             <Phone className="size-4 transition-transform duration-300 group-hover:-rotate-12" aria-hidden />
-            Start the call
+            {mode === "phone" ? "Call my phone" : "Start the call"}
           </Button>
           <p className={cn("text-sm", panel.dim)}>
             {MODES.find((option) => option.mode === mode)?.hint}
-            {!canSpeak && ` ${whyNoVoice(switchedOn?.voice ?? false, voice.error)}`}
+            {!canSpeak && mode !== "phone" && ` ${whyNoVoice(switchedOn?.voice ?? false, voice.error)}`}
           </p>
         </Rise>
       )}
