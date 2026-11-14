@@ -1,22 +1,30 @@
 // FAQ for an issuer's phone page, written from the directory and benchmark data. Same segment format as /insights.
+// The issuer passed in is already localized (see localizeIssuer), so its labels and hours are in the page's language.
 import { getBank, getMarketStat } from "@/lib/benchmarks";
 import type { FaqItem, Segment } from "@/lib/benchmarks/faq";
-import { mainLine, serviceName } from "./index";
+import type { Locale } from "@/lib/i18n/locale";
+import { mainLine } from "./index";
+import { serviceNameFor } from "./locale";
 import type { Issuer } from "./types";
 
-export function issuerFaq(issuer: Issuer): FaqItem[] {
+export function issuerFaq(issuer: Issuer, lang: Locale = "en"): FaqItem[] {
+  return lang === "es" ? issuerFaqEs(issuer) : issuerFaqEn(issuer);
+}
+
+function issuerFaqEn(issuer: Issuer): FaqItem[] {
   const name = issuer.name;
   const line = mainLine(issuer);
   const bank = issuer.insights ? getBank(issuer.insights) : undefined;
   const official: Segment = { source: issuer.source };
+  const service = serviceNameFor(issuer, "en");
 
-  const items: FaqItem[] = [
+  return [
     {
-      question: `What is the ${serviceName(issuer)} phone number?`,
+      question: `What is the ${service} phone number?`,
       answer: [`${name}'s official site lists ${line.display} (${line.label}).${line.note ? ` ${line.note}` : ""}`, official],
     },
     {
-      question: `Is ${serviceName(issuer)} open 24/7?`,
+      question: `Is ${service} open 24/7?`,
       answer: line.hours
         ? [`${name}'s official site lists these hours for that line: ${line.hours}.`, official]
         : [`${name}'s contact page does not list hours for this line. The number on the back of your card is the one ${name} expects you to use.`],
@@ -57,5 +65,59 @@ export function issuerFaq(issuer: Issuer): FaqItem[] {
       answer: [`No. Haggle is not affiliated with ${name}. We list ${name}'s own published numbers and link to the page we read them from.`],
     },
   ];
-  return items;
+}
+
+function issuerFaqEs(issuer: Issuer): FaqItem[] {
+  const name = issuer.name;
+  const line = mainLine(issuer);
+  const bank = issuer.insights ? getBank(issuer.insights) : undefined;
+  const official: Segment = { source: issuer.source };
+
+  return [
+    {
+      question: `¿Cuál es el teléfono de servicio al cliente de ${/\bcard\b/i.test(name) ? name : `tarjetas de crédito ${name}`}?`,
+      answer: [`El sitio oficial de ${name} indica el ${line.display} (${line.label}).${line.note ? ` ${line.note}` : ""}`, official],
+    },
+    {
+      question: `¿El servicio al cliente de ${name} atiende 24/7?`,
+      answer: line.hours
+        ? [`El sitio oficial de ${name} indica este horario para esa línea: ${line.hours}.`, official]
+        : [`La página de contacto de ${name} no indica el horario de esta línea. Usa el número que aparece en el reverso de tu tarjeta.`],
+    },
+    {
+      question: `¿Cómo hablo con una persona en ${name}?`,
+      answer:
+        issuer.menu.length > 0
+          ? [
+              ...issuer.menu.flatMap((fact): Segment[] => [`${fact.text}`, { source: fact.source }, " "]),
+              "Ten tu tarjeta a mano antes de llamar. Haggle puede esperar en línea por ti y avisarte cuando conteste una persona.",
+            ]
+          : [
+              `Todavía no hemos registrado el menú telefónico de ${name}. Ten tu tarjeta a mano y di "representante" si el menú no ofrece hablar con una persona. Haggle puede esperar en línea por ti y avisarte cuando conteste una persona.`,
+            ],
+    },
+    {
+      question: `¿${name} me devuelve un cargo por pago atrasado si llamo?`,
+      answer: [
+        "Muchas veces, sí. Entre todos los emisores, al ",
+        { stat: getMarketStat("market-late-fee-waived") },
+        " de quienes pidieron que les quitaran un cargo por pago atrasado se lo quitaron.",
+        ...(bank ? ([` Para ${bank.shortName}, estimamos que se aprueba el `, { stat: bank.stats.lateFeeRefundRate }, " de las solicitudes."] as Segment[]) : []),
+      ],
+    },
+    {
+      question: `¿Puedo pedirle a ${name} una tasa de interés más baja?`,
+      answer: [
+        "Sí, y casi siempre funciona. El ",
+        { stat: getMarketStat("market-apr-ask-success") },
+        " de los titulares que pidieron una tasa más baja la consiguieron, y la reducción promedio fue de ",
+        { stat: getMarketStat("market-apr-cut") },
+        ".",
+      ],
+    },
+    {
+      question: `¿Haggle es parte de ${name}?`,
+      answer: [`No. Haggle no tiene relación con ${name}. Publicamos los números oficiales de ${name} y enlazamos la página de donde los tomamos.`],
+    },
+  ];
 }

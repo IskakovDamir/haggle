@@ -74,3 +74,18 @@ describe("store cards", () => {
     for (const issuer of ISSUERS.filter((i) => i.group === "store")) expect(banks.has(issuer.slug), issuer.slug).toBe(false);
   });
 });
+
+describe("spanish directory", () => {
+  it("every issuer has a Spanish version of every displayed string", async () => {
+    const { localizeIssuer } = await import("./locale");
+    for (const issuer of ISSUERS) expect(() => localizeIssuer(issuer, "es"), issuer.slug).not.toThrow();
+  });
+
+  it("builds Spanish paths and names", async () => {
+    const { phonePath, serviceNameFor } = await import("./locale");
+    expect(phonePath({ slug: "chase" }, "es")).toBe("/es/telefonos/chase");
+    expect(phonePath({ slug: "chase" }, "en")).toBe("/phone/chase");
+    expect(serviceNameFor({ name: "Chase" }, "es")).toBe("Servicio al cliente de tarjetas de crédito Chase");
+    expect(serviceNameFor({ name: "Apple Card" }, "es")).toBe("Servicio al cliente de Apple Card");
+  });
+});
