@@ -55,11 +55,12 @@ const COPY: Copy<WinsCopy> = {
 const FIGMA_CARD_WIDTH = 572;
 const ART_SIZE = 290;
 
+// The bell is moved right of where Figma has it (x 184.65), so it sits at the edge like the other art.
 const WINS: Win[] = [
   { tone: "blue", art: { src: "/landing/wins/3d-arrow-down.png", x: 267.2, y: 17.42, rotate: 5.58 } },
   { tone: "white", art: { src: "/landing/wins/3d-gauge.png", x: 268.41, y: 22.77, rotate: 8 } },
   { tone: "white", art: { src: "/landing/wins/3d-gift.png", x: 300.77, y: -17.59, rotate: -8 } },
-  { tone: "dark", art: { src: "/landing/wins/3d-bell.png", x: 184.65, y: 60.19, rotate: 33.85 } },
+  { tone: "dark", art: { src: "/landing/wins/3d-bell.png", x: 302, y: 60.19, rotate: 33.85 } },
 ];
 
 const TONES: Record<Tone, { card: string; title: string; soft: string; body: string; button: string; link: string; arrow: string }> = {

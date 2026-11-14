@@ -1,7 +1,6 @@
 // Hero from the Figma frame "Hero" (12:184): nav, headline with inline pills, CTAs and the device picture.
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { LocaleSwitch } from "@/components/i18n/locale-switch";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { landingPath, type Copy, type Locale } from "@/lib/i18n/locale";
@@ -29,8 +28,7 @@ type HeroCopy = {
   nav: { home: string; how: string; wins: string; pricing: string };
   logIn: string;
   getStarted: string;
-  badge: string;
-  badgeText: string;
+  demo: string;
   /** The headline's two lines, split around the inline pills: [before mark, after mark] and [before bars, after bars]. */
   headline: [[string, string], [string, string]];
   lead: string;
@@ -44,8 +42,6 @@ const COPY: Copy<HeroCopy> = {
     nav: { home: "Home", how: "How it works", wins: "What we win", pricing: "Pricing" },
     logIn: "Log in",
     getStarted: "Get started",
-    badge: "New",
-    badgeText: "Missed a payment? Get the late fee back",
     headline: [
       ["Let AI", "call your bank"],
       ["and lower your", "card rate"],
@@ -53,14 +49,13 @@ const COPY: Copy<HeroCopy> = {
     lead: "Haggle calls your card issuer, waits on hold and negotiates a lower APR, and you pay only after you save",
     missed: "I missed a payment",
     lower: "Lower my rate",
+    demo: "Try the 60-second demo with sample data",
   },
   es: {
     navLabel: "Principal",
     nav: { home: "Inicio", how: "Cómo funciona", wins: "Qué ganas", pricing: "Precios" },
     logIn: "Entrar",
     getStarted: "Empezar",
-    badge: "Nuevo",
-    badgeText: "¿Se te pasó un pago? Recupera el cargo por atraso",
     headline: [
       ["Que la IA", "llame a tu banco"],
       ["y baje tu", "tasa de interés"],
@@ -68,6 +63,7 @@ const COPY: Copy<HeroCopy> = {
     lead: "Haggle llama a tu banco, espera en línea por ti y negocia una APR más baja. Y solo pagas si ahorras",
     missed: "Se me pasó un pago",
     lower: "Bajar mi tasa",
+    demo: "Prueba la demo de 60 segundos con datos de ejemplo",
   },
 };
 
@@ -191,16 +187,6 @@ export function Hero({ locale = "en" }: { locale?: Locale }) {
       </Reveal>
 
       <div className="relative flex flex-col items-center gap-[26px] pt-12">
-        <Reveal delay={0} y={10}>
-          <Link
-            href="/missed"
-            className="group inline-flex items-center gap-2 rounded-full border border-white bg-white/70 py-1.5 pr-3 pl-1.5 text-[14px] font-semibold text-hg-ink-2 backdrop-blur transition-colors hover:bg-white"
-          >
-            <span className="rounded-full bg-hg-blue px-2.5 py-1 text-[12px] text-white">{t.badge}</span>
-            {t.badgeText}
-            <ArrowRight aria-hidden className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" strokeWidth={2.25} />
-          </Link>
-        </Reveal>
         <Headline locale={locale} />
         <Reveal as="p" delay={0.45} y={16} className="max-w-[960px] text-center text-[16px] leading-6 font-medium tracking-[-0.01em] text-hg-ink-2 sm:text-[18px] sm:leading-7">
           {t.lead}
@@ -212,6 +198,14 @@ export function Hero({ locale = "en" }: { locale?: Locale }) {
           <HgButton href="/start" tone="dark">
             {t.lower}
           </HgButton>
+        </Reveal>
+        <Reveal delay={0.7} y={10}>
+          <Link
+            href="/demo"
+            className="text-[15px] font-semibold text-hg-blue underline decoration-hg-blue/30 underline-offset-4 transition-colors hover:decoration-hg-blue"
+          >
+            {t.demo}
+          </Link>
         </Reveal>
       </div>
 
