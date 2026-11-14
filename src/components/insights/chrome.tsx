@@ -4,6 +4,7 @@ import Link from "next/link";
 import { HgButton, HgLogo, HgSection } from "@/components/landing-v2/ui";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { ProductButton } from "./product-button";
 
 export function InsightsHeader() {
   return (
@@ -17,13 +18,13 @@ export function InsightsHeader() {
           Insights
         </Link>
         <Link
-          href="/missed"
-          className="hidden rounded-full px-3.5 py-2 text-[14px] leading-5 font-semibold text-hg-ink-2 transition-colors hover:text-hg-blue md:inline-flex"
+          href="/phone"
+          className="rounded-full px-3.5 py-2 text-[14px] leading-5 font-semibold text-hg-ink-2 transition-colors hover:text-hg-blue"
         >
-          I missed a payment
+          Phone numbers
         </Link>
-        <HgButton href="/start" tone="dark" size="s">
-          Lower my rate
+        <HgButton href="/" tone="dark" size="s">
+          What is Haggle
         </HgButton>
       </nav>
     </header>
@@ -122,9 +123,9 @@ export function CtaBand({
         <p className="max-w-[56ch] text-[18px] leading-7 font-medium tracking-[-0.01em] text-white/80">{lead}</p>
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap">
           {actions.map((action, i) => (
-            <HgButton key={action.href} href={action.href} tone={i === 0 ? "white" : "dark"} arrow className="whitespace-normal text-center">
+            <ProductButton key={action.href} path={action.href} tone={i === 0 ? "white" : "dark"}>
               {action.label}
-            </HgButton>
+            </ProductButton>
           ))}
         </div>
         <div aria-hidden className="pointer-events-none absolute right-[-40px] bottom-[-60px] hidden size-[340px] lg:block">

@@ -6,7 +6,8 @@ import { Suspense } from "react";
 import { FaqList, JsonLd, Timeline } from "@/components/insights/blocks";
 import { CtaBand, PageIntro, SectionTitle, sectionPad } from "@/components/insights/chrome";
 import { InlineStat, SourceLink, StatFigure } from "@/components/insights/provenance";
-import { HgButton, HgSection } from "@/components/landing-v2/ui";
+import { ProductButton } from "@/components/insights/product-button";
+import { HgSection } from "@/components/landing-v2/ui";
 import { BANKS, DATASET_AS_OF, MISSED_PAYMENT_TIMELINE, getBank, getMarketStat } from "@/lib/benchmarks";
 import { bankFaq } from "@/lib/benchmarks/faq";
 import { faqJsonLd } from "@/lib/benchmarks/seo";
@@ -111,9 +112,7 @@ async function BankView({ params }: { params: PageProps<"/insights/[bank]">["par
               {fact.text} <span className="text-[13px]">(<SourceLink source={fact.source} />{fact.note ? `. ${fact.note}` : ""})</span>
             </p>
           ))}
-          <HgButton href={missedHref} arrow className="whitespace-normal text-center">
-            Have Haggle call {name} about a missed payment
-          </HgButton>
+          <ProductButton path={missedHref}>Have Haggle call {name} about a missed payment</ProductButton>
         </aside>
       </HgSection>
 
@@ -129,9 +128,9 @@ async function BankView({ params }: { params: PageProps<"/insights/[bank]">["par
           <StatFigure stat={bank.stats.typicalAprCut} />
           <StatFigure stat={getMarketStat("market-average-apr")} />
         </div>
-        <HgButton href={startHref} tone="dark" arrow className="self-start whitespace-normal text-center">
+        <ProductButton path={startHref} tone="dark" className="self-start">
           Have Haggle ask {name} for a lower rate
-        </HgButton>
+        </ProductButton>
       </HgSection>
 
       <HgSection className={cn("flex flex-col gap-6 py-12", sectionPad)}>
