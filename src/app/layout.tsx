@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Serif, Inter } from "next/font/google";
+import { Instrument_Serif, Inter, Manrope } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
+const manrope = Manrope({ variable: "--font-manrope-face", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 const instrument = Instrument_Serif({ variable: "--font-instrument", subsets: ["latin"], weight: "400", style: ["normal", "italic"] });
 
 export const metadata: Metadata = {
@@ -14,7 +15,7 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, them
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} ${instrument.variable} h-full`}>
+    <html lang="en" className={`${inter.variable} ${instrument.variable} ${manrope.variable} h-full`}>
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );

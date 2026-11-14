@@ -14,6 +14,16 @@
   --leak-soft: #fbeae3;
   --alarm: #bf2c19;
   --alarm-soft: #fbe7e2;
+
+  /* Landing page (Figma "Haggle — Landing") */
+  --hg-blue: #2f6bff;
+  --hg-blue-soft: #edf2ff;
+  --hg-blue-tint: #d3e0ff;
+  --hg-ink: #0b1220;
+  --hg-ink-2: #3b4356;
+  --hg-muted: #7b8496;
+  --hg-surface: #f4f6fa;
+  --hg-line: #e4e8f0;
 }
 
 @theme inline {
@@ -31,6 +41,15 @@
   --color-alarm-soft: var(--alarm-soft);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-instrument), ui-serif, Georgia, serif;
+  --font-manrope: var(--font-manrope-face), ui-sans-serif, system-ui, sans-serif;
+  --color-hg-blue: var(--hg-blue);
+  --color-hg-blue-soft: var(--hg-blue-soft);
+  --color-hg-blue-tint: var(--hg-blue-tint);
+  --color-hg-ink: var(--hg-ink);
+  --color-hg-ink-2: var(--hg-ink-2);
+  --color-hg-muted: var(--hg-muted);
+  --color-hg-surface: var(--hg-surface);
+  --color-hg-line: var(--hg-line);
 }
 
 html {
