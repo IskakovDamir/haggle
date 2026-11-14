@@ -53,7 +53,11 @@ ${issuersAtoZ()
 
 ## En español
 
-The phone directory is also in Spanish: ${base}/es/telefonos. Each page links to its English version with hreflang.
+Every page here also exists in Spanish, linked with hreflang:
+
+- [Datos de tarjetas de crédito](${base}/es/datos): the insights pages in Spanish, including /es/datos/pago-atrasado and /es/datos/bajar-la-tasa.
+- [Calculadora de intereses](${base}/es/herramientas/calculadora-de-intereses): the interest calculator in Spanish.
+- [Teléfonos](${base}/es/telefonos): the phone directory in Spanish.
 
 ## Optional
 
