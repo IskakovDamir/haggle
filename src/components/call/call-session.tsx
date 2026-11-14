@@ -12,6 +12,7 @@ import { cleanRequest } from "@/lib/negotiator/own-request";
 import type { CardAccount, NegotiationBrief } from "@/lib/types";
 import { askSentence, cardLabel } from "./ask";
 import { BankGuide } from "./bank-guide";
+import { bankReplies } from "./bank-replies";
 import { CoachPanel } from "./coach-panel";
 import { Button } from "@/components/ui/button";
 import { CallPanel, type LineState } from "./call-panel";
@@ -75,7 +76,7 @@ function lineState(session: Session): LineState {
 }
 
 /** One practice call about one plan step: the briefing, the live transcript, and the hand-off to the result. */
-export function CallSession(props: { card: CardAccount; brief: NegotiationBrief }) {
+export function CallSession(props: { card: CardAccount; brief: NegotiationBrief; demo?: boolean }) {
   const router = useRouter();
   const locale = useLocale();
   const copy = COPY[locale];
@@ -94,6 +95,7 @@ export function CallSession(props: { card: CardAccount; brief: NegotiationBrief 
   const session = useCallSession({ card, brief, onResult: showResult });
   const capabilities = useCapabilities();
   const elapsedMs = useElapsedMs(session.startedAtMs, session.phase === "live");
+  const replies = useMemo(() => bankReplies(brief, card, brief.language ?? "en"), [brief, card]);
   /** The cardholder calls the bank themselves and the coach gives tips. No agent, no call record. */
   const [solo, setSolo] = useState(false);
   /** The agent handed the call over: the cardholder is on with the bank, and the coach takes over the panel. */
@@ -137,6 +139,8 @@ export function CallSession(props: { card: CardAccount; brief: NegotiationBrief 
                 ask={askSentence(suggested, card, locale)}
                 request={requestText}
                 onRequest={setRequestText}
+                demo={props.demo ?? false}
+                bankName={brief.issuerName}
                 capabilities={capabilities}
                 voice={session.voice}
                 notice={session.notice}
@@ -177,7 +181,7 @@ export function CallSession(props: { card: CardAccount; brief: NegotiationBrief 
                 emptyText={session.mode === "phone" ? copy.phoneEmpty : copy.agentFirst}
                 className="h-[min(26rem,52vh)]"
               />
-              <LiveControls session={session} />
+              <LiveControls session={session} replies={replies} />
             </>
           )}
         </CallPanel>

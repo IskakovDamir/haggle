@@ -30,6 +30,35 @@ export function allowedNumbers(setting: string | undefined): Set<string> {
   return new Set(numbers);
 }
 
+/**
+ * Country codes in which any number may be rung, from PHONE_OPEN_PREFIXES ("+1,+7"). This opens the
+ * demo to visitors' own phones; each such call is held to the limits in the phone route. Empty or
+ * unset: only the numbers in PHONE_ALLOWED_NUMBERS.
+ */
+export function openPrefixes(setting: string | undefined): string[] {
+  return (setting ?? "")
+    .split(/[,;\s]+/)
+    .map((entry) => entry.trim())
+    .filter((entry) => /^\+\d{1,3}$/.test(entry));
+}
+
+/** Premium-rate lines (+1 900, +1 976) are never rung, whatever the setting. */
+const NEVER_RING = ["+1900", "+1976"];
+
+export type RingPolicy = { allowed: Set<string>; open: string[] };
+
+/** Whether this number may be rung, and whether it is one of the owner's approved phones. */
+export function ringPolicyFor(e164: string, policy: RingPolicy): "approved" | "open" | "refused" {
+  if (NEVER_RING.some((prefix) => e164.startsWith(prefix))) return "refused";
+  if (policy.allowed.has(e164)) return "approved";
+  return policy.open.some((prefix) => e164.startsWith(prefix)) ? "open" : "refused";
+}
+
+/** "+1 or +7", for the sentence that says which numbers can be rung. */
+export function prefixList(open: string[]): string {
+  return open.length <= 1 ? (open[0] ?? "") : `${open.slice(0, -1).join(", ")} or ${open.at(-1)}`;
+}
+
 /** "+15551234567" -> "•••• 4567", for messages and logs. */
 export function maskNumber(e164: string): string {
   return `•••• ${e164.slice(-4)}`;

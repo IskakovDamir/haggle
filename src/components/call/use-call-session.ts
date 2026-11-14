@@ -35,7 +35,7 @@ export type CallSession = {
   notice: string | null;
   voice: { status: VoiceStatus; error: string | null };
   /** A phone call: "placing" until the server answers, then the line's own status. */
-  phone: { status: "idle" | "placing" | PhoneCallStatus; transferred: boolean };
+  phone: { status: "idle" | "placing" | PhoneCallStatus; transferred: boolean; withCardholder: boolean };
   start: (mode: CallMode, voiceId?: string, toNumber?: string, cardholderNumber?: string) => void;
   /** The visitor's line as the bank, in a typed call. */
   say: (text: string) => void;
@@ -97,6 +97,7 @@ export function useCallSession(input: {
   const [notice, setNotice] = useState<string | null>(null);
   const [phoneStatus, setPhoneStatus] = useState<CallSession["phone"]["status"]>("idle");
   const [transferred, setTransferred] = useState(false);
+  const [withCardholder, setWithCardholder] = useState(false);
   /** The phone call being followed. Clearing it stops the polling. */
   const phoneCall = useRef<{ conversationId: string; startedAtMs: number } | null>(null);
   const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -255,6 +256,7 @@ export function useCallSession(input: {
   async function ringPhone(toNumber: string, voiceId?: string, cardholderNumber?: string) {
     setPhoneStatus("placing");
     setTransferred(false);
+    setWithCardholder(Boolean(cardholderNumber));
     const result = await startPhoneCall({ brief, toNumber, voiceId, cardholderNumber });
     if (closing.current) return;
     if (!result.ok) {
@@ -343,7 +345,7 @@ export function useCallSession(input: {
     problem,
     notice,
     voice: { status: voice.status, error: voice.error },
-    phone: { status: phoneStatus, transferred },
+    phone: { status: phoneStatus, transferred, withCardholder },
     start,
     say,
     retry: () => void (problem?.retry === "outcome" ? close() : askAgent()),

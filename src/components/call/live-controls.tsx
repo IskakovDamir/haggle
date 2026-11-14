@@ -36,6 +36,10 @@ type LiveCopy = {
   /** The agent handed the call to the cardholder and left. */
   transferred: string;
   lineLabel: string;
+  suggested: string;
+  scriptTitle: string;
+  scriptNote: string;
+  handoffLine: string;
   answer: string;
   wait: string;
   send: string;
@@ -66,6 +70,10 @@ const COPY: Copy<LiveCopy> = {
     },
     transferred: "The bank asked for the cardholder. The agent connected them and left the call.",
     lineLabel: "Your line, as the bank",
+    suggested: "Tap a reply, or type your own",
+    scriptTitle: "Your script as the bank",
+    scriptNote: "Say these in your own words, in any order. Or go off script: the agent never invents facts, and the result counts only what you say.",
+    handoffLine: "Actually, I need to speak with the cardholder directly.",
     answer: "Answer as the bank",
     wait: "Wait for the agent",
     send: "Say it",
@@ -94,6 +102,10 @@ const COPY: Copy<LiveCopy> = {
     },
     transferred: "El banco pidió hablar con el titular. El agente lo conectó y salió de la llamada.",
     lineLabel: "Lo que dices, como el banco",
+    suggested: "Toca una respuesta o escribe la tuya",
+    scriptTitle: "Tu guion como banco",
+    scriptNote: "Dilo con tus palabras, en el orden que quieras. O improvisa: el agente nunca inventa datos y el resultado cuenta solo lo que tú digas.",
+    handoffLine: "En realidad, necesito hablar directamente con el titular.",
     answer: "Responde como el banco",
     wait: "Espera al agente",
     send: "Enviar",
@@ -116,7 +128,7 @@ function Phase({ id, className, children }: { id: string; className?: string; ch
 }
 
 /** The row under the transcript. It changes with the call: speak or type, wait for the result, or move on. */
-export function LiveControls({ session }: { session: CallSession }) {
+export function LiveControls({ session, replies = [] }: { session: CallSession; replies?: string[] }) {
   const { phase, mode, problem, voice } = session;
   const copy = COPY[useLocale()];
 
@@ -185,9 +197,13 @@ export function LiveControls({ session }: { session: CallSession }) {
         </div>
       )}
 
-      {mode === "text" && <BankComposer session={session} />}
+      {mode === "text" && <BankComposer session={session} replies={replies} />}
 
       {mode === "phone" && <PhoneLine status={session.phone.status} transferred={session.phone.transferred} />}
+
+      {mode === "phone" && !session.phone.transferred && ["placing", "dialing", "live"].includes(session.phone.status) && (
+        <PhoneScript replies={replies} withCardholder={session.phone.withCardholder} />
+      )}
 
       {mode === "voice" && !voiceFailed && (
         <p role="status" className={cn("flex items-center gap-3 text-[15px] font-medium", micLive ? "text-hg-ink-2" : panel.dim)}>
@@ -259,14 +275,83 @@ function PhoneLine({ status, transferred }: { status: PhoneStatus; transferred: 
   );
 }
 
+/** What the visitor can say as the bank on a phone call: the same lines as the typed call's replies. */
+function PhoneScript({ replies, withCardholder }: { replies: string[]; withCardholder: boolean }) {
+  const copy = COPY[useLocale()];
+  if (replies.length === 0) return null;
+  // The handoff line goes right after the bank's first question, where a real rep would ask for it.
+  const lines = withCardholder ? [replies[0], copy.handoffLine, ...replies.slice(1)] : replies;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: EASE }}
+      className="rounded-2xl border border-line bg-hg-surface p-4"
+    >
+      <p className={cn("text-[11px] font-semibold tracking-[0.08em] uppercase", panel.dim)}>{copy.scriptTitle}</p>
+      <ol className="mt-2.5 flex flex-col gap-2">
+        {lines.map((line, index) => (
+          <li
+            key={line}
+            className={cn(
+              "flex items-start gap-2.5 text-[14px] leading-snug",
+              line === copy.handoffLine ? "font-semibold text-hg-blue" : "text-hg-ink-2",
+            )}
+          >
+            <span className="mt-px flex size-5 shrink-0 items-center justify-center rounded-full bg-white text-[11px] font-bold text-hg-muted">
+              {index + 1}
+            </span>
+            “{line}”
+          </li>
+        ))}
+      </ol>
+      <p className={cn("mt-3 text-xs leading-5", panel.dim)}>{copy.scriptNote}</p>
+    </motion.div>
+  );
+}
+
 /** Where the visitor types the bank's next line. It opens only when it is the bank's turn to speak. */
-function BankComposer({ session }: { session: CallSession }) {
+function BankComposer({ session, replies }: { session: CallSession; replies: string[] }) {
   const [draft, setDraft] = useState("");
   const copy = COPY[useLocale()];
   const banksTurn = !session.agentIsReplying && session.turns.at(-1)?.role === "agent";
   const canSend = banksTurn && draft.trim() !== "";
+  // The suggested lines not said yet, next ones first. The last two (confirm, goodbye) stay on offer,
+  // since the agent may ask to confirm the terms more than once, until the goodbye is said.
+  const said = new Set(session.turns.filter((turn) => turn.role === "bank").map((turn) => turn.text));
+  const closing = replies.slice(-2);
+  const steps = replies.slice(0, -2).filter((reply) => !said.has(reply)).slice(0, 2);
+  const next = closing.length === 2 && said.has(closing[1]) ? [] : [...steps, ...closing];
 
   return (
+    <div className="flex flex-col gap-2.5">
+      {next.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <p className={cn("text-[11px] font-semibold tracking-[0.08em] uppercase", panel.dim)}>{copy.suggested}</p>
+          <div className="flex flex-wrap gap-2">
+            {next.map((reply, index) => (
+              <motion.button
+                key={reply}
+                type="button"
+                layout
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, ease: EASE }}
+                disabled={!banksTurn}
+                onClick={() => session.say(reply)}
+                className={cn(
+                  "rounded-2xl border px-3.5 py-2 text-left text-[14px] leading-snug font-medium transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-45",
+                  index === 0
+                    ? "border-hg-blue-tint bg-hg-blue-soft text-hg-ink hover:border-hg-blue"
+                    : "border-line bg-white text-hg-ink-2 hover:border-hg-blue-tint hover:bg-hg-blue-soft",
+                )}
+              >
+                {reply}
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      )}
     <form
       className="flex items-center gap-2"
       onSubmit={(event) => {
@@ -292,5 +377,6 @@ function BankComposer({ session }: { session: CallSession }) {
         <SendHorizontal className="size-4" aria-hidden />
       </Button>
     </form>
+    </div>
   );
 }

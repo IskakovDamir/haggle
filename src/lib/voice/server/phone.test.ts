@@ -80,6 +80,19 @@ describe("POST /api/voice/phone", () => {
     expect(setTransfer.mock.calls[0][2].params.transfers).toEqual([]);
   });
 
+  it("rings a visitor's own phone in an open country code, a few times an hour at most", async () => {
+    vi.stubEnv("PHONE_OPEN_PREFIXES", "+1");
+    const dial = vi.fn().mockResolvedValue({ conversationId: "conv_123456" });
+    const visitor = "+15557770001";
+    for (let i = 0; i < 3; i++) {
+      expect((await handleStartPhoneCall_(post({ brief: mariaBrief, toNumber: visitor }), dial)).status).toBe(200);
+    }
+    expect((await handleStartPhoneCall_(post({ brief: mariaBrief, toNumber: visitor }), dial)).status).toBe(429);
+    const abroad = await handleStartPhoneCall_(post({ brief: mariaBrief, toNumber: "+447700900123" }), dial);
+    expect(abroad.status).toBe(400);
+    expect((await abroad.json()).error).toContain("+1");
+  });
+
   it("refuses a bad brief", async () => {
     const response = await handleStartPhoneCall_(post({ brief: { goal: "x" }, toNumber: "+15552345678" }), vi.fn());
     expect(response.status).toBe(400);

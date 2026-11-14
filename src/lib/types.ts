@@ -248,6 +248,8 @@ export type Capabilities = {
   payments: boolean;
   /** The agent can ring a real phone number (ElevenLabs + a Twilio number). */
   phone: boolean;
+  /** Country codes in which visitors may ring their own phones ("+1"). Empty: approved phones only. */
+  phoneOpen?: string[];
 };
 
 export type ApiError = { error: string; code: string };

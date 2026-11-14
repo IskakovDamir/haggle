@@ -45,6 +45,7 @@ const capabilitiesSchema = z.object({
   payments: z.boolean(),
   // Older servers do not send it: no phone calls then.
   phone: z.boolean().default(false),
+  phoneOpen: z.array(z.string()).default([]),
 });
 
 const replySchema = z.object({ reply: z.string().min(1), done: z.boolean() });

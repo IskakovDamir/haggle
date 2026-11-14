@@ -112,6 +112,12 @@ export function cardLabel(card: Pick<CardAccount, "issuerName" | "cardName" | "l
           : `${card.issuerName} ${card.cardName}`;
     return card.last4 ? `${name} terminada en ${card.last4}` : name;
   }
-  const name = card.cardName.startsWith(card.issuerName) ? card.cardName : `${card.issuerName} ${card.cardName}`;
+  // A card with no real name is "Chase card", not "Chase Credit card".
+  const name =
+    card.cardName === GENERIC_CARD_NAME
+      ? `${card.issuerName} card`
+      : card.cardName.startsWith(card.issuerName)
+        ? card.cardName
+        : `${card.issuerName} ${card.cardName}`;
   return card.last4 ? `${name} ending ${card.last4}` : name;
 }

@@ -1,5 +1,6 @@
 // Helpers for route handlers: one JSON shape for errors, no caching, and a small rate limiter.
 import type { ApiError, Capabilities } from "@/lib/types";
+import { openPrefixes } from "@/lib/voice/phone";
 
 const NO_STORE = { "Cache-Control": "no-store" };
 
@@ -68,6 +69,19 @@ export function allow(request: Request, bucket: string, limit: number, windowMs:
   return true;
 }
 
+/** The same sliding window for any key, such as a phone number or one shared daily budget. */
+export function allowKey(key: string, limit: number, windowMs: number): boolean {
+  const now = Date.now();
+  const recent = (hits.get(key) ?? []).filter((t) => now - t < windowMs);
+  if (recent.length >= limit) {
+    hits.set(key, recent);
+    return false;
+  }
+  recent.push(now);
+  hits.set(key, recent);
+  return true;
+}
+
 /**
  * Which model provider reads statements and negotiates. AI_PROVIDER ("claude" or "gemini") picks one
  * explicitly; otherwise Claude when its key is set, then Gemini. null when neither key is set.
@@ -95,8 +109,9 @@ export function capabilities(): Capabilities {
       process.env.ELEVENLABS_API_KEY &&
         process.env.ELEVENLABS_AGENT_ID &&
         process.env.ELEVENLABS_PHONE_NUMBER_ID &&
-        process.env.PHONE_ALLOWED_NUMBERS?.trim(),
+        (process.env.PHONE_ALLOWED_NUMBERS?.trim() || process.env.PHONE_OPEN_PREFIXES?.trim()),
     ),
+    phoneOpen: openPrefixes(process.env.PHONE_OPEN_PREFIXES),
   };
 }
 

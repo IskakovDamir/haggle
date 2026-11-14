@@ -9,7 +9,9 @@ import { playbookFor } from "./playbooks";
 /** "Chase Freedom Unlimited card ending in 4821" */
 function cardLabel(brief: NegotiationBrief): string {
   const namesIssuer = brief.cardName.toLowerCase().includes(brief.issuerName.toLowerCase());
-  const name = namesIssuer ? brief.cardName : `${brief.issuerName} ${brief.cardName}`;
+  // A card with no real name ("Credit card") is just the bank's card: "Chase card".
+  const generic = /^credit\s*card$/i.test(brief.cardName.trim());
+  const name = generic ? brief.issuerName : namesIssuer ? brief.cardName : `${brief.issuerName} ${brief.cardName}`;
   const card = /card$/i.test(name) ? name : `${name} card`;
   return brief.last4 ? `${card} ending in ${brief.last4}` : card;
 }

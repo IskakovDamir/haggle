@@ -12,17 +12,19 @@ import { callHref, resolveCall } from "./resolve-call";
 
 /** "/call?step=<cardId>:<kind>": finds the plan step in the visitor's case and runs the call for it. */
 export function CallScreen() {
-  const stepParam = useSearchParams().get("step");
+  const params = useSearchParams();
+  const stepParam = params.get("step");
+  const demo = params.get("demo") === "1";
   const { caseFile, ready } = useCaseFile();
 
   if (!ready) return <PageSkeleton />;
   if (!caseFile || caseFile.cards.length === 0) {
     return <EmptyState title="No statement yet">Haggle needs a card statement before it can call anyone.</EmptyState>;
   }
-  return <PlannedCall caseFile={caseFile} stepParam={stepParam} />;
+  return <PlannedCall caseFile={caseFile} stepParam={stepParam} demo={demo} />;
 }
 
-function PlannedCall({ caseFile, stepParam }: { caseFile: CaseFile; stepParam: string | null }) {
+function PlannedCall({ caseFile, stepParam, demo }: { caseFile: CaseFile; stepParam: string | null; demo: boolean }) {
   const router = useRouter();
   const today = useToday();
   const locale = useLocale();
@@ -46,5 +48,5 @@ function PlannedCall({ caseFile, stepParam }: { caseFile: CaseFile; stepParam: s
 
   // A fresh visit starts a fresh call; coming back with the browser's Back button finds the call as it was left.
   // The language is part of the key: switching it before a call starts a fresh briefing in that language.
-  return <CallSession key={`${router.bfcacheId}:${plan.step.id}:${locale}`} card={plan.card} brief={plan.brief} />;
+  return <CallSession key={`${router.bfcacheId}:${plan.step.id}:${locale}`} card={plan.card} brief={plan.brief} demo={demo} />;
 }
