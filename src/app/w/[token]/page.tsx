@@ -11,9 +11,11 @@ import { cn } from "@/lib/utils";
 export async function generateMetadata({ params }: PageProps<"/w/[token]">): Promise<Metadata> {
   const card = await sharedCard((await params).token);
   if (!card) return { title: "Haggle" };
-  const title = `${card.payload.bank}: ${winLine(card.payload.wins[0])}`;
-  const description = shareText(card.payload);
-  return { title, description, openGraph: { title, description }, twitter: { title, description } };
+  // An edited or unsigned card never repeats its numbers in the link preview text.
+  const unverified = card.status === "unverified";
+  const title = unverified ? "Unverified Haggle win card" : `${card.payload.bank}: ${winLine(card.payload.wins[0])}`;
+  const description = unverified ? "We could not verify this card. Its numbers may have been edited." : shareText(card.payload);
+  return { title, description, openGraph: { title, description }, twitter: { card: "summary_large_image", title, description } };
 }
 
 const NOTE = {
