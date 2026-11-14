@@ -8,7 +8,7 @@ import { InlineStat, SourceLink, StatFigure } from "@/components/insights/proven
 import { HgSection } from "@/components/landing-v2/ui";
 import { BANKS, DATASET_AS_OF, getMarketStat } from "@/lib/benchmarks";
 import { bankFaqFor } from "@/lib/benchmarks/faq-es";
-import { insightsBankPath, insightsIndexPath, insightsTopicPath, localizeBank, localizeStat, localizedTimeline } from "@/lib/benchmarks/locale";
+import { aprGuidePath, insightsBankPath, insightsIndexPath, insightsTopicPath, localizeBank, localizeStat, localizedTimeline } from "@/lib/benchmarks/locale";
 import { faqJsonLd } from "@/lib/benchmarks/seo";
 import type { Bank } from "@/lib/benchmarks/types";
 import { ISSUERS, mainLine } from "@/lib/directory";
@@ -31,6 +31,7 @@ type BankCopy = {
   rateTitle: string;
   rateLead: (name: string) => string;
   ctaRate: (name: string) => string;
+  guide: (name: string) => string;
   calling: (name: string) => string;
   cardLine: (name: string) => [string, string];
   seeEvery: (name: string) => string;
@@ -71,6 +72,7 @@ const COPY: Copy<BankCopy> = {
     rateTitle: "If your rate is too high",
     rateLead: (name) => `Banks keep retention teams that can cut your rate before you leave. Here is how often asking works, and what to expect from ${name}.`,
     ctaRate: (name) => `Have Haggle ask ${name} for a lower rate`,
+    guide: (name) => `Read the step-by-step guide to asking ${name} for a lower APR`,
     calling: (name) => `Calling ${name}`,
     cardLine: (name) => [`${name}'s card line is `, ", from "],
     seeEvery: (name) => `See every ${name} number and what to say`,
@@ -115,6 +117,7 @@ const COPY: Copy<BankCopy> = {
     rateLead: (name) =>
       `Los bancos tienen equipos de retención que pueden bajarte la tasa antes de que te vayas. Así de seguido funciona pedirlo, y esto puedes esperar de ${name}.`,
     ctaRate: (name) => `Que Haggle le pida a ${name} una tasa más baja`,
+    guide: (name) => `Lee la guía paso a paso para pedirle a ${name} un APR más bajo`,
     calling: (name) => `Llamar a ${name}`,
     cardLine: (name) => [`La línea de tarjetas de ${name} es el `, ", según "],
     seeEvery: (name) => `Ver todos los teléfonos de ${name} y qué decir`,
@@ -231,9 +234,14 @@ export function BankBody({ bank: raw, lang }: { bank: Bank; lang: Locale }) {
           <StatFigure stat={bank.stats.typicalAprCut} lang={lang} />
           <StatFigure stat={market("market-average-apr")} lang={lang} />
         </div>
-        <ProductButton path={startHref} tone="dark" className="self-start" lang={lang}>
-          {t.ctaRate(name)}
-        </ProductButton>
+        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+          <ProductButton path={startHref} tone="dark" lang={lang}>
+            {t.ctaRate(name)}
+          </ProductButton>
+          <Link href={aprGuidePath(bank.slug, lang)} className={cn(link, "text-[15px]")}>
+            {t.guide(name)}
+          </Link>
+        </div>
       </HgSection>
 
       <HgSection className={cn("flex flex-col gap-6 py-12", sectionPad)}>

@@ -140,6 +140,11 @@ export function insightsTopicPath(slug: TopicSlug, lang: Locale): string {
   return `${insightsIndexPath(lang)}/${lang === "es" ? TOPIC_SLUG_ES[slug] : slug}`;
 }
 
+/** The step-by-step lower-APR guide for one bank. */
+export function aprGuidePath(slug: string, lang: Locale): string {
+  return `${insightsBankPath(slug, lang)}/${lang === "es" ? "bajar-la-tasa" : "lower-apr"}`;
+}
+
 export function calculatorPath(lang: Locale): string {
   return lang === "es" ? "/es/herramientas/calculadora-de-intereses" : "/tools/credit-card-interest-calculator";
 }

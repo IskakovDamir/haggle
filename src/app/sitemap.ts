@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { DATASET_AS_OF } from "@/lib/benchmarks";
 import { BANKS } from "@/lib/benchmarks";
-import { calculatorPath, insightsBankPath, insightsIndexPath, insightsTopicPath } from "@/lib/benchmarks/locale";
+import { aprGuidePath, calculatorPath, insightsBankPath, insightsIndexPath, insightsTopicPath } from "@/lib/benchmarks/locale";
 import { siteUrl } from "@/lib/benchmarks/site";
 import { DIRECTORY_AS_OF, ISSUERS } from "@/lib/directory";
 import { phoneIndexPath, phonePath } from "@/lib/directory/locale";
@@ -13,6 +13,7 @@ function insightsPairs(): [string, string][] {
     [insightsTopicPath("missed-payment", "en"), insightsTopicPath("missed-payment", "es")],
     [insightsTopicPath("lower-apr", "en"), insightsTopicPath("lower-apr", "es")],
     ...BANKS.map((b): [string, string] => [insightsBankPath(b.slug, "en"), insightsBankPath(b.slug, "es")]),
+    ...BANKS.map((b): [string, string] => [aprGuidePath(b.slug, "en"), aprGuidePath(b.slug, "es")]),
     [calculatorPath("en"), calculatorPath("es")],
   ];
 }
