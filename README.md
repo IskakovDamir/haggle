@@ -8,7 +8,9 @@ An AI agent on the borrower's side. It reads your statement, works out what the 
 
 ## Try it in 60 seconds
 
-Open **https://haggle-pi.vercel.app/demo**. It loads Maria's sample case, labelled as sample data, and starts a call where **you play the bank**.
+**Judges: start at https://haggle-pi.vercel.app/judges.** A guided tour walks you from Maria's sample case to a verified win, one highlighted click at a time.
+
+Or skip the tour: open **https://haggle-pi.vercel.app/demo**. It loads Maria's sample case, labelled as sample data, and starts a call where **you play the bank**.
 
 - **Real phone call:** type your phone number (+1 or +7) and press **Call my phone**. Your phone rings. You're the Chase rep, and your script is on screen.
   - Add a second phone as the cardholder, then say "I need to speak with the cardholder". Haggle rings that phone and connects it.

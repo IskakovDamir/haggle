@@ -97,7 +97,7 @@ export function MissedForm() {
       >
         <Stagger onMount gap={0.08} className="flex flex-col gap-5">
           <StaggerItem className="flex flex-wrap items-center gap-3">
-            <Button type="button" variant="outline" size="sm" onClick={fillSample}>
+            <Button type="button" variant="outline" size="sm" onClick={fillSample} data-tour="fill-sample">
               <Sparkles className="size-3.5" aria-hidden />
               {copy.fillSample}
             </Button>
@@ -220,7 +220,7 @@ export function MissedForm() {
           </StaggerItem>
 
           <StaggerItem className="flex flex-wrap items-center gap-3">
-            <Button type="submit" size="lg">
+            <Button type="submit" size="lg" data-tour="missed-submit">
               {copy.submit(values.issuerName.trim())}
               <ArrowRight className="size-4" aria-hidden />
             </Button>
@@ -230,6 +230,7 @@ export function MissedForm() {
       </form>
 
       <motion.aside
+        data-tour="missed-asks"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: EASE, delay: 0.25 }}

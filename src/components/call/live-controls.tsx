@@ -113,10 +113,11 @@ const COPY: Copy<LiveCopy> = {
 };
 
 /** Each phase of the row rises in when it takes over, so the change reads as one step. */
-function Phase({ id, className, children }: { id: string; className?: string; children: React.ReactNode }) {
+function Phase({ id, className, tour, children }: { id: string; className?: string; tour?: string; children: React.ReactNode }) {
   return (
     <motion.div
       key={id}
+      data-tour={tour}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: EASE }}
@@ -134,7 +135,7 @@ export function LiveControls({ session, replies = [] }: { session: CallSession; 
 
   if (phase === "done") {
     return (
-      <Phase id="done" className="flex flex-col gap-2 sm:flex-row">
+      <Phase id="done" tour="call-live" className="flex flex-col gap-2 sm:flex-row">
         <Link
           href={`/win?call=${encodeURIComponent(session.callId ?? "")}`}
           className={cn(buttonVariants({ size: "lg" }), "group flex-1")}
@@ -174,7 +175,7 @@ export function LiveControls({ session, replies = [] }: { session: CallSession; 
   const micLive = voice.status === "live";
 
   return (
-    <Phase id="live" className="flex flex-col gap-3">
+    <Phase id="live" tour="call-live" className="flex flex-col gap-3">
       {problem && (
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Notice tone="dark" className="flex-1">

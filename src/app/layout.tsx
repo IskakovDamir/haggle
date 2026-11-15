@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope } from "next/font/google";
+import { TourGuide } from "@/components/judges/tour-guide";
 import { MotionRoot } from "@/components/motion/motion-root";
 import "./globals.css";
 
@@ -16,7 +17,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${manrope.variable} h-full`}>
       <body className="flex min-h-full flex-col">
-        <MotionRoot>{children}</MotionRoot>
+        <MotionRoot>
+          {children}
+          <TourGuide />
+        </MotionRoot>
       </body>
     </html>
   );

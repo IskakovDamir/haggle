@@ -150,7 +150,9 @@ function CallResult({
   if (kind !== "win") {
     return (
       <div className="flex flex-col gap-6">
-        <NoWin kind={kind} call={call} bankName={bankName} today={today} />
+        <div data-tour="win-result">
+          <NoWin kind={kind} call={call} bankName={bankName} today={today} />
+        </div>
         {planNotice}
         <NextUp step={nextStep} today={today} delay={0.45} />
       </div>
@@ -161,13 +163,17 @@ function CallResult({
   return (
     <MotionConfig reducedMotion="user">
       <div className="flex flex-col gap-6">
-        <ResultCard
-          bankName={bankName}
-          outcome={outcome}
-          changes={changesFromOutcome(card, outcome, locale)}
-          savings={savings ?? { annualSavingsCents: 0, lines: [], feeCents: 0 }}
-        />
-        <ShareWin call={call} card={card} outcome={outcome} savings={savings} bankName={bankName} />
+        <div data-tour="win-result">
+          <ResultCard
+            bankName={bankName}
+            outcome={outcome}
+            changes={changesFromOutcome(card, outcome, locale)}
+            savings={savings ?? { annualSavingsCents: 0, lines: [], feeCents: 0 }}
+          />
+        </div>
+        <div data-tour="win-share">
+          <ShareWin call={call} card={card} outcome={outcome} savings={savings} bankName={bankName} />
+        </div>
 
         {savings === null && (
           <Appear delay={BEAT.savings}>
@@ -181,12 +187,14 @@ function CallResult({
             </Appear>
             {/* The fee and the way to pay it arrive last, once the win and what it is worth have landed. */}
             <Appear delay={BEAT.pay}>
-              <PayPanel
-                call={call}
-                savings={savings}
-                label={`${goalLabel(call.goal, locale)}, ${bankName}`.slice(0, 80)}
-                paymentReturn={paymentReturn}
-              />
+              <div data-tour="win-pay">
+                <PayPanel
+                  call={call}
+                  savings={savings}
+                  label={`${goalLabel(call.goal, locale)}, ${bankName}`.slice(0, 80)}
+                  paymentReturn={paymentReturn}
+                />
+              </div>
             </Appear>
           </div>
         )}

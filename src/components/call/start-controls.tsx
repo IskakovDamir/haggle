@@ -278,7 +278,7 @@ export function StartControls({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4" data-tour="call-start">
       <Rise>
         <p className={eyebrow}>{copy.willAsk}</p>
         {writing ? (
