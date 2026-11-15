@@ -52,7 +52,7 @@ export function CallPanel({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.6, ease: EASE, delay: 0.1 }}
     >
-      <div className={cn(panel.shell, "flex flex-col gap-4 border-0 px-4 pt-3 pb-5 sm:px-5")}>
+      <div className={cn(panel.shell, panel.screen, "flex flex-col gap-4 border-0 px-4 pt-3 pb-5 sm:px-5")}>
         <div aria-hidden className="mx-auto h-[20px] w-[76px] shrink-0 rounded-full bg-hg-ink" />
 
         <div className="flex items-center gap-3">

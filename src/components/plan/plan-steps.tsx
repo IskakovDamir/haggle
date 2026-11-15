@@ -7,6 +7,7 @@ import type { CallRecord, PlanStep } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { WonCheck } from "./animated";
 import { OUTCOME_LABEL, lastCallFor, leverWorth, stepWhen } from "./labels";
+import { BLUE_PANEL, INK_PANEL } from "./surfaces";
 
 /** True when the call ended with a yes, in full or in part. */
 function isWon(call: CallRecord): boolean {
@@ -38,33 +39,54 @@ function LastCall({ call }: { call: CallRecord }) {
   );
 }
 
-function Step({ step, cardName, lastCall }: { step: PlanStep; cardName: string | null; lastCall: CallRecord | null }) {
+/** How a step is filled: the next call is bright blue, a step you do yourself is dark ink, the rest are white. */
+type StepTone = "blue" | "white" | "ink";
+
+function Step({
+  step,
+  cardName,
+  lastCall,
+  current,
+}: {
+  step: PlanStep;
+  cardName: string | null;
+  lastCall: CallRecord | null;
+  /** True for the next call to make, the one the plan's main button also starts. */
+  current: boolean;
+}) {
   const worth = leverWorth(step.lever);
   const won = lastCall !== null && isWon(lastCall);
+  const tone: StepTone = won ? "white" : current ? "blue" : step.lever.needsCall ? "white" : "ink";
+  const onDark = tone !== "white";
 
   return (
     <Card
       className={cn(
-        "flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:rounded-[28px] sm:p-6",
+        "flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:rounded-[28px] sm:px-6 sm:py-[26px]",
+        onDark && "border-transparent text-white",
         won && "border-hg-blue/25 bg-[linear-gradient(135deg,#ffffff_40%,var(--hg-blue-soft))]",
       )}
+      style={tone === "blue" ? BLUE_PANEL : tone === "ink" ? INK_PANEL : undefined}
     >
-      <div className="flex min-w-0 flex-1 items-start gap-4">
+      <div className="flex min-w-0 flex-1 items-center gap-4">
         <span
           className={cn(
             "tabular flex size-11 shrink-0 items-center justify-center rounded-2xl text-[17px] font-semibold tracking-[-0.02em] text-white",
-            won ? "bg-hg-blue" : "bg-ink",
+            won ? "bg-hg-blue" : "bg-hg-ink",
+            tone === "ink" && "ring-1 ring-white/10",
           )}
         >
           {step.order}
         </span>
         <div className="min-w-0">
-          <h3 className="leading-snug font-semibold tracking-[-0.015em]">{step.lever.title}</h3>
-          <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-muted">
+          <h3 className={cn("leading-snug font-semibold tracking-[-0.015em]", onDark ? "text-white" : "text-hg-ink")}>{step.lever.title}</h3>
+          <p className={cn("mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm", onDark ? "text-white/68" : "text-muted")}>
             {step.dueOn === null ? (
-              <Badge tone="lime">Now</Badge>
+              <Badge tone="lime" className={cn(tone === "blue" && "bg-white/16")}>
+                Now
+              </Badge>
             ) : (
-              <Badge tone="outline">
+              <Badge tone="outline" className={cn(onDark && "border-white/14 text-white/68")}>
                 <CalendarClock className="size-3" aria-hidden />
                 {stepWhen(step)}
               </Badge>
@@ -79,13 +101,21 @@ function Step({ step, cardName, lastCall }: { step: PlanStep; cardName: string |
       {step.lever.needsCall ? (
         <Link
           href={`/call?step=${encodeURIComponent(step.id)}`}
-          className={buttonVariants({ variant: "outline", className: "shrink-0" })}
+          className={buttonVariants({
+            variant: "outline",
+            className: cn(
+              "shrink-0 self-start sm:self-auto",
+              tone === "blue" && "border-white/14 bg-white/8 text-white hover:border-white/30 hover:bg-white/16",
+            ),
+          })}
         >
           <Phone className="size-4" aria-hidden />
           {lastCall ? "Call again" : "Start the call"}
         </Link>
       ) : (
-        <p className="shrink-0 text-sm text-muted sm:max-w-[18ch] sm:text-right">No call. You do this one yourself.</p>
+        <p className={cn("shrink-0 text-sm sm:max-w-[18ch] sm:text-right", onDark ? "text-white/68" : "text-muted")}>
+          No call. You do this one yourself.
+        </p>
       )}
     </Card>
   );
@@ -96,10 +126,13 @@ export function PlanSteps({
   steps,
   calls,
   cardNames,
+  currentStepId = null,
 }: {
   steps: PlanStep[];
   calls: CallRecord[];
   cardNames: Map<string, string>;
+  /** The next call to make, drawn in bright blue. */
+  currentStepId?: string | null;
 }) {
   if (steps.length === 0) {
     return (
@@ -117,6 +150,7 @@ export function PlanSteps({
               step={step}
               cardName={cardNames.size > 1 ? (cardNames.get(step.lever.cardId) ?? null) : null}
               lastCall={lastCallFor(calls, step)}
+              current={step.id === currentStepId}
             />
           </Lift>
         </StaggerItem>

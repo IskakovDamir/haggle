@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { motion, type Variants } from "framer-motion";
 import { ArrowRight, CheckCircle2, Circle, Phone, Plus, RotateCcw } from "lucide-react";
@@ -10,7 +11,7 @@ import { cardsAfterWins } from "@/components/plan/apply-wins";
 import { CountUpDollars } from "@/components/plan/count-up";
 import { NumbersBoundary } from "@/components/plan/numbers-boundary";
 import { buttonVariants } from "@/components/ui/button";
-import { Badge, Card } from "@/components/ui/primitives";
+import { Badge } from "@/components/ui/primitives";
 import { analyze } from "@/lib/engine";
 import { formatDate, todayIso } from "@/lib/format";
 import { formatDollars } from "@/lib/money";
@@ -25,8 +26,16 @@ const rowRise: Variants = {
   shown: { opacity: 1, y: 0, transition: { duration: 0.45, ease: EASE } },
 };
 
-const STAT_LABEL = "text-[13px] font-semibold tracking-[-0.002em]";
-const STAT_VALUE = "tabular mt-2 text-[34px] leading-[1.1] font-semibold tracking-[-0.035em]";
+const STAT_LABEL = "text-[13px] leading-[18px] font-semibold tracking-[-0.002em]";
+const STAT_VALUE = "tabular mt-2.5 text-[34px] leading-[1.1] font-semibold tracking-[-0.035em]";
+/** A see-through stat box on the blue panel. */
+const GLASS = "h-full rounded-[24px] border border-white/16 bg-white/10 p-6";
+/** The blue panel behind the calls header and the empty state. */
+const BLUE_GRADIENT = "bg-[linear-gradient(120deg,#2448f0_0%,#2f6bff_55%,#8db6ff_100%)]";
+/** The dark strip on top of each bank's list. */
+const INK_GRADIENT = "bg-[linear-gradient(135deg,#2b3446_0%,#0b1220_72%)]";
+/** A white button on a coloured panel. */
+const ON_PANEL_BUTTON = "bg-white text-hg-ink shadow-none hover:bg-white hover:shadow-none hover:brightness-95";
 
 function StatusLine({ item }: { item: CallItem }) {
   const { status } = item;
@@ -88,100 +97,107 @@ function CallListView({ caseFile }: { caseFile: CaseFile }) {
 
   return (
     <div>
-      <Stagger onMount gap={0.07}>
-        <StaggerItem>
-          <p className="inline-flex rounded-full bg-hg-blue-soft px-3 py-1 text-[13px] leading-[18px] font-semibold text-hg-blue">
-            Your calls
-          </p>
-        </StaggerItem>
-        <StaggerItem>
-          <h1 className="mt-4 text-[clamp(32px,4.5vw,48px)] leading-[1.1] font-semibold tracking-[-0.035em] text-hg-ink">
-            {list.total} {list.total === 1 ? "call" : "calls"} to <em>{banks === 1 ? "one bank" : `${banks} banks`}</em>
-          </h1>
-        </StaggerItem>
-        <StaggerItem>
-          <p className="mt-4 max-w-[60ch] text-[18px] leading-7 font-medium tracking-[-0.01em] text-muted">
-            Haggle makes every call on this list for you, one after another. You only listen in when the bank needs to verify it&apos;s you.
-          </p>
-        </StaggerItem>
-
-        <div className="mt-8 grid gap-3 sm:grid-cols-3">
+      <section className={cn("relative isolate overflow-hidden rounded-[32px] p-6 text-white sm:rounded-[40px] sm:p-10", BLUE_GRADIENT)}>
+        <Image
+          src="/app/3d/headphones-3d.png"
+          alt=""
+          width={210}
+          height={252}
+          priority
+          className="pointer-events-none absolute -top-1.5 right-9 -z-10 hidden h-[252px] w-[210px] select-none xl:block"
+        />
+        <Stagger onMount gap={0.07}>
           <StaggerItem>
-            <Card className="h-full rounded-[28px] p-6">
-              <p className={cn(STAT_LABEL, "text-muted")}>Done</p>
-              <p className={cn(STAT_VALUE, "text-hg-ink")}>
-                {list.done} of {list.total}
-              </p>
-              <div aria-hidden className="mt-4 h-1.5 overflow-hidden rounded-full bg-hg-surface">
-                <motion.div
-                  className="h-full rounded-full bg-hg-blue"
-                  initial={{ width: "0%" }}
-                  animate={{ width: `${donePercent}%` }}
-                  transition={{ duration: 0.7, ease: EASE, delay: 0.35 }}
-                />
+            <p className="inline-flex rounded-full bg-white/8 px-3 py-1 text-[13px] leading-[18px] font-semibold text-white">Your calls</p>
+          </StaggerItem>
+          <StaggerItem>
+            <h1 className="mt-5 text-[clamp(32px,4.5vw,48px)] leading-[1.1] font-semibold tracking-[-0.035em] text-white [&_em]:text-[#c9dbff]!">
+              {list.total} {list.total === 1 ? "call" : "calls"} to <em>{banks === 1 ? "one bank" : `${banks} banks`}</em>
+            </h1>
+          </StaggerItem>
+          <StaggerItem>
+            <p className="mt-3.5 max-w-[540px] text-[18px] leading-7 font-medium tracking-[-0.01em] text-white/68">
+              Haggle makes every call on this list for you, one after another. You only listen in when the bank needs to verify it&apos;s you.
+            </p>
+          </StaggerItem>
+
+          <div className="mt-8 grid gap-3 sm:grid-cols-3">
+            <StaggerItem>
+              <div className={GLASS}>
+                <p className={cn(STAT_LABEL, "text-white/68")}>Done</p>
+                <p className={cn(STAT_VALUE, "text-white")}>
+                  {list.done} of {list.total}
+                </p>
+                <div aria-hidden className="mt-3.5 h-1.5 overflow-hidden rounded-full border border-white/16 bg-white/10">
+                  <motion.div
+                    className="h-full rounded-full bg-white"
+                    initial={{ width: "0%" }}
+                    animate={{ width: `${donePercent}%` }}
+                    transition={{ duration: 0.7, ease: EASE, delay: 0.35 }}
+                  />
+                </div>
               </div>
-            </Card>
-          </StaggerItem>
-          <StaggerItem>
-            <div className="hg-panel relative h-full overflow-hidden rounded-[28px] p-6 shadow-[0_20px_44px_-22px_rgb(47_107_255/0.8)]">
-              <span aria-hidden className="pointer-events-none absolute -top-16 -right-12 size-40 rounded-full bg-white/15 blur-2xl" />
-              <p className={cn(STAT_LABEL, "relative text-white/75")}>Still to win</p>
-              <p className={cn(STAT_VALUE, "relative text-white")}>
-                <CountUpDollars cents={list.openValueCents} />
-              </p>
-              <p className="relative mt-1 text-sm font-medium text-white/75">a year, at average results</p>
-            </div>
-          </StaggerItem>
-          <StaggerItem>
-            <Card className="h-full rounded-[28px] p-6">
-              <p className={cn(STAT_LABEL, "text-muted")}>Already won</p>
-              <p className={cn(STAT_VALUE, "text-hg-ink")}>
-                <CountUpDollars cents={list.wonCents} />
-              </p>
-              <p className="mt-1 text-sm font-medium text-muted">a year</p>
-            </Card>
-          </StaggerItem>
-        </div>
+            </StaggerItem>
+            <StaggerItem>
+              <div className="h-full rounded-[24px] bg-white p-6 text-hg-ink">
+                <p className={STAT_LABEL}>Still to win</p>
+                <p className={STAT_VALUE}>
+                  <CountUpDollars cents={list.openValueCents} />
+                </p>
+                <p className="mt-1 text-sm font-medium">a year, at average results</p>
+              </div>
+            </StaggerItem>
+            <StaggerItem>
+              <div className={GLASS}>
+                <p className={cn(STAT_LABEL, "text-white/68")}>Already won</p>
+                <p className={cn(STAT_VALUE, "text-white")}>
+                  <CountUpDollars cents={list.wonCents} />
+                </p>
+                <p className="mt-1 text-sm font-medium text-white/68">a year</p>
+              </div>
+            </StaggerItem>
+          </div>
 
-        <StaggerItem>
-          {list.next ? (
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Link href={callHref(list.next.id)} className={buttonVariants({ size: "lg", className: "group" })}>
-                <Phone className="size-4" aria-hidden />
-                {list.done === 0 ? "Start the first call" : "Make the next call"}
-                <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" aria-hidden />
-              </Link>
-              <p className="text-sm font-medium text-muted">{list.next.lever.title}. A practice call: you play the bank.</p>
-            </div>
-          ) : (
-            list.total > 0 && <p className="mt-6 font-semibold text-hg-blue">Every call on the list is done.</p>
-          )}
-        </StaggerItem>
-      </Stagger>
+          <StaggerItem>
+            {list.next ? (
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Link href={callHref(list.next.id)} className={cn(buttonVariants({ size: "lg" }), "group w-fit", ON_PANEL_BUTTON)}>
+                  <Phone className="size-4" aria-hidden />
+                  {list.done === 0 ? "Start the first call" : "Make the next call"}
+                  <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" aria-hidden />
+                </Link>
+                <p className="text-sm font-medium text-white/68">{list.next.lever.title}. A practice call: you play the bank.</p>
+              </div>
+            ) : (
+              list.total > 0 && <p className="mt-6 font-semibold text-white">Every call on the list is done.</p>
+            )}
+          </StaggerItem>
+        </Stagger>
+      </section>
 
       <Stagger className="mt-10 space-y-4" gap={0.1} amount={0.05}>
         {list.groups.map((group) => (
           <StaggerItem key={group.cardId}>
-            <Card className="overflow-hidden rounded-[28px]">
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line bg-linear-to-b from-[#eef4fd] to-[#f7faff] px-5 py-4 sm:px-6">
-                <h2 className="text-[20px] leading-7 font-semibold tracking-[-0.02em] text-hg-ink">{group.bank}</h2>
-                <p className="text-sm font-medium text-muted">{group.card}</p>
-                <Badge tone="outline" className="ml-auto bg-white">
+            <div className="overflow-hidden rounded-[28px] border border-hg-line/80 bg-white">
+              <div className={cn("flex flex-wrap items-baseline gap-x-2.5 gap-y-1 px-5 py-4 sm:px-6", INK_GRADIENT)}>
+                <h2 className="text-[20px] leading-7 font-semibold tracking-[-0.035em] text-white">{group.bank}</h2>
+                <p className="text-sm font-medium text-white/68">{group.card}</p>
+                <Badge tone="outline" className="ml-auto border-white/14 bg-white/8 text-white/68">
                   {group.items.length} {group.items.length === 1 ? "ask" : "asks"}
                 </Badge>
               </div>
-              <Stagger as="ul" gap={0.06} delay={0.1} amount={0.1} className="space-y-1 bg-hg-surface/50 p-2">
+              <Stagger as="ul" gap={0.06} delay={0.1} amount={0.1} className="space-y-1 bg-[#f3f5f9]/50 p-2">
                 {group.items.map((item) => (
                   <Row key={item.step.id} item={item} />
                 ))}
               </Stagger>
-            </Card>
+            </div>
           </StaggerItem>
         ))}
       </Stagger>
 
-      <Link href="/start" className={buttonVariants({ variant: "outline", className: "mt-6" })}>
-        <Plus className="size-4" aria-hidden />
+      <Link href="/start" className={buttonVariants({ variant: "outline", className: "group mt-6 bg-white" })}>
+        <Plus className="size-4 transition-transform duration-300 group-hover:rotate-90" aria-hidden />
         Add a card from another bank
       </Link>
     </div>
@@ -202,23 +218,40 @@ export function CallListScreen() {
   }
   if (!caseFile || caseFile.cards.length === 0) {
     return (
-      <Card className="mx-auto max-w-xl rounded-[32px] p-6 text-center sm:p-10">
+      <section
+        className={cn(
+          "mx-auto max-w-[640px] overflow-hidden rounded-[32px] px-6 pt-[22px] pb-10 text-center text-white sm:rounded-[40px] sm:pb-12",
+          BLUE_GRADIENT,
+        )}
+      >
         <Stagger onMount gap={0.08}>
           <StaggerItem>
-            <h1 className="text-[clamp(26px,3.5vw,34px)] leading-tight font-semibold tracking-[-0.035em] text-hg-ink">
+            <Image
+              src="/app/3d/headphones-3d.png"
+              alt=""
+              width={210}
+              height={252}
+              priority
+              className="pointer-events-none mx-auto h-auto w-[170px] select-none sm:w-[210px]"
+            />
+          </StaggerItem>
+          <StaggerItem>
+            <h1 className="relative -mt-4 text-[clamp(28px,4vw,34px)] leading-[1.15] font-semibold tracking-[-0.035em] text-white sm:-mt-[18px] [&_em]:text-[#a9c6ff]!">
               No calls <em>yet</em>
             </h1>
           </StaggerItem>
           <StaggerItem>
-            <p className="mt-3 font-medium text-muted">Add your card statements, from any bank, and every call worth making lands here.</p>
+            <p className="mx-auto mt-3 max-w-[520px] text-[16px] leading-6 font-medium text-white/68">
+              Add your card statements, from any bank, and every call worth making lands here.
+            </p>
           </StaggerItem>
           <StaggerItem>
-            <Link href="/start" className={buttonVariants({ size: "lg", className: "mt-6" })}>
+            <Link href="/start" className={cn(buttonVariants({ size: "lg" }), "mt-6", ON_PANEL_BUTTON)}>
               Add statements
             </Link>
           </StaggerItem>
         </Stagger>
-      </Card>
+      </section>
     );
   }
   return (

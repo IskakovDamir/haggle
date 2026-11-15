@@ -7,7 +7,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-hg-blue text-white shadow-[0_8px_24px_-10px_rgb(47_107_255/0.7)] hover:brightness-110 hover:shadow-[0_12px_28px_-10px_rgb(47_107_255/0.8)]",
+        default: "bg-hg-blue text-white hover:brightness-110 hover:shadow-[0_10px_24px_-14px_rgb(47_107_255/0.8)]",
         outline: "border border-line bg-card text-ink hover:border-hg-blue-tint hover:bg-hg-blue-soft",
         ghost: "text-ink hover:bg-hg-blue-soft",
         danger: "bg-alarm text-white hover:brightness-110",

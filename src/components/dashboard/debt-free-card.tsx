@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { formatApr, formatDate, formatDuration } from "@/lib/format";
 import { formatCents } from "@/lib/money";
 import { Badge, Card } from "@/components/ui/primitives";
@@ -14,6 +15,7 @@ function PayoffColumn({
   date,
   highlight = false,
   barPercent = null,
+  art = false,
 }: {
   title: string;
   payoff: Payoff;
@@ -21,21 +23,46 @@ function PayoffColumn({
   highlight?: boolean;
   /** How long this payoff runs next to the longer one, as the width of a bar. null shows no bar. */
   barPercent?: number | null;
+  /** The lone column: a pale blue gradient with the 3D calendar on its right. */
+  art?: boolean;
 }) {
   return (
-    <div className={cn("flex flex-col rounded-[20px] p-4 sm:p-5", highlight ? "bg-hg-blue-soft" : "bg-hg-surface")}>
-      <p className="text-[13px] leading-[18px] font-semibold text-muted">{title}</p>
+    <div
+      className={cn(
+        "relative flex flex-col overflow-hidden p-4 sm:p-5",
+        art
+          ? "rounded-[28px] bg-[linear-gradient(135deg,#c4ddf6_0%,#e4effb_50%,#cfe0ff_100%)] pr-28 sm:rounded-[32px] sm:pr-36"
+          : "rounded-[20px]",
+        !art && (highlight ? "bg-hg-blue-soft" : "bg-hg-surface"),
+      )}
+    >
+      {art && (
+        <Image
+          src="/app/3d/calendar-3d.png"
+          alt=""
+          aria-hidden
+          width={188}
+          height={183}
+          className="pointer-events-none absolute -top-3.5 -right-3.5 h-auto w-[118px] max-w-none sm:w-[150px]"
+        />
+      )}
+      <p className="relative text-[13px] leading-[18px] font-semibold text-muted">{title}</p>
       {date ? (
         <>
-          <p className={cn("tabular mt-1.5 text-[26px] leading-8 font-semibold tracking-[-0.035em]", highlight && "text-hg-blue")}>
+          <p
+            className={cn(
+              "tabular relative mt-1.5 text-[26px] leading-8 font-semibold tracking-[-0.035em] text-hg-ink",
+              highlight && "text-hg-blue",
+            )}
+          >
             {formatDate(date)}
           </p>
-          <p className="mt-1 text-sm font-medium text-muted">
+          <p className="relative mt-1 text-sm font-medium text-muted">
             {formatDuration(payoff.months)} · {formatCents(payoff.totalInterestCents)} in interest
           </p>
         </>
       ) : (
-        <p className="mt-1.5 font-semibold">Minimum payments never clear this balance.</p>
+        <p className="relative mt-1.5 font-semibold">Minimum payments never clear this balance.</p>
       )}
       {barPercent !== null && (
         <div className="mt-auto pt-4">
@@ -74,9 +101,9 @@ export function DebtFreeCard({ card, debtFree }: { card: CardAccount; debtFree: 
   const { before, after, steady } = debtFree;
   const bars = barWidths(before, after);
   return (
-    <Card className="p-5 transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-[0_1px_2px_rgb(11_18_32/0.04),0_20px_40px_-20px_rgb(11_18_32/0.25)] sm:rounded-[32px] sm:p-7">
+    <Card className="border-line p-5 shadow-none transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-[0_1px_2px_rgb(11_18_32/0.04),0_20px_40px_-20px_rgb(11_18_32/0.25)] sm:rounded-[28px] sm:p-7">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-lg font-semibold tracking-[-0.02em]">{cardLabel(card)}</h3>
+        <h3 className="text-lg font-semibold tracking-[-0.02em] text-hg-ink">{cardLabel(card)}</h3>
         {debtFree.aprAfterBps !== null ? (
           <Badge tone="lime">
             APR {formatApr(debtFree.aprBeforeBps)} to {formatApr(debtFree.aprAfterBps)}
@@ -92,6 +119,7 @@ export function DebtFreeCard({ card, debtFree }: { card: CardAccount; debtFree: 
           payoff={before}
           date={debtFree.beforeDate}
           barPercent={bars.before}
+          art={!after}
         />
         {after && (
           <PayoffColumn title="After the win" payoff={after} date={debtFree.afterDate} highlight barPercent={bars.after} />

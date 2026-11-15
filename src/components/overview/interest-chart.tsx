@@ -9,9 +9,9 @@ import { cn } from "@/lib/utils";
 import type { InterestMonth, InterestSeries } from "./interest-series";
 
 const BAR_TONE = {
-  current: "bg-hg-blue",
-  lowered: "bg-hg-blue-tint",
-  before: "bg-[#dce2ec]",
+  current: "bg-[linear-gradient(180deg,#8db6ff_0%,#2f6bff_45%,#2448f0_100%)]",
+  lowered: "bg-[#a9c6ff]",
+  before: "bg-[#dce6fb]",
 } as const;
 
 const toneOf = (month: InterestMonth) => (month.current ? BAR_TONE.current : month.lowered ? BAR_TONE.lowered : BAR_TONE.before);
@@ -45,7 +45,7 @@ export function InterestChart({ series, subtitle }: { series: InterestSeries; su
   const marker = series.marker;
 
   return (
-    <Panel aria-labelledby="interest-chart" className="flex min-w-0 flex-col gap-4">
+    <Panel aria-labelledby="interest-chart" className="flex min-w-0 flex-col gap-4 rounded-[28px]">
       <PanelHeader
         id="interest-chart"
         title="Interest paid per month"

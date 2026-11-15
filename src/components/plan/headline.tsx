@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Phone } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
@@ -9,54 +10,47 @@ import type { Analysis, PlanStep } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { GrowBar, WonCheck } from "./animated";
 import { CountUp } from "./count-up";
+import { BLUE_PANEL, CALM_PANEL, INK_PANEL, SAMPLE_BADGE_CLASS } from "./surfaces";
 
-/** The pale blue of the landing's "Problem" panel, used when the cards are not charging interest. */
-const CALM_PANEL = { backgroundImage: "linear-gradient(156.89deg, #c4ddf6 14.286%, #e4effb 50%, #cfe0ff 85.714%)" };
-/** The dark ink stat card from the landing's stats row. */
-const INK_CARD = { backgroundImage: "linear-gradient(133.83deg, #1e2740 14.286%, #0b1220 85.714%)" };
+type StatTone = "glass" | "blue" | "light";
 
 function Stat({
   label,
   value,
   note,
-  dark = false,
+  tone,
   children,
 }: {
   label: string;
   value: React.ReactNode;
   note: string;
-  dark?: boolean;
+  tone: StatTone;
   children?: React.ReactNode;
 }) {
+  const onDark = tone !== "light";
   return (
     <div
       className={cn(
-        "flex h-full flex-col rounded-[24px] border p-5 sm:p-6",
-        dark ? "border-white/15 text-white" : "border-white/90 bg-white/95 text-hg-ink",
+        "flex h-full flex-col rounded-[24px] p-5 sm:p-6",
+        tone === "glass" && "border border-white/12 bg-white/7 text-white",
+        tone === "blue" && "text-white",
+        tone === "light" && "border border-white/90 bg-white/95 text-hg-ink",
       )}
-      style={dark ? INK_CARD : undefined}
+      style={tone === "blue" ? BLUE_PANEL : undefined}
     >
-      <p className={cn("text-[13px] leading-[18px] font-semibold", dark ? "text-white/60" : "text-muted")}>{label}</p>
+      <p className={cn("text-[13px] leading-[18px] font-semibold", onDark ? (tone === "blue" ? "text-white/75" : "text-white/68") : "text-muted")}>
+        {label}
+      </p>
+      <p className="tabular mt-2 text-[clamp(30px,3.6vw,40px)] leading-[1.15] font-semibold tracking-[-0.04em]">{value}</p>
+      {children}
       <p
         className={cn(
-          "tabular mt-3 text-[clamp(30px,3.6vw,40px)] leading-[1.05] font-semibold tracking-[-0.04em]",
-          dark && "text-[#a9c6ff]",
+          "mt-1.5 text-sm leading-snug font-medium",
+          onDark ? (tone === "blue" ? "text-white/75" : "text-white/68") : "text-muted",
         )}
       >
-        {value}
+        {note}
       </p>
-      {children}
-      <p className={cn("mt-2 text-sm leading-snug font-medium", dark ? "text-white/65" : "text-muted")}>{note}</p>
-    </div>
-  );
-}
-
-/** Soft white light in the corners of the hero panel, as on the landing's blue cards. Decorative. */
-function Glow() {
-  return (
-    <div aria-hidden className="pointer-events-none absolute inset-0">
-      <div className="absolute -top-48 -right-40 size-[28rem] rounded-full bg-white/14 blur-3xl" />
-      <div className="absolute -bottom-56 -left-24 size-[26rem] rounded-full bg-[#1a3fb0]/50 blur-3xl" />
     </div>
   );
 }
@@ -87,20 +81,31 @@ export function Headline({
         <p className="inline-flex items-center rounded-full bg-hg-blue-soft px-3 py-1 text-[13px] font-semibold text-hg-blue">
           Your plan
         </p>
-        {hasSampleCard && <SampleBadge />}
+        {hasSampleCard && <SampleBadge className={SAMPLE_BADGE_CLASS} />}
       </div>
 
       <Reveal
         y={16}
-        className={cn("relative mt-4 overflow-hidden rounded-[32px] p-5 sm:rounded-[40px] sm:p-8 lg:p-10", burning && "hg-panel")}
+        className={cn("@container relative mt-4 overflow-hidden rounded-[32px] p-5 sm:rounded-[40px] sm:p-8 lg:p-10", burning && "text-white")}
       >
-        {burning ? <Glow /> : <div aria-hidden className="absolute inset-0" style={CALM_PANEL} />}
+        <div aria-hidden className="absolute inset-0" style={burning ? INK_PANEL : CALM_PANEL} />
+        {burning && (
+          // Only where the panel is wide enough for the flame to sit beside the number, never over it.
+          <Image
+            src="/app/3d/flame-3d-lg.png"
+            alt=""
+            width={270}
+            height={334}
+            priority
+            className="pointer-events-none absolute -top-10 right-[70px] hidden h-[334px] w-[270px] select-none @min-[880px]:block"
+          />
+        )}
 
         <div className="relative">
           {burning ? (
-            <h1 className="text-[clamp(24px,2.6vw,30px)] leading-tight font-semibold text-white">
+            <h1 className="text-[clamp(24px,2.6vw,30px)] leading-tight font-semibold tracking-[-0.035em] text-white @min-[880px]:max-w-[560px]">
               {wins.count > 0 ? (name ? `${name}, after your wins you are still burning` : "After your wins you are still burning") : name ? `${name}, you are burning` : "You are burning"}
-              <span className="tabular my-2 block w-fit text-[clamp(4rem,15vw,9rem)] leading-[0.95] tracking-[-0.055em]">
+              <span className="tabular my-1 block w-fit text-[clamp(4rem,15vw,9rem)] leading-[1.15] tracking-[-0.055em]">
                 <CountUp value={totals.annualInterestCents} format="dollars" duration={1.1} delay={0.15} />
               </span>
               <em className="text-white/80!">a year</em> in interest
@@ -117,6 +122,7 @@ export function Headline({
                 label="Card debt"
                 value={<CountUp value={totals.balanceCents} format="dollars" delay={0.4} />}
                 note={cardCount === 1 ? "on one card" : `across ${cardCount} cards`}
+                tone={burning ? "glass" : "light"}
               />
             </StaggerItem>
             <StaggerItem>
@@ -124,14 +130,10 @@ export function Headline({
                 label="Credit used"
                 value={totals.utilizationPct === null ? "Unknown" : <CountUp value={totals.utilizationPct} format="percent" delay={0.45} />}
                 note={totals.utilizationPct === null ? "Add each card's credit limit to see it." : "of your total credit limit"}
+                tone={burning ? "glass" : "light"}
               >
                 {totals.utilizationPct !== null && (
-                  <GrowBar
-                    percent={totals.utilizationPct}
-                    delay={0.5}
-                    className="mt-3"
-                    fillClassName={totals.utilizationPct >= 70 ? "bg-alarm" : totals.utilizationPct >= 30 ? "bg-leak" : undefined}
-                  />
+                  <GrowBar percent={totals.utilizationPct} delay={0.5} className="mt-2 bg-[#d4e1ff]/70" />
                 )}
               </Stat>
             </StaggerItem>
@@ -140,7 +142,7 @@ export function Headline({
                 label="Calls could win"
                 value={<CountUp value={totals.potentialAnnualCents} format="dollars" delay={0.5} />}
                 note="in the first year if each call wins, with APR cuts at the average"
-                dark
+                tone="blue"
               />
             </StaggerItem>
           </Stagger>

@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Phone, Plus } from "lucide-react";
 import { goalLabel } from "@/components/call/ask";
-import { EmptyState, Notice, PageSkeleton } from "@/components/call/page-states";
+import { Notice, PageSkeleton } from "@/components/call/page-states";
 import { Stagger, StaggerItem } from "@/components/motion/reveal";
 import { WonCheck } from "@/components/plan/animated";
-import { CardPanel } from "@/components/plan/card-panel";
 import { CountUp } from "@/components/plan/count-up";
 import { caption, PageTitle, Pill } from "@/components/site/app-ui";
 import { useClock } from "@/components/site/use-clock";
@@ -19,13 +19,14 @@ import { formatDollars } from "@/lib/money";
 import { useCaseFile, withoutCard } from "@/lib/store";
 import type { CaseFile, IsoDate } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { CardSheet, INK_GRADIENT } from "./card-sheet";
 import { cardsView, type CardEntry } from "./cards-model";
 
 /** Under each card: the missed payment, the wins on it, and the calls still open. */
 function CardFooter({ entry }: { entry: CardEntry }) {
   const missed = entry.card.missedPayment;
   return (
-    <div className="mt-3 flex flex-col gap-2 rounded-[20px] bg-white p-4 sm:p-5">
+    <div className="mt-3 flex flex-col gap-2 rounded-[28px] bg-white p-5">
       {missed && (
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <Badge tone="leak">Missed payment</Badge>
@@ -98,10 +99,20 @@ function CardsBody({ caseFile, today, onRemove }: { caseFile: CaseFile; today: I
   const count = view.entries.length;
   return (
     <div>
-      <PageTitle
-        title={count === 1 ? "My card" : "My cards"}
-        lead="Each card as it stands today, after any wins. The numbers come from your statements."
-      />
+      <div className="relative">
+        <Image
+          src="/app/3d/card-chase-3d.png"
+          alt=""
+          width={260}
+          height={195}
+          priority
+          className="pointer-events-none absolute -top-[27px] right-5 hidden h-[195px] w-[260px] select-none xl:block"
+        />
+        <PageTitle
+          title={count === 1 ? "My card" : "My cards"}
+          lead="Each card as it stands today, after any wins. The numbers come from your statements."
+        />
+      </div>
 
       <div className="mb-6 flex flex-wrap items-center gap-2">
         <Pill tone="white" className="tabular">
@@ -118,7 +129,7 @@ function CardsBody({ caseFile, today, onRemove }: { caseFile: CaseFile; today: I
       <Stagger className="flex flex-col gap-6">
         {view.entries.map((entry) => (
           <StaggerItem key={entry.card.id}>
-            <CardPanel card={entry.card} analysis={entry.analysis} onRemove={() => onRemove(entry.card.id)} />
+            <CardSheet card={entry.card} analysis={entry.analysis} onRemove={() => onRemove(entry.card.id)} />
             <CardFooter entry={entry} />
           </StaggerItem>
         ))}
@@ -132,18 +143,45 @@ function CardsBody({ caseFile, today, onRemove }: { caseFile: CaseFile; today: I
   );
 }
 
+/** Nothing in the case yet: the dark wallet panel with one way forward. */
+function NoCards() {
+  return (
+    <section
+      className={cn(
+        "mx-auto max-w-[640px] overflow-hidden rounded-[32px] px-6 pt-[22px] pb-10 text-center text-white sm:rounded-[40px] sm:pb-12",
+        INK_GRADIENT,
+      )}
+    >
+      <Image
+        src="/app/3d/wallet-3d.png"
+        alt=""
+        width={210}
+        height={235}
+        priority
+        className="pointer-events-none mx-auto h-auto w-[170px] select-none sm:w-[210px]"
+      />
+      <h1 className="mt-10 text-[clamp(28px,4vw,34px)] leading-[1.15] font-semibold tracking-[-0.035em] text-white sm:mt-16">
+        No cards yet
+      </h1>
+      <p className="mx-auto mt-3 max-w-[420px] text-[16px] leading-6 text-white/68">
+        Add a credit card statement, from any bank. Upload one, try a sample, or type three numbers.
+      </p>
+      <Link
+        href="/start"
+        className={cn(buttonVariants({ size: "lg" }), "mt-6 bg-white text-hg-ink shadow-none hover:bg-white hover:shadow-none hover:brightness-95")}
+      >
+        Add a statement
+      </Link>
+    </section>
+  );
+}
+
 /** /cards: every card in the case, with its numbers, its wins, and a way to remove it. */
 export function CardsScreen() {
   const { caseFile, ready, update } = useCaseFile();
   const clock = useClock();
   if (!ready || !clock) return <PageSkeleton />;
-  if (!caseFile || caseFile.cards.length === 0) {
-    return (
-      <EmptyState title="No cards yet">
-        Add a credit card statement, from any bank. Upload one, try a sample, or type three numbers.
-      </EmptyState>
-    );
-  }
+  if (!caseFile || caseFile.cards.length === 0) return <NoCards />;
   return (
     <CardsBody
       caseFile={caseFile}

@@ -147,14 +147,24 @@ export function StartFlow() {
   if (stage.name === "linked" && reading === "on") {
     return (
       <Stage id="reading">
-        <ReadingPanel label={stage.sample.label} progress={{ phase: "preparing" }} onCancel={() => cancel("sample")} />
+        <ReadingPanel
+          label={stage.sample.label}
+          sampleId={stage.sample.id}
+          progress={{ phase: "preparing" }}
+          onCancel={() => cancel("sample")}
+        />
       </Stage>
     );
   }
   if (stage.name === "reading") {
     return (
       <Stage id="reading">
-        <ReadingPanel label={labelOf(stage.job)} progress={stage.progress} onCancel={() => cancel(wayOf(stage.job))} />
+        <ReadingPanel
+          label={labelOf(stage.job)}
+          sampleId={stage.job.kind === "sample" ? stage.job.sample.id : undefined}
+          progress={stage.progress}
+          onCancel={() => cancel(wayOf(stage.job))}
+        />
       </Stage>
     );
   }

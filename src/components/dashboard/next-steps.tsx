@@ -53,7 +53,7 @@ export function NextSteps({ steps, caseId, today }: { steps: NextStep[]; caseId:
 
       {steps.length === 0 ? (
         <Reveal className="mt-5">
-          <Card className="p-5 text-muted sm:p-6">Nothing is waiting. Every step in your plan has a win.</Card>
+          <Card className="border-line p-5 text-muted shadow-none sm:rounded-[28px] sm:p-6">Nothing is waiting. Every step in your plan has a win.</Card>
         </Reveal>
       ) : (
         <Stagger as="ol" className="mt-5 flex flex-col gap-3">
@@ -62,7 +62,7 @@ export function NextSteps({ steps, caseId, today }: { steps: NextStep[]; caseId:
             return (
               <StaggerItem as="li" key={step.id}>
                 <Lift>
-                  <Card className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:gap-5 sm:rounded-[28px] sm:p-6">
+                  <Card className="flex flex-col gap-3 border-line p-5 shadow-none sm:flex-row sm:items-center sm:gap-5 sm:rounded-[28px] sm:p-6">
                     <div className="shrink-0 sm:w-36">
                       <p
                         className={

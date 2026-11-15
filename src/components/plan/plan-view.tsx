@@ -96,13 +96,13 @@ export function PlanView({ caseFile, onRemoveCard }: { caseFile: CaseFile; onRem
         }
         lead="Calls for money come first. Calls in this build are practice calls: you play the bank's representative and the agent negotiates with you."
       >
-        <PlanSteps steps={analysis.plan} calls={caseFile.calls} cardNames={cardNames} />
+        <PlanSteps steps={analysis.plan} calls={caseFile.calls} cardNames={cardNames} currentStepId={firstCall?.id ?? null} />
       </Section>
 
       {analysis.assumptions.length > 0 && (
         <Reveal as="section" y={12} className="mt-16 rounded-[28px] border border-line/80 bg-hg-surface/70 p-5 sm:mt-20 sm:p-7">
-          <h2 className="text-[13px] leading-[18px] font-semibold tracking-normal text-muted">Behind these numbers</h2>
-          <ul className="mt-3 max-w-[80ch] list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-muted marker:text-hg-blue">
+          <h2 className="text-[13px] leading-[18px] font-semibold tracking-[-0.01em] text-muted">Behind these numbers</h2>
+          <ul className="mt-3 max-w-[80ch] list-none space-y-1.5 pl-5 text-sm leading-relaxed text-muted">
             {analysis.assumptions.map((sentence) => (
               <li key={sentence}>{sentence}</li>
             ))}

@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { EASE } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
-import { Badge, Card, SampleBadge } from "@/components/ui/primitives";
+import { Badge } from "@/components/ui/primitives";
 import { todayIso } from "@/lib/format";
 import type { CardAccount, CaseFile, Extraction } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import {
   cardAlreadyInCase,
   formValuesFrom,
@@ -18,6 +20,7 @@ import {
 } from "./card-form";
 import { Field } from "./field";
 import { RevealField, RevealGroup, RevealSequence } from "./field-reveal";
+import { SURFACE, SampleTag, StepDot, onColor, type Surface } from "./surfaces";
 
 type FieldSpec = {
   field: CardFormField;
@@ -76,6 +79,9 @@ const GROUPS: { title: string; fields: FieldSpec[] }[] = [
     ],
   },
 ];
+
+/** The fill of each group card, top to bottom, as in the design. */
+const GROUP_SURFACES: Surface[] = ["white", "blue", "white", "ink", "wash"];
 
 const FIELD_ORDER = GROUPS.flatMap((group) => group.fields.map((spec) => spec.field));
 const inputId = (field: CardFormField) => `card-${field}`;
@@ -158,10 +164,20 @@ export function ConfirmForm({
         looksRight();
       }}
     >
-      <RevealSequence gap={0.06}>
+      <RevealSequence gap={0.06} className="relative">
+        {/* A magnifying glass beside the title, on screens wide enough to leave it clear of the words. */}
+        <motion.div
+          aria-hidden
+          initial={{ opacity: 0, y: 16, rotate: -8 }}
+          animate={{ opacity: 1, y: 0, rotate: 0 }}
+          transition={{ duration: 0.8, ease: EASE, delay: 0.15 }}
+          className="pointer-events-none absolute top-2 right-10 hidden w-[190px] xl:block"
+        >
+          <Image src="/app/3d/magnifier-lens-3d.png" alt="" width={190} height={204} priority className="h-auto w-full" />
+        </motion.div>
         <RevealGroup className="flex flex-wrap items-center gap-2">
           {position && <Badge tone="lime">{position}</Badge>}
-          {extraction.source === "sample" && <SampleBadge />}
+          {extraction.source === "sample" && <SampleTag />}
           <AnimatePresence initial={false}>
             {warningCount > 0 && (
               <motion.span
@@ -182,7 +198,7 @@ export function ConfirmForm({
           </h1>
         </RevealGroup>
         <RevealGroup>
-          <p className="mt-4 max-w-[60ch] text-[18px] leading-7 font-medium tracking-[-0.01em] text-muted">
+          <p className="mt-4 max-w-2xl text-[18px] leading-7 font-medium tracking-[-0.01em] text-muted">
             {LEAD[extraction.source]} Nothing is saved or calculated until you press Looks right.
           </p>
         </RevealGroup>
@@ -207,37 +223,42 @@ export function ConfirmForm({
         </AnimatePresence>
 
         <div className="mt-8 space-y-4">
-          {GROUPS.map((group, index) => (
-            <RevealGroup key={group.title}>
-              <Card className="rounded-[28px] p-5 sm:p-7">
-                <h2 className="flex items-center gap-2.5 text-[13px] font-semibold tracking-[-0.002em] text-hg-ink-2">
-                  <span
-                    aria-hidden
-                    className="flex size-6 items-center justify-center rounded-full bg-hg-blue-soft text-[11px] font-bold text-hg-blue tabular"
+          {GROUPS.map((group, index) => {
+            const surface = GROUP_SURFACES[index % GROUP_SURFACES.length];
+            const dark = onColor(surface);
+            return (
+              <RevealGroup key={group.title}>
+                <div className={cn(SURFACE[surface], "rounded-[28px] p-5 sm:p-7")}>
+                  <h2
+                    className={cn(
+                      "flex items-center gap-2.5 text-[13px] font-semibold tracking-[-0.002em]",
+                      dark ? "text-white/70" : "text-hg-ink-2",
+                    )}
                   >
-                    {index + 1}
-                  </span>
-                  {group.title}
-                </h2>
-                <div className="mt-5 grid gap-x-4 gap-y-5 sm:grid-cols-2">
-                  {group.fields.map(({ field, ...spec }) => (
-                    <RevealField key={field}>
-                      <Field
-                        id={inputId(field)}
-                        name={field}
-                        value={values[field]}
-                        onChange={(event) => change(field, event.target.value)}
-                        onBlur={() => setVisited((current) => new Set(current).add(field))}
-                        error={errorFor(field)}
-                        warnings={warnings.byField[field]}
-                        {...spec}
-                      />
-                    </RevealField>
-                  ))}
+                    <StepDot n={index + 1} surface={surface} size="s" />
+                    {group.title}
+                  </h2>
+                  <div className="mt-5 grid gap-x-4 gap-y-5 sm:grid-cols-2">
+                    {group.fields.map(({ field, ...spec }) => (
+                      <RevealField key={field}>
+                        <Field
+                          id={inputId(field)}
+                          name={field}
+                          value={values[field]}
+                          onChange={(event) => change(field, event.target.value)}
+                          onBlur={() => setVisited((current) => new Set(current).add(field))}
+                          error={errorFor(field)}
+                          warnings={warnings.byField[field]}
+                          onColor={dark}
+                          {...spec}
+                        />
+                      </RevealField>
+                    ))}
+                  </div>
                 </div>
-              </Card>
-            </RevealGroup>
-          ))}
+              </RevealGroup>
+            );
+          })}
         </div>
 
         <RevealGroup className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">

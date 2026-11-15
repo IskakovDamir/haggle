@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { FileUp } from "lucide-react";
 import { EASE } from "@/components/motion/reveal";
 import { cn } from "@/lib/utils";
+import { SURFACE } from "./surfaces";
 
 /** A drop zone that is also a file picker. Takes one statement or several. On a phone the picker offers the camera. */
 export function UploadPanel({ onFiles }: { onFiles: (files: File[]) => void }) {
@@ -27,13 +29,23 @@ export function UploadPanel({ onFiles }: { onFiles: (files: File[]) => void }) {
         animate={{ scale: dragging ? 1.015 : 1 }}
         transition={{ duration: 0.35, ease: EASE }}
         className={cn(
-          "group relative flex cursor-pointer flex-col items-center gap-3 overflow-hidden rounded-[28px] border-2 border-dashed px-6 py-14 text-center transition-[border-color,background-color,box-shadow] duration-300",
+          "group relative flex min-h-[304px] cursor-pointer flex-col items-center justify-center gap-3 overflow-hidden rounded-[28px] border-2 px-6 py-14 text-center transition-[border-color,background-color,box-shadow] duration-300",
+          SURFACE.wash,
           "focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-hg-blue",
           dragging
-            ? "border-hg-blue bg-hg-blue-soft shadow-[0_0_0_6px_rgb(47_107_255/0.12),0_24px_60px_-24px_rgb(47_107_255/0.55)]"
-            : "border-hg-blue-tint bg-linear-to-b from-[#e6f0fd] to-[#f7faff] hover:border-hg-blue/60 hover:shadow-[0_0_0_4px_rgb(47_107_255/0.08),0_20px_48px_-28px_rgb(47_107_255/0.5)]",
+            ? "border-hg-blue shadow-[0_0_0_6px_rgb(47_107_255/0.12),0_24px_60px_-24px_rgb(47_107_255/0.55)]"
+            : "border-hg-blue-tint hover:border-hg-blue/60 hover:shadow-[0_0_0_4px_rgb(47_107_255/0.08),0_20px_48px_-28px_rgb(47_107_255/0.5)]",
         )}
       >
+        {/* The silver tray sits in the top right corner. Wider screens only, where it has room beside the words. */}
+        <motion.span
+          aria-hidden
+          animate={{ y: dragging ? -8 : 0, rotate: dragging ? -4 : 0 }}
+          transition={{ duration: 0.4, ease: EASE }}
+          className="pointer-events-none absolute top-[26px] right-[26px] hidden w-[170px] sm:block"
+        >
+          <Image src="/app/3d/upload-tray-3d.png" alt="" width={170} height={169} className="h-auto w-full" />
+        </motion.span>
         {/* A soft blue glow that wakes up on hover and while a file is held over the zone. */}
         <span
           aria-hidden

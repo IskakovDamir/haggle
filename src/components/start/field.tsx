@@ -17,6 +17,8 @@ type FieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
   error?: string;
   /** Things to check against the statement. They do not block. */
   warnings?: string[];
+  /** The field sits on a blue or ink card: white words and a see-through input. */
+  onColor?: boolean;
 };
 
 /**
@@ -34,19 +36,23 @@ function tidyDollars(input: HTMLInputElement) {
 }
 
 /** One labeled input with its error or warnings right under it. */
-export function Field({ id, label, hint, unit, error, warnings = [], className, ...input }: FieldProps) {
+export function Field({ id, label, hint, unit, error, warnings = [], onColor = false, className, ...input }: FieldProps) {
   const notes = error ? [error] : warnings;
   const notesId = `${id}-notes`;
+  const unitTone = onColor ? "text-white/70" : "text-muted";
 
   return (
     <div className={className}>
-      <label htmlFor={id} className="mb-1.5 block text-sm font-semibold tracking-[-0.005em] text-hg-ink-2">
+      <label
+        htmlFor={id}
+        className={cn("mb-1.5 block text-sm font-semibold tracking-[-0.005em]", onColor ? "text-white/70" : "text-hg-ink-2")}
+      >
         {label}
-        {hint && <span className="font-medium text-hg-muted"> {hint}</span>}
+        {hint && <span className={cn("font-medium", onColor ? "text-white/70" : "text-hg-muted")}> {hint}</span>}
       </label>
       <div className="relative">
         {unit === "dollars" && (
-          <span aria-hidden className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-muted">
+          <span aria-hidden className={cn("pointer-events-none absolute inset-y-0 left-4 flex items-center", unitTone)}>
             $
           </span>
         )}
@@ -56,12 +62,17 @@ export function Field({ id, label, hint, unit, error, warnings = [], className, 
           aria-invalid={error ? true : undefined}
           aria-describedby={notes.length > 0 ? notesId : undefined}
           className={cn(
-            "tabular",
-            unit === "dollars" && "pl-7",
-            unit === "percent" && "pr-9",
+            "tabular rounded-full",
+            unit === "dollars" && "pl-8",
+            unit === "percent" && "pr-10",
+            onColor &&
+              "border-white/20 bg-white/10 text-white [color-scheme:dark] placeholder:text-white/50 hover:border-white/40 focus:border-white/80 focus:shadow-[0_0_0_4px_rgb(255_255_255/0.16)]",
             error
-              ? "border-alarm focus:border-alarm focus:shadow-[0_0_0_4px_rgb(217_45_32/0.12)]"
-              : warnings.length > 0 && "border-leak/60 focus:shadow-[0_0_0_4px_rgb(224_83_31/0.12)]",
+              ? onColor
+                ? "border-[#ffb4a8] focus:border-[#ffb4a8]"
+                : "border-alarm focus:border-alarm focus:shadow-[0_0_0_4px_rgb(217_45_32/0.12)]"
+              : warnings.length > 0 &&
+                  (onColor ? "border-[#ffd2b8]" : "border-leak/60 focus:shadow-[0_0_0_4px_rgb(224_83_31/0.12)]"),
           )}
           {...input}
           onBlur={(event) => {
@@ -70,7 +81,7 @@ export function Field({ id, label, hint, unit, error, warnings = [], className, 
           }}
         />
         {unit === "percent" && (
-          <span aria-hidden className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-muted">
+          <span aria-hidden className={cn("pointer-events-none absolute inset-y-0 right-4 flex items-center", unitTone)}>
             %
           </span>
         )}
@@ -84,7 +95,10 @@ export function Field({ id, label, hint, unit, error, warnings = [], className, 
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: EASE }}
-            className={cn("space-y-1 overflow-hidden text-sm leading-snug", error ? "text-alarm" : "text-leak")}
+            className={cn(
+              "space-y-1 overflow-hidden text-sm leading-snug",
+              onColor ? (error ? "text-[#ffd6cf]" : "text-[#ffe3d1]") : error ? "text-alarm" : "text-leak",
+            )}
           >
             {notes.map((note, index) => (
               <li key={note} className={cn(index === 0 && "pt-1.5")}>

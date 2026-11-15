@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/primitives";
 import { extractionFromManual } from "@/lib/statement/manual";
 import type { Extraction } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { Field } from "./field";
+import { SURFACE } from "./surfaces";
 import { RevealField, RevealGroup, RevealSequence } from "./field-reveal";
 import { dollarsForEditing, percentForEditing, typedDollars, typedPercent, typedText, type Typed } from "./typed-values";
 
@@ -84,7 +85,7 @@ export function ManualPanel({ onEntry }: { onEntry: (extraction: Extraction) => 
     >
       <RevealSequence>
         <RevealGroup>
-          <Card className="rounded-[28px] p-5 sm:p-7">
+          <div className={cn(SURFACE.white, "rounded-[28px] p-5 sm:p-7")}>
             <p className="text-sm font-medium text-muted">
               Three numbers from your statement are enough. The balance is on the first page. The APR is often in the
               interest table on the last one.
@@ -109,7 +110,7 @@ export function ManualPanel({ onEntry }: { onEntry: (extraction: Extraction) => 
                 <Field label="Your first name" hint="optional" autoComplete="given-name" {...bind("holderFirstName")} />
               </RevealField>
             </div>
-          </Card>
+          </div>
         </RevealGroup>
         <RevealGroup>
           <Button type="submit" size="lg" className="mt-5">

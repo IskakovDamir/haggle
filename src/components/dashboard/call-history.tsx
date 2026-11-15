@@ -50,7 +50,7 @@ function CallRow({ call, card }: { call: CallRecord; card: CardAccount | undefin
   return (
     <Card
       className={cn(
-        "overflow-hidden transition-[box-shadow,border-color] duration-300 hover:shadow-[0_1px_2px_rgb(11_18_32/0.04),0_20px_40px_-22px_rgb(11_18_32/0.25)] sm:rounded-[28px]",
+        "overflow-hidden border-line shadow-none transition-[box-shadow,border-color] duration-300 hover:shadow-[0_1px_2px_rgb(11_18_32/0.04),0_20px_40px_-22px_rgb(11_18_32/0.25)] sm:rounded-[28px]",
         open && "border-hg-blue-tint",
       )}
     >
@@ -134,7 +134,7 @@ export function CallHistory({ calls, cards }: { calls: CallRecord[]; cards: Card
       </Reveal>
       {calls.length === 0 ? (
         <Reveal className="mt-5">
-          <Card className="p-5 text-muted sm:p-6">No calls yet. Each call is kept here with its full transcript.</Card>
+          <Card className="border-line p-5 text-muted shadow-none sm:rounded-[28px] sm:p-6">No calls yet. Each call is kept here with its full transcript.</Card>
         </Reveal>
       ) : (
         <Stagger as="ul" gap={0.06} className="mt-5 flex flex-col gap-3">

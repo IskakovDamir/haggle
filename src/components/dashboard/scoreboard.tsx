@@ -1,7 +1,7 @@
 import { WIN_FEE_BPS } from "@/lib/engine";
 import { formatPoints } from "@/lib/format";
 import { formatCents } from "@/lib/money";
-import { Card } from "@/components/ui/primitives";
+import Image from "next/image";
 import { Lift, Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { WonCheck } from "@/components/plan/animated";
 import { CountUp } from "@/components/plan/count-up";
@@ -13,7 +13,7 @@ export function Scoreboard({ totals }: { totals: Totals }) {
   return (
     <section aria-label="Paid versus saved">
       <Reveal y={16}>
-        <h1 className="max-w-[22ch] text-[clamp(32px,5vw,56px)] leading-[1.08] font-semibold tracking-[-0.045em] text-hg-ink">
+        <h1 className="max-w-[22ch] text-[clamp(32px,5vw,56px)] leading-[1.06] font-semibold tracking-[-0.035em] text-hg-ink">
           {hasWins ? (
             <>
               Haggle cost you {formatCents(totals.paidCents)} and <em>saved you {formatCents(totals.savedCents)}</em>
@@ -29,14 +29,22 @@ export function Scoreboard({ totals }: { totals: Totals }) {
       <Stagger onMount delay={0.15} gap={0.1} className="mt-8 grid gap-4 sm:grid-cols-2">
         <StaggerItem className="h-full">
           <Lift className="h-full">
-            <div className="hg-panel relative h-full overflow-hidden rounded-[32px] p-6 sm:p-8">
-              <div aria-hidden className="pointer-events-none absolute -top-40 -right-32 size-[24rem] rounded-full bg-white/14 blur-3xl" />
+            <div className="group @container relative h-full overflow-hidden rounded-[32px] bg-[linear-gradient(118deg,#2448f0_0%,#2f6bff_46%,#8db6ff_112%)] p-6 text-white sm:p-8">
+              {/* The trophy and the number both scale with the card, so the number stays clear of the trophy. */}
+              <Image
+                src="/app/3d/trophy-3d.png"
+                alt=""
+                aria-hidden
+                width={263}
+                height={274}
+                className="pointer-events-none absolute -top-4 -right-2.5 h-auto w-[36%] max-w-[170px] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-rotate-6"
+              />
               <div className="relative">
                 <p className="flex items-center gap-2 text-sm font-semibold text-white/80">
                   {hasWins && <WonCheck className="size-5 bg-white text-hg-blue" delay={0.5} />}
                   Saved in the first year
                 </p>
-                <p className="tabular mt-3 text-[clamp(2.75rem,9vw,4.5rem)] leading-none font-semibold tracking-[-0.05em] text-white">
+                <p className="tabular mt-3 text-[clamp(2.75rem,17cqw,4.5rem)] leading-none font-semibold tracking-[-0.05em] text-white">
                   <CountUp value={totals.savedCents} format="cents" duration={1.1} delay={0.25} />
                 </p>
                 <p className="mt-4 text-sm leading-snug font-medium text-white/80">
@@ -51,16 +59,16 @@ export function Scoreboard({ totals }: { totals: Totals }) {
 
         <StaggerItem className="h-full">
           <Lift className="h-full">
-            <Card className="h-full p-6 sm:rounded-[32px] sm:p-8">
-              <p className="text-sm font-semibold text-muted">Paid to Haggle</p>
-              <p className="tabular mt-3 text-[clamp(2.75rem,9vw,4.5rem)] leading-none font-semibold tracking-[-0.05em] text-hg-ink">
+            <div className="@container h-full rounded-[32px] bg-linear-135 from-[#2b3446] to-hg-ink to-72% p-6 text-white sm:p-8">
+              <p className="text-sm font-semibold text-white/68">Paid to Haggle</p>
+              <p className="tabular mt-3 text-[clamp(2.75rem,17cqw,4.5rem)] leading-none font-semibold tracking-[-0.05em] text-white">
                 <CountUp value={totals.paidCents} format="cents" duration={1.1} delay={0.35} />
               </p>
-              <p className="mt-4 text-sm leading-snug font-medium text-muted">
+              <p className="mt-4 text-sm leading-snug font-medium text-white/68">
                 {formatPoints(WIN_FEE_BPS)}% of each win, charged only after the bank says yes.
                 {totals.unpaidFeeCents > 0 && ` ${formatCents(totals.unpaidFeeCents)} in fees is not paid yet.`}
               </p>
-            </Card>
+            </div>
           </Lift>
         </StaggerItem>
       </Stagger>

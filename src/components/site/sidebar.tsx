@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Bell, ChartColumn, CreditCard, Layers, LayoutGrid, Phone, type LucideIcon } from "lucide-react";
 import { LocaleSwitch } from "@/components/i18n/locale-switch";
@@ -58,7 +59,9 @@ export function SidebarContent({
                   aria-current={current ? "page" : undefined}
                   className={cn(
                     "group flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-[14px] leading-5 font-medium tracking-[-0.005em] transition-colors duration-200",
-                    current ? "bg-hg-blue-soft text-hg-blue" : "text-hg-ink-2 hover:bg-hg-surface hover:text-hg-ink",
+                    current
+                      ? "bg-hg-blue text-white shadow-[0_8px_20px_-12px_rgb(47_107_255/0.9)]"
+                      : "text-hg-ink-2 hover:bg-hg-surface hover:text-hg-ink",
                   )}
                 >
                   <Icon
@@ -76,7 +79,7 @@ export function SidebarContent({
                         aria-hidden
                         className={cn(
                           "tabular inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] leading-none font-bold",
-                          current ? "bg-hg-blue text-white" : "bg-hg-blue text-white shadow-[0_4px_10px_-4px_rgb(47_107_255/0.8)]",
+                          current ? "bg-white text-hg-blue" : "bg-hg-blue text-white shadow-[0_4px_10px_-4px_rgb(47_107_255/0.8)]",
                         )}
                       >
                         {alertCount > 99 ? "99+" : alertCount}
@@ -96,15 +99,23 @@ export function SidebarContent({
         onClick={onNavigate}
         aria-current={onMissed ? "page" : undefined}
         className={cn(
-          "group mt-4 flex flex-col gap-1 rounded-[14px] border bg-hg-blue-soft p-3.5 transition-[background-color,border-color] duration-200 hover:bg-white",
-          onMissed ? "border-hg-blue" : "border-hg-blue-tint/70",
+          "group relative mt-6 flex min-h-[112px] flex-col gap-1 overflow-hidden rounded-[20px] bg-linear-135 from-[#2b3446] to-hg-ink to-72% p-3.5 transition-shadow duration-300 hover:shadow-[0_16px_32px_-18px_rgb(11_18_32/0.9)]",
+          onMissed && "ring-2 ring-hg-blue ring-offset-2",
         )}
       >
-        <span className={cn(caption, "flex items-center justify-between text-hg-blue")}>
+        <Image
+          src="/app/3d/hourglass-3d.png"
+          alt=""
+          aria-hidden
+          width={62}
+          height={94}
+          className="pointer-events-none absolute top-8 -right-2 h-[94px] w-[62px] max-w-none transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-rotate-6"
+        />
+        <span className={cn(caption, "relative flex w-[150px] items-center justify-between text-[#a9c6ff]")}>
           {copy.missedTitle}
           <ArrowRight className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
         </span>
-        <span className="text-[13px] leading-[18px] font-medium text-hg-ink-2">{copy.missedLead}</span>
+        <span className="relative max-w-[140px] text-[13px] leading-[18px] font-medium text-white/68">{copy.missedLead}</span>
       </Link>
 
       <div className="flex-1" />
@@ -112,7 +123,7 @@ export function SidebarContent({
       <LocaleSwitch className="mb-2 self-start bg-hg-surface" />
 
       <div className="flex w-full items-center gap-2.5 rounded-[14px] bg-hg-surface p-2.5">
-        <span aria-hidden className={cn(caption, "flex size-8 shrink-0 items-center justify-center rounded-2xl bg-hg-blue text-white")}>
+        <span aria-hidden className={cn(caption, "flex size-8 shrink-0 items-center justify-center rounded-full bg-hg-blue text-white")}>
           {data?.initial ?? ""}
         </span>
         <div className={cn(caption, "flex min-w-0 flex-col")}>

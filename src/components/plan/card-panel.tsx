@@ -12,6 +12,7 @@ import { formatCents, formatDollars, formatShort } from "@/lib/money";
 import type { CardAccount, CardAnalysis, Payoff } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { GrowBar } from "./animated";
+import { INK_PANEL, SAMPLE_BADGE_CLASS } from "./surfaces";
 
 /** "23 years 4 months and $14,900 in interest", or what to say when that sentence does not apply. */
 function minimumOnlySentence(payoff: Payoff): string {
@@ -20,11 +21,16 @@ function minimumOnlySentence(payoff: Payoff): string {
   return `${formatDuration(payoff.months)} and ${formatDollars(payoff.totalInterestCents)} in interest`;
 }
 
-function Figure({ label, value, tone }: { label: string; value: string; tone?: "leak" }) {
+function Figure({ label, value, tone }: { label: string; value: string; tone?: "blue" }) {
   return (
     <div>
       <dt className="text-[13px] leading-[18px] font-semibold text-muted">{label}</dt>
-      <dd className={cn("tabular mt-1 text-[clamp(22px,2.4vw,28px)] leading-tight font-semibold tracking-[-0.035em]", tone === "leak" && "text-leak")}>
+      <dd
+        className={cn(
+          "tabular mt-1 text-[clamp(22px,2.4vw,28px)] leading-tight font-semibold tracking-[-0.035em] text-hg-ink",
+          tone === "blue" && "text-hg-blue",
+        )}
+      >
         {value}
       </dd>
     </div>
@@ -32,16 +38,15 @@ function Figure({ label, value, tone }: { label: string; value: string; tone?: "
 }
 
 function Utilization({ percent, limitCents }: { percent: number; limitCents: number }) {
-  const tone = percent >= 70 ? "bg-alarm" : percent >= 30 ? "bg-leak" : "bg-hg-blue";
   return (
     <div>
       <div className="flex items-baseline justify-between gap-3 text-sm">
-        <span className="font-semibold">Credit used</span>
+        <span className="font-semibold text-hg-ink">Credit used</span>
         <span className="tabular font-medium text-muted">
           {percent}% of your {formatShort(limitCents)} limit
         </span>
       </div>
-      <GrowBar percent={percent} className="mt-2.5 h-3 bg-hg-surface" fillClassName={tone} />
+      <GrowBar percent={percent} className="mt-2.5 h-3 bg-hg-surface" />
     </div>
   );
 }
@@ -99,12 +104,12 @@ export function CardPanel({
   const promoDays = analysis.promoEndsInDays;
 
   return (
-    <Card className="p-5 transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-[0_1px_2px_rgb(11_18_32/0.04),0_20px_40px_-20px_rgb(11_18_32/0.25)] sm:rounded-[32px] sm:p-7">
+    <Card className="p-5 transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-[0_1px_2px_rgb(11_18_32/0.04),0_20px_40px_-20px_rgb(11_18_32/0.25)] sm:rounded-[28px] sm:p-7">
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-[22px] leading-7 font-semibold tracking-[-0.025em]">{card.issuerName || "Card"}</h3>
-            {isSampleCard(card) && <SampleBadge />}
+            <h3 className="text-[22px] leading-7 font-semibold tracking-[-0.025em] text-hg-ink">{card.issuerName || "Card"}</h3>
+            {isSampleCard(card) && <SampleBadge className={SAMPLE_BADGE_CLASS} />}
           </div>
           <p className="mt-0.5 text-sm font-medium text-muted">
             {card.cardName}
@@ -117,12 +122,12 @@ export function CardPanel({
       <dl className="mt-6 grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-3">
         <Figure label="Balance" value={formatCents(card.balanceCents)} />
         <Figure label="APR" value={formatApr(card.purchaseAprBps)} />
-        <Figure label="Interest a year" value={formatDollars(analysis.annualInterestCents)} tone="leak" />
+        <Figure label="Interest a year" value={formatDollars(analysis.annualInterestCents)} tone="blue" />
       </dl>
 
-      <div className="mt-6 rounded-[20px] border border-leak/20 bg-leak-soft p-4 sm:p-5">
-        <p className="text-[13px] leading-[18px] font-semibold text-leak">Paying only the minimum</p>
-        <p className="mt-1.5 text-xl leading-snug font-semibold tracking-[-0.025em] text-leak sm:text-[26px] sm:leading-8">
+      <div className="mt-6 rounded-[24px] px-5 py-4 text-[#a9c6ff] sm:rounded-[32px] sm:py-[18px]" style={INK_PANEL}>
+        <p className="text-[13px] leading-[18px] font-semibold">Paying only the minimum</p>
+        <p className="mt-1.5 text-xl leading-snug font-semibold tracking-[-0.025em] sm:text-[26px] sm:leading-8">
           {minimumOnlySentence(analysis.minimumOnly)}
         </p>
       </div>

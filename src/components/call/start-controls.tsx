@@ -360,18 +360,18 @@ export function StartControls({
                   onClick={() => setPicked(option)}
                   className={cn(
                     "relative flex h-10 cursor-pointer items-center justify-center gap-2 rounded-full text-sm font-semibold transition-colors duration-200",
-                    selected ? "text-hg-ink" : "text-hg-muted hover:text-hg-ink-2",
+                    selected ? "text-white" : "text-hg-muted hover:text-hg-ink-2",
                   )}
                 >
                   {selected && (
                     <motion.span
                       layoutId="call-mode-pill"
                       aria-hidden
-                      className="absolute inset-0 rounded-full bg-white shadow-[0_1px_2px_rgb(11_18_32/0.06),0_6px_16px_-8px_rgb(11_18_32/0.2)]"
+                      className="absolute inset-0 rounded-full bg-hg-blue shadow-[0_6px_16px_-8px_rgb(47_107_255/0.6)]"
                       transition={{ duration: 0.4, ease: EASE }}
                     />
                   )}
-                  <Icon className={cn("relative size-4", selected && "text-hg-blue")} aria-hidden />
+                  <Icon className="relative size-4" aria-hidden />
                   <span className="relative">{copy.modes[option].label}</span>
                 </button>
               );
@@ -390,7 +390,7 @@ export function StartControls({
             transition={{ duration: 0.4, ease: EASE }}
             className="overflow-hidden"
           >
-            <div className="mb-4 rounded-2xl border border-line bg-white p-4">
+            <div className="mb-4 rounded-[20px] bg-hg-surface p-4">
               <p className={cn(eyebrow, "mb-2.5")}>{copy.stepsTitle}</p>
               <ol className="flex flex-col gap-2">
                 {copy.steps(bankName).map((step, index) => (
@@ -416,7 +416,7 @@ export function StartControls({
               onChange={(event) => setPhoneNumber(event.target.value)}
               aria-invalid={phoneError ? true : undefined}
               aria-describedby="call-phone-note"
-              className={cn(phoneError && "border-alarm")}
+              className={cn("rounded-full px-[18px]", phoneError && "border-alarm")}
             />
             <p id="call-phone-note" className={cn("mt-1.5 text-xs", phoneError ? "text-alarm" : panel.dim)}>
               {phoneError ?? phoneNote}
@@ -433,7 +433,7 @@ export function StartControls({
               onChange={(event) => setCardholderNumber(event.target.value)}
               aria-invalid={cardholderError ? true : undefined}
               aria-describedby="call-cardholder-note"
-              className={cn(cardholderError && "border-alarm")}
+              className={cn("rounded-full px-[18px]", cardholderError && "border-alarm")}
             />
             <p id="call-cardholder-note" className={cn("mt-1.5 text-xs", cardholderError ? "text-alarm" : panel.dim)}>
               {cardholderError ?? copy.cardholderNote}
@@ -463,14 +463,14 @@ export function StartControls({
                     aria-label={copy.voiceAria(copy.voiceKind[option], voiceName(option))}
                     className={cn(
                       "group relative flex cursor-pointer items-center gap-3 rounded-[18px] border p-3 text-left transition-[border-color,transform] duration-200 active:scale-[0.98]",
-                      selected ? "border-transparent" : "border-line hover:border-hg-blue-tint",
+                      selected ? "border-transparent" : "border-line bg-white hover:border-hg-blue-tint",
                     )}
                   >
                     {selected && (
                       <motion.span
                         layoutId="agent-voice-pick"
                         aria-hidden
-                        className="absolute inset-0 rounded-[18px] border-2 border-hg-blue bg-hg-blue-soft"
+                        className="absolute inset-0 rounded-[18px] border-2 border-hg-blue bg-hg-blue/82 shadow-[0_10px_24px_-14px_rgb(47_107_255/0.8)]"
                         transition={{ duration: 0.4, ease: EASE }}
                       />
                     )}
@@ -478,14 +478,18 @@ export function StartControls({
                       aria-hidden
                       className={cn(
                         "relative flex size-9 shrink-0 items-center justify-center rounded-full transition-colors duration-300",
-                        selected ? "bg-hg-blue text-white" : "bg-hg-surface text-hg-ink-2",
+                        selected ? "bg-white/18 text-white" : "bg-hg-surface text-hg-ink-2",
                       )}
                     >
                       {playing === option ? <Playing /> : <Volume2 className="size-4" />}
                     </span>
                     <span className="relative flex min-w-0 flex-col text-sm leading-tight">
-                      <span className="font-semibold text-hg-ink">{copy.voiceKind[option]}</span>
-                      <span className="truncate text-hg-muted">{voiceName(option)}</span>
+                      <span className={cn("font-semibold transition-colors duration-300", selected ? "text-white" : "text-hg-ink")}>
+                        {copy.voiceKind[option]}
+                      </span>
+                      <span className={cn("truncate transition-colors duration-300", selected ? "text-white/82" : "text-hg-muted")}>
+                        {voiceName(option)}
+                      </span>
                     </span>
                   </button>
                 );

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Phone } from "lucide-react";
 import { formatApr, formatDate } from "@/lib/format";
@@ -14,38 +15,68 @@ import { GrowBar } from "@/components/plan/animated";
 import { CountUp } from "@/components/plan/count-up";
 import { caption, h4, Panel, PanelHeader, PanelLink, Pill } from "@/components/site/app-ui";
 import { buttonVariants } from "@/components/ui/button";
-import { Badge, SampleBadge } from "@/components/ui/primitives";
+import { Badge } from "@/components/ui/primitives";
 import { dueLabel } from "@/components/win/next-up";
 import { callResult, modeLabel, type Overview } from "./overview-model";
 
-/** One figure in the KPI row. The blue one is the money kept. */
+/** The card surfaces of the overview: graphite, the blue gradient, white and a pale blue wash. */
+export const SURFACE = {
+  dark: "bg-[linear-gradient(135deg,#2b3446_0%,#0b1220_72%)]",
+  blue: "bg-[linear-gradient(150deg,#2448f0_0%,#2f6bff_55%,#8db6ff_100%)]",
+  white: "bg-white",
+  pale: "bg-[linear-gradient(135deg,#c4ddf6_0%,#e4effb_50%,#cfe0ff_100%)]",
+} as const;
+
+/** "Sample data", in a light version for white and grey grounds and a dark one for the graphite and blue cards. */
+export function SampleTag({ tone = "light", className }: { tone?: "light" | "dark" | "blue"; className?: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs leading-4 font-medium whitespace-nowrap",
+        tone === "light" && "border-leak/30 bg-hg-blue-soft text-hg-blue",
+        tone === "dark" && "border-white/15 bg-white/8 text-[#a9c6ff]",
+        tone === "blue" && "border-white/15 bg-white/8 text-white",
+        className,
+      )}
+    >
+      <span aria-hidden className={cn("size-1.5 rounded-full", tone === "light" ? "bg-hg-blue" : "bg-white/16")} />
+      Sample data
+    </span>
+  );
+}
+
+/** One figure in the KPI row: what the debt costs on graphite, the money kept on blue, the rest on white and pale blue. */
 export function Kpi({
   label,
   children,
   note,
   tone = "white",
+  art,
 }: {
   label: string;
   children: React.ReactNode;
   note: React.ReactNode;
-  tone?: "white" | "blue";
+  tone?: keyof typeof SURFACE;
+  /** A 3D object in the top right corner, behind the words. Decorative. */
+  art?: React.ReactNode;
 }) {
-  const blue = tone === "blue";
+  const onDark = tone === "dark" || tone === "blue";
   return (
     <div
       className={cn(
-        "relative flex h-full flex-col overflow-hidden rounded-[20px] p-5 transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5",
-        blue
-          ? "hg-panel shadow-[0_18px_40px_-24px_rgb(47_107_255/0.9)]"
-          : "bg-white shadow-[0_1px_2px_rgb(11_18_32/0.03)] hover:shadow-[0_16px_36px_-24px_rgb(11_18_32/0.3)]",
+        "relative flex h-full min-h-[143px] flex-col overflow-hidden rounded-[24px] p-5 transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5",
+        SURFACE[tone],
+        tone === "blue"
+          ? "shadow-[0_18px_40px_-24px_rgb(47_107_255/0.9)]"
+          : "shadow-[0_1px_2px_rgb(11_18_32/0.03)] hover:shadow-[0_16px_36px_-24px_rgb(11_18_32/0.3)]",
       )}
     >
-      {blue && <span aria-hidden className="pointer-events-none absolute -top-16 -right-12 size-40 rounded-full bg-white/15 blur-2xl" />}
-      <p className={cn(caption, "relative", blue ? "text-white/75" : "text-hg-muted")}>{label}</p>
-      <div className={cn("tabular relative mt-2 text-[30px] leading-[1.1] font-semibold tracking-[-0.035em]", blue ? "text-white" : "text-hg-ink")}>
+      {art}
+      <p className={cn(caption, "relative", onDark ? "text-white/70" : "text-hg-muted")}>{label}</p>
+      <div className={cn("tabular relative mt-2 text-[30px] leading-[1.1] font-semibold tracking-[-0.035em]", onDark ? "text-white" : "text-hg-ink")}>
         {children}
       </div>
-      <div className={cn("relative mt-auto pt-2 text-[13px] leading-[18px] font-medium", blue ? "text-white/75" : "text-hg-muted")}>{note}</div>
+      <div className={cn("relative mt-auto pt-2 text-[13px] leading-[18px] font-medium", onDark ? "text-white/70" : "text-hg-muted")}>{note}</div>
     </div>
   );
 }
@@ -58,6 +89,17 @@ export function KpiRow({ overview }: { overview: Overview }) {
       <StaggerItem className="h-full">
         <Kpi
           label="Interest you pay a year, now"
+          tone="dark"
+          art={
+            <Image
+              src="/app/3d/flame-3d.png"
+              alt=""
+              width={96}
+              height={119}
+              sizes="96px"
+              className="pointer-events-none absolute -top-[7px] -right-1.5 h-[119px] w-24 select-none"
+            />
+          }
           note={lowered ? `Down from ${formatDollars(overview.annualInterestBeforeCents)} before your wins.` : "If the balance stays where it is."}
         >
           <CountUp value={overview.annualInterestCents} format="dollars" />
@@ -90,7 +132,7 @@ export function KpiRow({ overview }: { overview: Overview }) {
         </Kpi>
       </StaggerItem>
       <StaggerItem className="h-full">
-        <Kpi label="Still to win" note="A year, if the calls left go as they usually do.">
+        <Kpi label="Still to win" tone="pale" note="A year, if the calls left go as they usually do.">
           <CountUp value={overview.openValueCents} format="dollars" delay={0.2} />
         </Kpi>
       </StaggerItem>
@@ -103,37 +145,36 @@ function CardRowView({ row }: { row: Overview["cards"][number] }) {
   return (
     <Link
       href="/cards"
-      className="group flex flex-col gap-2 rounded-[14px] bg-hg-surface p-3.5 transition-[background-color,transform] duration-200 hover:-translate-y-px hover:bg-hg-blue-soft/70"
+      className={cn(
+        SURFACE.dark,
+        "group flex flex-col gap-2 rounded-[20px] p-3.5 transition-[transform,box-shadow] duration-200 hover:-translate-y-px hover:shadow-[0_14px_30px_-18px_rgb(11_18_32/0.7)]",
+      )}
     >
       <span className="flex items-center justify-between gap-2">
-        <span className={cn(caption, "min-w-0 truncate text-hg-ink")}>
+        <span className={cn(caption, "min-w-0 truncate text-white")}>
           {card.issuerName || "Card"} · {formatDollars(card.balanceCents)}
         </span>
         <span className="flex shrink-0 gap-1">
           {row.won && <Pill className="px-2.5">Won</Pill>}
-          {row.nextCall && (
-            <Pill tone="white" className="px-2.5">
-              Next call
-            </Pill>
-          )}
+          {row.nextCall && <Pill className="bg-white/8 px-2.5 text-white">Next call</Pill>}
         </span>
       </span>
-      <span className={cn(caption, "flex flex-wrap items-center gap-x-2 gap-y-1 text-hg-muted")}>
+      <span className={cn(caption, "flex flex-wrap items-center gap-x-2 gap-y-1 text-white/70")}>
         <span>APR</span>
         {row.aprAfterBps !== null ? (
           <>
             <span className="line-through">{formatApr(row.aprBeforeBps)}</span>
             <ArrowRight className="size-3" aria-label="to" />
-            <span className={cn(h4, "text-hg-blue")}>{formatApr(row.aprAfterBps)}</span>
+            <span className={cn(h4, "text-[#a9c6ff]")}>{formatApr(row.aprAfterBps)}</span>
           </>
         ) : (
-          <span className={cn(h4, "text-hg-ink")}>{formatApr(card.purchaseAprBps)}</span>
+          <span className={cn(h4, "text-white")}>{formatApr(card.purchaseAprBps)}</span>
         )}
         {card.annualFeeCents > 0 && <span>· {formatShort(card.annualFeeCents)} fee</span>}
       </span>
       {(row.sample || row.missedPayment) && (
         <span className="flex flex-wrap gap-1.5">
-          {row.sample && <SampleBadge />}
+          {row.sample && <SampleTag tone="dark" />}
           {row.missedPayment && <Badge tone="leak">Missed payment</Badge>}
         </span>
       )}
@@ -144,7 +185,7 @@ function CardRowView({ row }: { row: Overview["cards"][number] }) {
 /** "Your cards" with Won / Next call pills, then "Saved so far" growing toward the year's goal. */
 export function YourCards({ overview }: { overview: Overview }) {
   return (
-    <Panel aria-labelledby="your-cards" className="flex h-full flex-col gap-3">
+    <Panel aria-labelledby="your-cards" className="flex h-full flex-col gap-3 rounded-[28px]">
       <PanelHeader id="your-cards" title="Your cards" right={<PanelLink href="/cards">All</PanelLink>} />
       <Stagger onMount gap={0.06} delay={0.2} as="ul" className="flex flex-col gap-2">
         {overview.cards.map((row) => (
@@ -171,7 +212,7 @@ export function YourCards({ overview }: { overview: Overview }) {
 /** The next few steps, soonest first. The full list, with the calendar file, is on Savings. */
 export function NextStepsPanel({ overview, today }: { overview: Overview; today: IsoDate }) {
   return (
-    <Panel aria-labelledby="overview-steps" className="flex flex-col gap-4">
+    <Panel aria-labelledby="overview-steps" className="flex flex-col gap-4 rounded-[28px]">
       <PanelHeader
         id="overview-steps"
         title="Next steps"
@@ -212,7 +253,7 @@ export function NextStepsPanel({ overview, today }: { overview: Overview; today:
 export function RecentCalls({ overview, cards }: { overview: Overview; cards: CardAccount[] }) {
   const next = overview.nextCall;
   return (
-    <Panel aria-labelledby="overview-calls" className="flex flex-col gap-4">
+    <Panel aria-labelledby="overview-calls" className="flex flex-col gap-4 rounded-[28px]">
       <PanelHeader
         id="overview-calls"
         title="Recent calls"

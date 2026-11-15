@@ -4,7 +4,8 @@ import { useCaseFile } from "@/lib/store";
 import type { CaseFile, IsoDate } from "@/lib/types";
 import { useToday } from "@/components/call/clock";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
-import { EmptyState, Notice, PageSkeleton } from "@/components/call/page-states";
+import { Notice, PageSkeleton } from "@/components/call/page-states";
+import { ArtEmptyState } from "@/components/empty/art-empty-state";
 import { planFor } from "@/components/call/resolve-call";
 import { CallHistory } from "./call-history";
 import { debtFreeFor, type DebtFree } from "./debt-free";
@@ -22,9 +23,9 @@ export function DashboardScreen() {
   if (!ready) return <PageSkeleton />;
   if (!caseFile || caseFile.cards.length === 0) {
     return (
-      <EmptyState title="Nothing here yet">
+      <ArtEmptyState title="Nothing here yet" tone="blue" art={{ src: "/app/3d/trophy-3d.png", width: 263, height: 274 }}>
         Your wins, your debt-free date and your next steps show up here. Start with a card statement.
-      </EmptyState>
+      </ArtEmptyState>
     );
   }
   return <Dashboard caseFile={caseFile} onClear={() => update(() => null)} />;

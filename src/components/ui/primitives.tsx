@@ -88,11 +88,11 @@ export function SampleBadge({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border border-leak/30 bg-leak-soft px-2.5 py-0.5 text-xs font-medium text-leak",
+        "inline-flex items-center gap-1.5 rounded-full border border-hg-blue-tint bg-hg-blue-soft px-2.5 py-0.5 text-xs font-medium text-hg-blue",
         className,
       )}
     >
-      <span className="size-1.5 rounded-full bg-leak" />
+      <span className="size-1.5 rounded-full bg-hg-blue" />
       Sample data
     </span>
   );

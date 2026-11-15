@@ -68,18 +68,21 @@ body {
 }
 
 /* Headings are tight Manrope; <em> inside them turns the muted second voice, as in "Lower card / interest". */
-h1,
-h2 {
-  letter-spacing: -0.035em;
-}
+/* In the base layer, so a utility class on a heading or its <em> still wins. */
+@layer base {
+  h1,
+  h2 {
+    letter-spacing: -0.035em;
+  }
 
-h1 em,
-h2 em,
-.font-display {
-  font-family: var(--font-display);
-  font-style: normal;
-  color: var(--hg-muted);
-  letter-spacing: -0.035em;
+  h1 em,
+  h2 em,
+  .font-display {
+    font-family: var(--font-display);
+    font-style: normal;
+    color: var(--hg-muted);
+    letter-spacing: -0.035em;
+  }
 }
 
 /* The soft blue wash behind app screens, the same light the landing hero sits in. */

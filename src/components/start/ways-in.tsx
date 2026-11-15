@@ -49,7 +49,7 @@ export function WaysIn({
         </h1>
       </StaggerItem>
       <StaggerItem>
-        <p className="mt-4 max-w-[60ch] text-[18px] leading-7 font-medium tracking-[-0.01em] text-muted">
+        <p className="mt-4 max-w-2xl text-[18px] leading-7 font-medium tracking-[-0.01em] text-muted">
           One statement is enough to start. Add every card you have, from every bank, and Haggle builds one plan and one list of calls.
         </p>
       </StaggerItem>

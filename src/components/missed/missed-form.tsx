@@ -1,14 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
 import { callHref } from "@/components/call/resolve-call";
 import { EASE, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { Field } from "@/components/start/field";
+import { SURFACE, SampleTag, StepDot } from "@/components/start/surfaces";
 import { Button } from "@/components/ui/button";
-import { Card, Switch } from "@/components/ui/primitives";
+import { Switch } from "@/components/ui/primitives";
 import { feeForWin, leversFor } from "@/lib/engine";
 import { formatApr } from "@/lib/format";
 import type { Locale } from "@/lib/i18n/locale";
@@ -105,7 +107,7 @@ export function MissedForm() {
           </StaggerItem>
 
           <StaggerItem>
-            <Card className="rounded-[28px] p-5 sm:p-7">
+            <Section>
               <SectionTitle n={1} title={copy.reasonTitle} lead={copy.reasonLead} />
               <div id="missed-reason" tabIndex={-1} role="radiogroup" aria-label={copy.reasonGroup} className="mt-4 flex flex-wrap gap-2 outline-none">
                 {MISSED_REASONS.map((reason) => {
@@ -119,7 +121,7 @@ export function MissedForm() {
                       onClick={() => set("reason", reason.id)}
                       className={cn(
                         "relative rounded-full border px-4 py-2 text-sm font-semibold transition-colors duration-200",
-                        on ? "border-hg-blue text-white" : "border-line bg-white text-hg-ink-2 hover:border-hg-blue-tint hover:bg-hg-blue-soft",
+                        on ? "border-hg-blue text-white" : "border-hg-line bg-white text-hg-ink-2 hover:border-hg-blue-tint hover:bg-hg-blue-soft",
                       )}
                     >
                       {on && (
@@ -158,17 +160,17 @@ export function MissedForm() {
                   onChange={(event) => set("note", event.target.value)}
                   aria-invalid={tried && errors.note ? true : undefined}
                   placeholder={copy.notePlaceholder}
-                  className="w-full resize-none rounded-2xl border border-line bg-white px-4 py-3 text-base text-ink transition-[border-color,box-shadow] placeholder:text-muted/70 hover:border-hg-blue-tint focus:border-hg-blue focus:shadow-[0_0_0_4px_rgb(47_107_255/0.12)] focus:outline-none"
+                  className="w-full resize-none rounded-[22px] border border-hg-line bg-white px-4 py-3 text-base text-ink transition-[border-color,box-shadow] placeholder:text-muted/70 hover:border-hg-blue-tint focus:border-hg-blue focus:shadow-[0_0_0_4px_rgb(47_107_255/0.12)] focus:outline-none"
                 />
                 <p className={cn("mt-1 text-xs", tried && errors.note ? "text-alarm" : "text-hg-muted")}>
                   {tried && errors.note ? errors.note : copy.noteCount(values.note.trim().length, MAX_NOTE_CHARS)}
                 </p>
               </div>
-            </Card>
+            </Section>
           </StaggerItem>
 
           <StaggerItem>
-            <Card className="rounded-[28px] p-5 sm:p-7">
+            <Section wash>
               <SectionTitle n={2} title={copy.cardTitle} lead={copy.cardLead} />
               <div className="mt-5 grid gap-x-4 gap-y-5 sm:grid-cols-2">
                 <Field label={copy.bank} placeholder="Chase" {...bind("issuerName")} />
@@ -197,11 +199,11 @@ export function MissedForm() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </Card>
+            </Section>
           </StaggerItem>
 
           <StaggerItem>
-            <Card className="rounded-[28px] p-5 sm:p-7">
+            <Section>
               <SectionTitle n={3} title={copy.missedTitle} lead={copy.missedLead} />
               <div className="mt-5 grid gap-x-4 gap-y-5 sm:grid-cols-3">
                 <Field label={copy.lateFee} hint={copy.optional} unit="dollars" placeholder="40.00" {...bind("lateFee")} />
@@ -216,7 +218,7 @@ export function MissedForm() {
                   onChange={(next) => set("firstInYear", next)}
                 />
               </div>
-            </Card>
+            </Section>
           </StaggerItem>
 
           <StaggerItem className="flex flex-wrap items-center gap-3">
@@ -229,53 +231,61 @@ export function MissedForm() {
         </Stagger>
       </form>
 
-      <motion.aside
-        data-tour="missed-asks"
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: EASE, delay: 0.25 }}
-        className="hg-panel relative overflow-hidden rounded-[28px] p-6 lg:sticky lg:top-24"
-        aria-live="polite"
-      >
-        <p className="text-sm font-semibold text-white/70">{copy.asksTitle}</p>
-        {asks.length > 0 ? (
-          <ul className="mt-4 flex flex-col gap-2.5">
-            <AnimatePresence initial={false}>
-              {asks.map((ask) => (
-                <motion.li
-                  key={ask}
-                  layout
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 8 }}
-                  transition={{ duration: 0.3, ease: EASE }}
-                  className="flex items-start gap-2.5 text-[15px] leading-snug font-medium"
-                >
-                  <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-white/20">
-                    <Check className="size-3" aria-hidden />
-                  </span>
-                  {ask}
-                </motion.li>
-              ))}
-            </AnimatePresence>
-          </ul>
-        ) : (
-          <p className="mt-4 text-[15px] leading-snug text-white/80">
-            {copy.asksEmpty}
-          </p>
-        )}
-        <div className="mt-6 rounded-2xl bg-white/12 p-4">
-          <p className="text-sm text-white/70">{copy.worthTitle}</p>
-          <p className="mt-1 text-[40px] leading-none font-semibold tracking-[-0.04em] tabular-nums">
-            {worth === null ? "—" : formatDollars(worth)}
-          </p>
-          <p className="mt-2 text-sm text-white/70">
-            {worth === null || worth === 0
-              ? copy.payNothing
-              : copy.payOnWin(formatCents(feeForWin(worth)))}
-          </p>
-        </div>
-      </motion.aside>
+      <div className="relative lg:sticky lg:top-24">
+        {/* The hourglass stands on the card's top edge, its foot hidden behind it. Wide screens only: it needs the room above. */}
+        <motion.div
+          aria-hidden
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: EASE, delay: 0.35 }}
+          className="pointer-events-none absolute -top-[210px] right-[58px] hidden w-[170px] xl:block"
+        >
+          <Image src="/app/3d/hourglass-3d-lg.png" alt="" width={170} height={259} priority className="h-auto w-full" />
+        </motion.div>
+        <motion.aside
+          data-tour="missed-asks"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: EASE, delay: 0.25 }}
+          className={cn(SURFACE.ink, "relative overflow-hidden rounded-[28px] p-6")}
+          aria-live="polite"
+        >
+          <p className="text-sm font-semibold text-white/70">{copy.asksTitle}</p>
+          {asks.length > 0 ? (
+            <ul className="mt-4 flex flex-col gap-2.5">
+              <AnimatePresence initial={false}>
+                {asks.map((ask) => (
+                  <motion.li
+                    key={ask}
+                    layout
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 8 }}
+                    transition={{ duration: 0.3, ease: EASE }}
+                    className="flex items-start gap-2.5 text-[15px] leading-snug font-medium"
+                  >
+                    <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-white/25">
+                      <Check className="size-3" aria-hidden />
+                    </span>
+                    {ask}
+                  </motion.li>
+                ))}
+              </AnimatePresence>
+            </ul>
+          ) : (
+            <p className="mt-4 text-[15px] leading-snug text-white/80">{copy.asksEmpty}</p>
+          )}
+          <div className={cn(SURFACE.blue, "mt-6 rounded-[20px] p-4")}>
+            <p className="text-sm text-white/70">{copy.worthTitle}</p>
+            <p className="mt-1 text-[40px] leading-none font-semibold tracking-[-0.04em] tabular-nums">
+              {worth === null ? "—" : formatDollars(worth)}
+            </p>
+            <p className="mt-2 text-sm text-white/70">
+              {worth === null || worth === 0 ? copy.payNothing : copy.payOnWin(formatCents(feeForWin(worth)))}
+            </p>
+          </div>
+        </motion.aside>
+      </div>
     </div>
   );
 }
@@ -296,20 +306,19 @@ function asksFor(card: CardAccount, locale: Locale): string[] {
   return asks;
 }
 
-/** The UI kit's "Sample data" badge, with its words in the visitor's language. */
-function SampleTag({ children }: { children: React.ReactNode }) {
+/** A step of the form: a white card inside a frame. The frame is the blue wash for the card's numbers. */
+function Section({ wash = false, children }: { wash?: boolean; children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-leak/30 bg-leak-soft px-2.5 py-0.5 text-xs font-medium text-leak">
-      <span className="size-1.5 rounded-full bg-leak" />
-      {children}
-    </span>
+    <div className={cn("rounded-[28px] p-2.5 sm:p-8", wash ? SURFACE.wash : SURFACE.white)}>
+      <div className="rounded-[24px] border border-hg-line bg-white p-5 sm:p-7">{children}</div>
+    </div>
   );
 }
 
 function SectionTitle({ n, title, lead }: { n: number; title: string; lead: string }) {
   return (
     <div className="flex items-start gap-3">
-      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-hg-blue-soft text-sm font-bold text-hg-blue">{n}</span>
+      <StepDot n={n} />
       <div>
         <h2 className="text-lg leading-7 font-semibold tracking-[-0.02em] text-hg-ink">{title}</h2>
         <p className="text-sm text-hg-muted">{lead}</p>

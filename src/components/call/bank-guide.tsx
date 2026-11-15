@@ -1,11 +1,14 @@
 "use client";
 
+import Image from "next/image";
 import { Check } from "lucide-react";
 import { Stagger, StaggerItem } from "@/components/motion/reveal";
 import { Card } from "@/components/ui/primitives";
 import type { Copy } from "@/lib/i18n/locale";
 import { useLocale } from "@/lib/i18n/use-locale";
 import type { NegotiationBrief } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { panel } from "./panel-theme";
 
 type GuideCopy = {
   playTitle: string;
@@ -66,30 +69,41 @@ export function BankGuide({ brief }: { brief: NegotiationBrief }) {
     <aside>
       <Stagger onMount gap={0.12} delay={0.15} className="flex flex-col gap-4">
         <StaggerItem>
-          <Card className="p-6">
-            <h2 className={heading}>{copy.playTitle}</h2>
-            <p className="mt-1.5 text-sm text-muted">{copy.playLead}</p>
-            <Stagger as="ol" onMount gap={0.14} delay={0.4} className="mt-5 flex flex-col gap-4">
+          <div className="relative overflow-hidden rounded-[32px] bg-[linear-gradient(150deg,#2448f0_0%,#2f6bff_55%,#8db6ff_100%)] p-6 text-white">
+            <Image
+              src="/app/3d/microphone-3d.png"
+              alt=""
+              aria-hidden
+              width={84}
+              height={168}
+              sizes="84px"
+              className="pointer-events-none absolute -top-[22px] -right-1.5 h-[168px] w-[84px] max-w-none select-none"
+            />
+            <div className="relative pr-16">
+              <h2 className={cn(heading, "text-white")}>{copy.playTitle}</h2>
+              <p className={cn("mt-1.5 text-sm", panel.dimOnDark)}>{copy.playLead}</p>
+            </div>
+            <Stagger as="ol" onMount gap={0.14} delay={0.4} className="relative mt-5 flex flex-col gap-4">
               {copy.suggestions.map((suggestion, index) => (
                 <StaggerItem as="li" key={suggestion.title} className="relative flex gap-3">
                   {index < copy.suggestions.length - 1 && (
-                    <span aria-hidden className="absolute top-8 -bottom-3 left-[13px] w-px bg-hg-blue-tint" />
+                    <span aria-hidden className="absolute top-8 -bottom-3 left-[13px] w-px bg-white/8" />
                   )}
-                  <span className="tabular relative flex size-7 shrink-0 items-center justify-center rounded-full bg-hg-blue text-xs font-bold text-white shadow-[0_6px_14px_-6px_rgb(47_107_255/0.7)]">
+                  <span className="tabular relative flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-hg-blue">
                     {index + 1}
                   </span>
                   <span className="pt-0.5 text-sm leading-snug">
-                    <b className="block font-semibold text-hg-ink">{suggestion.title}</b>
-                    <span className="text-muted">{suggestion.detail}</span>
+                    <b className="block font-semibold text-white">{suggestion.title}</b>
+                    <span className={panel.dimOnDark}>{suggestion.detail}</span>
                   </span>
                 </StaggerItem>
               ))}
             </Stagger>
-          </Card>
+          </div>
         </StaggerItem>
 
         <StaggerItem>
-          <Card className="p-6">
+          <Card className="rounded-[32px] p-6 shadow-none">
             <h2 className={heading}>{copy.sayTitle}</h2>
             <p className="mt-1.5 text-sm text-muted">{copy.sayLead}</p>
             {brief.facts.length > 0 ? (
@@ -111,9 +125,9 @@ export function BankGuide({ brief }: { brief: NegotiationBrief }) {
             )}
 
             <dl className="mt-5 flex flex-col gap-3 border-t border-line pt-4 text-sm leading-snug">
-              <div className="rounded-2xl bg-hg-surface px-4 py-3">
-                <dt className="font-semibold text-hg-ink">{copy.saysFirst}</dt>
-                <dd className="mt-0.5 text-muted">{brief.disclosures.join(" ")}</dd>
+              <div className={cn("rounded-[20px] px-4 py-3", panel.ink)}>
+                <dt className="font-semibold">{copy.saysFirst}</dt>
+                <dd className={cn("mt-0.5", panel.dimOnDark)}>{brief.disclosures.join(" ")}</dd>
               </div>
               <div className="px-1">
                 <dt className="font-semibold text-hg-ink">{copy.ifNo}</dt>
