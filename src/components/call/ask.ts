@@ -97,6 +97,34 @@ function askSentenceEs(brief: NegotiationBrief, card: CardAccount): string {
   }
 }
 
+/**
+ * The ask as short points for the screen before the call: "$40 late fee back", "APR 29.99% → 27.24%".
+ * One point for a single ask; the missed-payment call gets one per thing it asks for.
+ */
+export function askPoints(brief: NegotiationBrief, card: CardAccount, locale: Locale = "en"): string[] {
+  const es = locale === "es";
+  switch (brief.goal) {
+    case "missed_payment": {
+      const points: string[] = [];
+      if (card.lateFeeCents > 0) {
+        const fee = formatShort(card.lateFeeCents);
+        points.push(es ? `Devolver el cargo de ${fee}` : `${fee} late fee back`);
+      }
+      if (brief.askAprBps !== null) {
+        points.push(`APR ${formatApr(brief.currentAprBps)} → ${formatApr(brief.askAprBps)}`);
+      }
+      points.push(es ? "Fuera del reporte de crédito" : "Off your credit report");
+      return points;
+    }
+    case "apr_reduction":
+      return brief.askAprBps === null
+        ? [askSentence(brief, card, locale)]
+        : [`APR ${formatApr(brief.currentAprBps)} → ${formatApr(brief.askAprBps)}`];
+    default:
+      return [askSentence(brief, card, locale)];
+  }
+}
+
 /** The card name the missed-payment form gives a card it has no name for. */
 const GENERIC_CARD_NAME = "Credit card";
 

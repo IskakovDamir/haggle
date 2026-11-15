@@ -10,7 +10,7 @@ import type { Copy } from "@/lib/i18n/locale";
 import { useLocale } from "@/lib/i18n/use-locale";
 import { cleanRequest } from "@/lib/negotiator/own-request";
 import type { CardAccount, NegotiationBrief } from "@/lib/types";
-import { askSentence, cardLabel } from "./ask";
+import { askPoints, cardLabel } from "./ask";
 import { BankGuide } from "./bank-guide";
 import { bankReplies } from "./bank-replies";
 import { CoachPanel } from "./coach-panel";
@@ -136,7 +136,7 @@ export function CallSession(props: { card: CardAccount; brief: NegotiationBrief;
           ) : session.phase === "briefing" ? (
             <>
               <StartControls
-                ask={askSentence(suggested, card, locale)}
+                ask={askPoints(suggested, card, locale)}
                 request={requestText}
                 onRequest={setRequestText}
                 demo={props.demo ?? false}

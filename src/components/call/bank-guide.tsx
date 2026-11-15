@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Check } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { Stagger, StaggerItem } from "@/components/motion/reveal";
 import { Card } from "@/components/ui/primitives";
 import type { Copy } from "@/lib/i18n/locale";
@@ -12,9 +12,9 @@ import { panel } from "./panel-theme";
 
 type GuideCopy = {
   playTitle: string;
-  playLead: string;
-  suggestions: { title: string; detail: string }[];
-  sayTitle: string;
+  suggestions: string[];
+  /** The folded list of facts: its title, with how many there are. */
+  sayTitle: (count: number) => string;
   sayLead: string;
   /** Said under the facts, which are stored in English. `spokenInSpanish`: the brief has the agent speak Spanish. */
   factsNote: (spokenInSpanish: boolean) => string | null;
@@ -25,30 +25,20 @@ type GuideCopy = {
 
 const COPY: Copy<GuideCopy> = {
   en: {
-    playTitle: "How to play the bank",
-    playLead: "Answer the way a card services representative would. Make the agent work for it.",
-    suggestions: [
-      { title: "Say no first", detail: "See what the agent does with a refusal." },
-      { title: "Offer something smaller", detail: "A smaller cut, or a one-time credit." },
-      { title: "Ask who you are speaking with", detail: "It has to say that it is an AI assistant." },
-    ],
-    sayTitle: "What the agent may say",
-    sayLead: "Only these facts, taken from the statement you confirmed. It states nothing else as fact.",
+    playTitle: "Make it work for it",
+    suggestions: ["Say no first", "Offer something smaller", "Ask if it’s a person"],
+    sayTitle: (count) => `What the agent knows · ${count}`,
+    sayLead: "It states only these facts. Nothing else.",
     factsNote: () => null,
     noFacts: "The statement gave the agent no facts to state, so it will only ask.",
     saysFirst: "It says this first",
     ifNo: "If the bank says no",
   },
   es: {
-    playTitle: "Cómo hacer de banco",
-    playLead: "Responde como lo haría alguien de servicio al cliente de tarjetas. Que el agente se lo gane.",
-    suggestions: [
-      { title: "Di que no primero", detail: "Mira qué hace el agente con un rechazo." },
-      { title: "Ofrece algo menor", detail: "Una rebaja más pequeña o un crédito por única vez." },
-      { title: "Pregunta con quién hablas", detail: "Tiene que decir que es un asistente de IA." },
-    ],
-    sayTitle: "Lo que el agente puede decir",
-    sayLead: "Solo estos datos, tomados del estado de cuenta que confirmaste. No afirma nada más como un hecho.",
+    playTitle: "Que se lo gane",
+    suggestions: ["Di que no primero", "Ofrece algo menor", "Pregunta si es una persona"],
+    sayTitle: (count) => `Lo que sabe el agente · ${count}`,
+    sayLead: "Solo afirma estos datos. Nada más.",
     factsNote: (spokenInSpanish) =>
       spokenInSpanish
         ? "Aquí aparecen en inglés, tal como se guardaron. El agente los dice en español."
@@ -79,23 +69,14 @@ export function BankGuide({ brief }: { brief: NegotiationBrief }) {
               sizes="84px"
               className="pointer-events-none absolute -top-[22px] -right-1.5 h-[168px] w-[84px] max-w-none select-none"
             />
-            <div className="relative pr-16">
-              <h2 className={cn(heading, "text-white")}>{copy.playTitle}</h2>
-              <p className={cn("mt-1.5 text-sm", panel.dimOnDark)}>{copy.playLead}</p>
-            </div>
-            <Stagger as="ol" onMount gap={0.14} delay={0.4} className="relative mt-5 flex flex-col gap-4">
+            <h2 className={cn(heading, "relative pr-16 text-white")}>{copy.playTitle}</h2>
+            <Stagger as="ol" onMount gap={0.14} delay={0.4} className="relative mt-4 flex flex-col gap-3 pr-12">
               {copy.suggestions.map((suggestion, index) => (
-                <StaggerItem as="li" key={suggestion.title} className="relative flex gap-3">
-                  {index < copy.suggestions.length - 1 && (
-                    <span aria-hidden className="absolute top-8 -bottom-3 left-[13px] w-px bg-white/8" />
-                  )}
-                  <span className="tabular relative flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-hg-blue">
+                <StaggerItem as="li" key={suggestion} className="flex items-center gap-3 text-[15px] font-semibold text-white">
+                  <span className="tabular flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-hg-blue">
                     {index + 1}
                   </span>
-                  <span className="pt-0.5 text-sm leading-snug">
-                    <b className="block font-semibold text-white">{suggestion.title}</b>
-                    <span className={panel.dimOnDark}>{suggestion.detail}</span>
-                  </span>
+                  {suggestion}
                 </StaggerItem>
               ))}
             </Stagger>
@@ -103,37 +84,50 @@ export function BankGuide({ brief }: { brief: NegotiationBrief }) {
         </StaggerItem>
 
         <StaggerItem>
-          <Card className="rounded-[32px] p-6 shadow-none">
-            <h2 className={heading}>{copy.sayTitle}</h2>
-            <p className="mt-1.5 text-sm text-muted">{copy.sayLead}</p>
-            {brief.facts.length > 0 ? (
-              <>
-                <Stagger as="ul" onMount gap={0.08} delay={0.7} className="mt-4 flex flex-col gap-2.5">
-                  {brief.facts.map((fact) => (
-                    <StaggerItem as="li" key={fact} className="flex gap-2.5 text-sm leading-snug">
-                      <span aria-hidden className="mt-px flex size-[18px] shrink-0 items-center justify-center rounded-full bg-hg-blue-soft text-hg-blue">
-                        <Check className="size-3" strokeWidth={3} />
-                      </span>
-                      {fact}
-                    </StaggerItem>
-                  ))}
-                </Stagger>
-                {factsNote && <p className="mt-3 text-xs text-muted">{factsNote}</p>}
-              </>
-            ) : (
-              <p className="mt-4 text-sm">{copy.noFacts}</p>
-            )}
+          <Card className="rounded-[32px] p-0 shadow-none">
+            <details className="group">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-6 [&::-webkit-details-marker]:hidden">
+                <h2 className={cn(heading, "text-[17px]")}>{copy.sayTitle(brief.facts.length)}</h2>
+                <ChevronDown
+                  className="size-5 shrink-0 text-hg-muted transition-transform duration-300 group-open:rotate-180"
+                  aria-hidden
+                />
+              </summary>
+              <div className="px-6 pb-6">
+                <p className="text-sm text-muted">{copy.sayLead}</p>
+                {brief.facts.length > 0 ? (
+                  <>
+                    <Stagger as="ul" onMount gap={0.08} delay={0.7} className="mt-4 flex flex-col gap-2.5">
+                      {brief.facts.map((fact) => (
+                        <StaggerItem as="li" key={fact} className="flex gap-2.5 text-sm leading-snug">
+                          <span
+                            aria-hidden
+                            className="mt-px flex size-[18px] shrink-0 items-center justify-center rounded-full bg-hg-blue-soft text-hg-blue"
+                          >
+                            <Check className="size-3" strokeWidth={3} />
+                          </span>
+                          {fact}
+                        </StaggerItem>
+                      ))}
+                    </Stagger>
+                    {factsNote && <p className="mt-3 text-xs text-muted">{factsNote}</p>}
+                  </>
+                ) : (
+                  <p className="mt-4 text-sm">{copy.noFacts}</p>
+                )}
 
-            <dl className="mt-5 flex flex-col gap-3 border-t border-line pt-4 text-sm leading-snug">
-              <div className={cn("rounded-[20px] px-4 py-3", panel.ink)}>
-                <dt className="font-semibold">{copy.saysFirst}</dt>
-                <dd className={cn("mt-0.5", panel.dimOnDark)}>{brief.disclosures.join(" ")}</dd>
+                <dl className="mt-5 flex flex-col gap-3 border-t border-line pt-4 text-sm leading-snug">
+                  <div className={cn("rounded-[20px] px-4 py-3", panel.ink)}>
+                    <dt className="font-semibold">{copy.saysFirst}</dt>
+                    <dd className={cn("mt-0.5", panel.dimOnDark)}>{brief.disclosures.join(" ")}</dd>
+                  </div>
+                  <div className="px-1">
+                    <dt className="font-semibold text-hg-ink">{copy.ifNo}</dt>
+                    <dd className="mt-0.5 text-muted">{brief.fallback}</dd>
+                  </div>
+                </dl>
               </div>
-              <div className="px-1">
-                <dt className="font-semibold text-hg-ink">{copy.ifNo}</dt>
-                <dd className="mt-0.5 text-muted">{brief.fallback}</dd>
-              </div>
-            </dl>
+            </details>
           </Card>
         </StaggerItem>
       </Stagger>

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Keyboard, Mic, PencilLine, Phone, Smartphone, Volume2, X } from "lucide-react";
+import { Check, Keyboard, Mic, PencilLine, Phone, Smartphone, Volume2, X } from "lucide-react";
 import { EASE } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/primitives";
@@ -11,13 +11,7 @@ import { useLocale } from "@/lib/i18n/use-locale";
 import { MAX_REQUEST_CHARS } from "@/lib/negotiator/own-request";
 import { toE164 } from "@/lib/voice/phone";
 import type { VoiceStatus } from "@/lib/voice/use-voice-call";
-import {
-  AGENT_VOICES,
-  DEFAULT_AGENT_VOICE,
-  SPANISH_AGENT_VOICES,
-  voicePreviewPathFor,
-  type AgentVoice,
-} from "@/lib/voice/voices";
+import { AGENT_VOICES, DEFAULT_AGENT_VOICE, SPANISH_AGENT_VOICES, voicePreviewPathFor, type AgentVoice } from "@/lib/voice/voices";
 import { cn } from "@/lib/utils";
 import { Notice } from "./page-states";
 import { panel } from "./panel-theme";
@@ -38,10 +32,8 @@ type StartCopy = {
   ownPlaceholder: string;
   ownNote: string;
   useSuggested: string;
-  practice: string;
-  demo: (bank: string) => string;
-  demoPhone: (bank: string) => string;
-  stepsTitle: string;
+  /** Above the mode picker: who the visitor plays, and what to do next. */
+  youPlay: (bank: string) => string;
   steps: (bank: string) => string[];
   phoneOpenNote: (prefixes: string) => string;
   notSetUp: string;
@@ -68,40 +60,38 @@ type StartCopy = {
 const COPY: Copy<StartCopy> = {
   en: {
     modes: {
-      voice: { label: "Voice", hint: "You speak as the bank. The agent answers out loud." },
-      text: { label: "Typing", hint: "You type the bank's lines. The agent answers in text." },
-      phone: { label: "Phone", hint: "The agent rings your phone. Answer it and play the bank. The transcript shows up here." },
+      voice: { label: "Voice", hint: "Talk out loud as the bank." },
+      text: {
+        label: "Typing",
+        hint: "Type as the bank, or tap a suggested reply.",
+      },
+      phone: { label: "Phone", hint: "Your phone rings. Answer as the bank." },
     },
     willAsk: "The agent will ask",
     ownAsk: "Ask for something else",
     ownLabel: "What should the agent call about?",
     ownPlaceholder: "Refund the $39 late fee from March and keep it off my credit report",
-    ownNote: "In your own words. The agent asks for this, uses only what you write here and on your statement, and never makes anything up.",
+    ownNote: "The agent asks for this and never makes anything up.",
     useSuggested: "Use the suggested ask",
-    practice: "This is a practice call. You play the bank's representative.",
-    demo: (bank) => `Demo with sample data. Press Start, then play ${bank}: tap the suggested replies or type your own. End the call to see the verified result.`,
-    demoPhone: (bank) => `Demo with sample data: Maria missed a ${bank} payment. Haggle calls your real phone, and you play the ${bank} rep.`,
-    stepsTitle: "What happens",
-    steps: (bank) => [
-      `Your phone rings from a US number. Answer it: you are the ${bank} rep.`,
-      "Haggle says it's an AI assistant, explains the missed payment, and asks for the late fee and the old rate back. A script for you shows on this screen.",
-      "Push back, give a little, say no to some of it. Haggle counters, then reads back what you agreed.",
-      "Add a second phone below to see the handoff: tell Haggle you need the cardholder, and it rings that phone and connects it.",
-      "Hang up when you're done. The result counts only what you, as the bank, actually said.",
-    ],
-    phoneOpenNote: (prefixes) => `Rings numbers starting with ${prefixes}. Used for this call only and never saved.`,
+    youPlay: (bank) => `You play ${bank}. Pick how:`,
+    steps: (bank) => [`Answer as the ${bank} rep.`, "Say no. Push back.", "Hang up to see the result."],
+    phoneOpenNote: (prefixes) => `${prefixes} numbers. Never saved.`,
     notSetUp: "Calls are not set up on this server yet, so the agent cannot start one.",
     modeGroup: "How you will play the bank",
     phoneLabel: "Your phone · you play the bank",
     phoneError: "Type your phone number, like (555) 234-5678.",
-    phoneNote: "Only our team's approved phones can be rung, so nobody can use Haggle to call strangers. To try it yourself, pick Voice or Typing.",
+    phoneNote:
+      "Only our team's approved phones can be rung, so nobody can use Haggle to call strangers. To try it yourself, pick Voice or Typing.",
     cardholderLabel: "A second phone · the cardholder",
     cardholderOptional: "optional",
-    cardholderNote: "A teammate's phone works. If you, as the bank, ask for the cardholder, Haggle rings this phone, connects it to the call and leaves.",
+    cardholderNote: "Say “I need the cardholder” and Haggle connects this phone.",
     cardholderError: "Use a phone number like (555) 234-5678, different from the one playing the bank.",
-    voicesTitle: "The agent sounds · tap to hear",
+    voicesTitle: "Agent voice · tap to hear",
     voiceGroup: "The agent voice",
-    voiceKind: { female: AGENT_VOICES.female.label, male: AGENT_VOICES.male.label },
+    voiceKind: {
+      female: AGENT_VOICES.female.label,
+      male: AGENT_VOICES.male.label,
+    },
     voiceAria: (kind, name) => `${kind} voice, ${name}. Plays a sample.`,
     callPhone: "Call my phone",
     start: "Start the call",
@@ -111,38 +101,36 @@ const COPY: Copy<StartCopy> = {
   },
   es: {
     modes: {
-      voice: { label: "Voz", hint: "Tú hablas como el banco. El agente responde en voz alta." },
-      text: { label: "Texto", hint: "Escribes lo que dice el banco. El agente responde por escrito." },
-      phone: { label: "Teléfono", hint: "El agente llama a tu teléfono. Contesta y haz de banco. La transcripción aparece aquí." },
+      voice: { label: "Voz", hint: "Habla en voz alta como el banco." },
+      text: {
+        label: "Texto",
+        hint: "Escribe como el banco o toca una respuesta sugerida.",
+      },
+      phone: {
+        label: "Teléfono",
+        hint: "Suena tu teléfono. Contesta como el banco.",
+      },
     },
     willAsk: "El agente va a pedir",
     ownAsk: "Pedir otra cosa",
     ownLabel: "¿Para qué debe llamar el agente?",
     ownPlaceholder: "Reembolsar el cargo de $39 de marzo y que no aparezca en mi historial de crédito",
-    ownNote: "Con tus palabras. El agente pide esto, usa solo lo que escribes aquí y en tu estado de cuenta, y nunca inventa nada.",
+    ownNote: "El agente pide esto y nunca inventa nada.",
     useSuggested: "Usar lo sugerido",
-    practice: "Esta es una llamada de práctica. Tú haces de representante del banco.",
-    demo: (bank) => `Demo con datos de ejemplo. Pulsa Empezar y haz de ${bank}: toca las respuestas sugeridas o escribe las tuyas. Termina la llamada para ver el resultado verificado.`,
-    demoPhone: (bank) => `Demo con datos de ejemplo: a Maria se le pasó un pago de ${bank}. Haggle llama a tu teléfono real y tú haces de representante de ${bank}.`,
-    stepsTitle: "Qué pasa",
-    steps: (bank) => [
-      `Tu teléfono suena desde un número de EE. UU. Contesta: eres el representante de ${bank}.`,
-      "Haggle dice que es un asistente de IA, explica el pago atrasado y pide el cargo y la tasa anterior. Tu guion aparece en esta pantalla.",
-      "Resiste, cede un poco, di que no a una parte. Haggle hace una contraoferta y luego repite lo acordado.",
-      "Agrega un segundo teléfono abajo para ver el traspaso: dile a Haggle que necesitas al titular y llamará a ese teléfono para conectarlo.",
-      "Cuelga cuando termines. El resultado cuenta solo lo que tú, como banco, dijiste de verdad.",
-    ],
-    phoneOpenNote: (prefixes) => `Llama a números que empiezan con ${prefixes}. Solo se usa para esta llamada y nunca se guarda.`,
+    youPlay: (bank) => `Tú haces de ${bank}. Elige cómo:`,
+    steps: (bank) => [`Contesta como el representante de ${bank}.`, "Di que no. Resiste.", "Cuelga para ver el resultado."],
+    phoneOpenNote: (prefixes) => `Números ${prefixes}. Nunca se guarda.`,
     notSetUp: "Las llamadas todavía no están configuradas en este servidor, así que el agente no puede empezar una.",
     modeGroup: "Cómo vas a hacer de banco",
     phoneLabel: "Tu teléfono · haces de banco",
     phoneError: "Escribe tu número de teléfono, como (555) 234-5678.",
-    phoneNote: "Solo se puede llamar a los teléfonos aprobados de nuestro equipo, para que nadie use Haggle para llamar a desconocidos. Para probarlo, elige Voz o Texto.",
+    phoneNote:
+      "Solo se puede llamar a los teléfonos aprobados de nuestro equipo, para que nadie use Haggle para llamar a desconocidos. Para probarlo, elige Voz o Texto.",
     cardholderLabel: "Un segundo teléfono · el titular",
     cardholderOptional: "opcional",
-    cardholderNote: "Sirve el de un compañero. Si tú, como banco, pides hablar con el titular, Haggle llama a este teléfono, lo une a la llamada y se retira.",
+    cardholderNote: "Di “necesito al titular” y Haggle conecta este teléfono.",
     cardholderError: "Usa un número como (555) 234-5678, distinto del que hace de banco.",
-    voicesTitle: "Así suena el agente · toca para escuchar",
+    voicesTitle: "Voz del agente · toca para escuchar",
     voiceGroup: "La voz del agente",
     voiceKind: { female: "Femenina", male: "Masculina" },
     voiceAria: (kind, name) => `Voz ${kind.toLowerCase()}, ${name}. Reproduce una muestra.`,
@@ -179,7 +167,12 @@ function Playing() {
           key={delay}
           className="h-4 w-[3px] rounded-[2px] bg-current"
           animate={{ scaleY: [0.35, 1, 0.35] }}
-          transition={{ duration: 0.8, ease: "easeInOut", repeat: Infinity, delay }}
+          transition={{
+            duration: 0.8,
+            ease: "easeInOut",
+            repeat: Infinity,
+            delay,
+          }}
         />
       ))}
     </span>
@@ -198,8 +191,8 @@ export function StartControls({
   notice,
   onStart,
 }: {
-  /** What the agent will ask for, as a sentence. */
-  ask: string;
+  /** What the agent will ask for, as short points. */
+  ask: string[];
   /** The cardholder's own words for the ask, as typed. Empty for the suggested ask. */
   request: string;
   onRequest: (text: string) => void;
@@ -246,10 +239,15 @@ export function StartControls({
   // The voice hook knows more than the server does: it also says no when this browser cannot do voice.
   const canSpeak = (switchedOn?.voice ?? false) && voice.status !== "unavailable";
   const canRing = switchedOn?.phone ?? false;
-  const available: Record<CallMode, boolean> = { voice: canSpeak, text: canType, phone: canRing };
+  const available: Record<CallMode, boolean> = {
+    voice: canSpeak,
+    text: canType,
+    phone: canRing,
+  };
   // The demo starts on a real phone call when the server can place one, else on typing.
   const fallback: CallMode = demo ? (canRing ? "phone" : canType ? "text" : "voice") : canSpeak ? "voice" : canType ? "text" : "phone";
-  const mode: CallMode = picked && available[picked] ? picked : available[fallback] ? fallback : canSpeak ? "voice" : canType ? "text" : "phone";
+  const mode: CallMode =
+    picked && available[picked] ? picked : available[fallback] ? fallback : canSpeak ? "voice" : canType ? "text" : "phone";
   const openPrefixes = switchedOn?.phoneOpen ?? [];
   const phoneNote = openPrefixes.length > 0 ? copy.phoneOpenNote(openPrefixes.join(locale === "es" ? " o " : " or ")) : copy.phoneNote;
   const modes = MODES.filter((option) => available[option.mode]);
@@ -316,7 +314,19 @@ export function StartControls({
           </div>
         ) : (
           <>
-            <p className="mt-1.5 text-[22px] leading-[1.25] font-semibold tracking-[-0.02em] text-hg-ink sm:text-[26px]">{ask}</p>
+            <ul className="mt-2.5 flex flex-col gap-2">
+              {ask.map((point) => (
+                <li
+                  key={point}
+                  className="flex items-center gap-2.5 text-[18px] leading-snug font-semibold tracking-[-0.015em] text-hg-ink sm:text-[20px]"
+                >
+                  <span aria-hidden className="flex size-6 shrink-0 items-center justify-center rounded-full bg-hg-blue text-white">
+                    <Check className="size-3.5" strokeWidth={3} />
+                  </span>
+                  {point}
+                </li>
+              ))}
+            </ul>
             <button
               type="button"
               onClick={() => setWriting(true)}
@@ -329,24 +339,18 @@ export function StartControls({
         )}
       </Rise>
 
-      <Rise delay={0.08}>
-        <p className="flex items-start gap-2.5 rounded-2xl bg-hg-blue-soft px-3.5 py-3 text-[15px] leading-snug font-medium text-hg-ink-2">
-          <span aria-hidden className="mt-[7px] size-1.5 shrink-0 rounded-full bg-hg-blue" />
-          {demo ? (mode === "phone" ? copy.demoPhone(bankName) : copy.demo(bankName)) : copy.practice}
-        </p>
-      </Rise>
-
       {notice && <Notice tone="dark">{notice}</Notice>}
       {capabilities.status === "error" && <Notice tone="dark">{capabilities.message}</Notice>}
-      {switchedOn && !canType && !canSpeak && !canRing && (
-        <Notice tone="dark">{copy.notSetUp}</Notice>
-      )}
+      {switchedOn && !canType && !canSpeak && !canRing && <Notice tone="dark">{copy.notSetUp}</Notice>}
 
       {modes.length > 1 && (
         <Rise delay={0.16}>
+          <p id="call-mode-label" className="mb-2 text-[15px] font-semibold text-hg-ink">
+            {copy.youPlay(bankName)}
+          </p>
           <div
             role="radiogroup"
-            aria-label={copy.modeGroup}
+            aria-labelledby="call-mode-label"
             className={cn("grid gap-1 rounded-full bg-hg-surface p-1", modes.length === 3 ? "grid-cols-3" : "grid-cols-2")}
           >
             {modes.map(({ mode: option, Icon }) => {
@@ -390,9 +394,8 @@ export function StartControls({
             transition={{ duration: 0.4, ease: EASE }}
             className="overflow-hidden"
           >
-            <div className="mb-4 rounded-[20px] bg-hg-surface p-4">
-              <p className={cn(eyebrow, "mb-2.5")}>{copy.stepsTitle}</p>
-              <ol className="flex flex-col gap-2">
+            <div className="mb-4 rounded-[20px] bg-hg-surface px-4 py-3">
+              <ol className="flex flex-col gap-1.5">
                 {copy.steps(bankName).map((step, index) => (
                   <li key={step} className="flex items-start gap-2.5 text-[14px] leading-snug text-hg-ink-2">
                     <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-hg-blue-soft text-[11px] font-bold text-hg-blue">
@@ -501,11 +504,7 @@ export function StartControls({
 
       {(canType || canSpeak || canRing) && (
         <Rise delay={0.24} className="flex flex-col gap-3">
-          <Button
-            size="lg"
-            className="group w-full"
-            onClick={startCall}
-          >
+          <Button size="lg" className="group w-full" onClick={startCall} data-tour="call-start-button">
             <Phone className="size-4 transition-transform duration-300 group-hover:-rotate-12" aria-hidden />
             {mode === "phone" ? copy.callPhone : copy.start}
           </Button>
