@@ -172,9 +172,8 @@ function CardRowView({ row }: { row: Overview["cards"][number] }) {
         )}
         {card.annualFeeCents > 0 && <span>· {formatShort(card.annualFeeCents)} fee</span>}
       </span>
-      {(row.sample || row.missedPayment) && (
+      {row.missedPayment && (
         <span className="flex flex-wrap gap-1.5">
-          {row.sample && <SampleTag tone="dark" />}
           {row.missedPayment && <Badge tone="leak">Missed payment</Badge>}
         </span>
       )}

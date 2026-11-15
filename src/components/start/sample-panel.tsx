@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { SAMPLE_STATEMENTS, type SampleStatement } from "@/lib/statement/samples";
 import { cn } from "@/lib/utils";
 import { sampleArt } from "./sample-art";
-import { SURFACE, SampleTag, onColor } from "./surfaces";
+import { SURFACE, onColor } from "./surfaces";
 
 /** The sample statements. Picking one sends its PDF through the same reading as an upload. */
 export function SamplePanel({
@@ -21,15 +21,14 @@ export function SamplePanel({
 }) {
   return (
     <div>
-      <SampleTag />
-      <p className="mt-2 text-sm text-muted">
-        Made-up people and numbers. Each one is a PDF file that is read the same way an upload is.
+      <p className="text-sm text-muted">
+        A made-up person. Read just like an upload.
       </p>
       <Button size="lg" className="mt-5 w-full sm:w-auto" onClick={onAll}>
         <Layers className="size-4" aria-hidden />
         Read all {SAMPLE_STATEMENTS.length} of Maria&apos;s cards
       </Button>
-      <p className="mt-2 text-sm text-muted">Three banks, one plan, one list of calls. Or pick one:</p>
+      <p className="mt-2 text-sm text-muted">Or pick one:</p>
       <Stagger as="ul" onMount gap={0.06} delay={0.05} className="mt-4 space-y-3">
         {SAMPLE_STATEMENTS.map((sample) => {
           const art = sampleArt(sample.id);

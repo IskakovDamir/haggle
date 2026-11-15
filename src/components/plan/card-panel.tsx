@@ -5,14 +5,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Clock, Trash2 } from "lucide-react";
 import { EASE } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
-import { Card, SampleBadge } from "@/components/ui/primitives";
-import { isSampleCard } from "@/components/start/sample-cards";
+import { Card } from "@/components/ui/primitives";
 import { formatApr, formatDate, formatDuration } from "@/lib/format";
 import { formatCents, formatDollars, formatShort } from "@/lib/money";
 import type { CardAccount, CardAnalysis, Payoff } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { GrowBar } from "./animated";
-import { INK_PANEL, SAMPLE_BADGE_CLASS } from "./surfaces";
+import { INK_PANEL } from "./surfaces";
 
 /** "23 years 4 months and $14,900 in interest", or what to say when that sentence does not apply. */
 function minimumOnlySentence(payoff: Payoff): string {
@@ -109,7 +108,6 @@ export function CardPanel({
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-[22px] leading-7 font-semibold tracking-[-0.025em] text-hg-ink">{card.issuerName || "Card"}</h3>
-            {isSampleCard(card) && <SampleBadge className={SAMPLE_BADGE_CLASS} />}
           </div>
           <p className="mt-0.5 text-sm font-medium text-muted">
             {card.cardName}

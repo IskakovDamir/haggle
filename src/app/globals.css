@@ -172,9 +172,12 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-:focus-visible {
-  outline: 2px solid var(--hg-blue);
-  outline-offset: 2px;
+/* In the base layer, so a field's own focus style (outline-none plus a soft ring) wins over this outline. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--hg-blue);
+    outline-offset: 2px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -57,6 +57,7 @@ const PHONE_GIVE_UP_MS = 9 * 60_000;
 const SESSION_COPY = {
   en: {
     noBankWords: "That call ended before the bank said anything, so there was no result to read.",
+    stoppedEarly: "You stopped following before the bank said anything. If the phone is still ringing or on, just hang up.",
     noConnect: "The phone call did not connect.",
     unanswered: {
       "Nobody picked up.": "Nobody picked up.",
@@ -67,6 +68,7 @@ const SESSION_COPY = {
   },
   es: {
     noBankWords: "La llamada terminó antes de que el banco dijera algo, así que no hay resultado que leer.",
+    stoppedEarly: "Dejaste de seguir la llamada antes de que el banco dijera algo. Si el teléfono sigue sonando o en línea, solo cuelga.",
     noConnect: "La llamada no se conectó.",
     unanswered: {
       "Nobody picked up.": "Nadie contestó.",
@@ -101,6 +103,8 @@ export function useCallSession(input: {
   /** The phone call being followed. Clearing it stops the polling. */
   const phoneCall = useRef<{ conversationId: string; startedAtMs: number } | null>(null);
   const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** The last phone call placed. Kept after polling stops, so the end of the call can read its transcript once more. */
+  const lastConversation = useRef<string | null>(null);
 
   const stopPolling = useCallback(() => {
     phoneCall.current = null;
@@ -141,17 +145,36 @@ export function useCallSession(input: {
     setAgentIsReplying(false);
     setProblem(null);
 
-    if (!bankSpoke(current)) {
+    // A phone call's last lines can arrive after the page stopped following it (the visitor pressed stop,
+    // or a status check failed). Read the transcript again, a few times, before deciding the bank said nothing.
+    /** The line was still up when the page stopped following it. */
+    let stillLive = false;
+    if (current.mode === "phone" && !bankSpoke(current) && lastConversation.current) {
+      setPhase("reading");
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        const result = await fetchPhoneStatus(lastConversation.current);
+        if (result.ok) stillLive = result.data.status === "dialing" || result.data.status === "live";
+        if (result.ok && result.data.turns.some((turn) => turn.role === "bank")) {
+          commit({ ...current, turns: result.data.turns, ...(result.data.transferred ? { handedOff: true } : {}) });
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      }
+    }
+
+    if (!bankSpoke(latest.current ?? current)) {
       // With no word from the bank there is nothing to read, so the call is dropped, not sent for a result.
       latest.current = null;
       setCall(null);
       update((stored) => (stored ? { ...stored, calls: stored.calls.filter((kept) => kept.id !== current.id) } : stored));
       setPhase("briefing");
-      setNotice(SESSION_COPY[brief.language ?? "en"].noBankWords);
+      const copy = SESSION_COPY[brief.language ?? "en"];
+      setNotice(stillLive ? copy.stoppedEarly : copy.noBankWords);
       return;
     }
 
-    const ended: CallRecord = { ...current, endedAt: current.endedAt ?? new Date().toISOString() };
+    const read = latest.current ?? current;
+    const ended: CallRecord = { ...read, endedAt: read.endedAt ?? new Date().toISOString() };
     commit(ended);
     setPhase("reading");
 
@@ -255,6 +278,7 @@ export function useCallSession(input: {
 
   async function ringPhone(toNumber: string, voiceId?: string, cardholderNumber?: string) {
     setPhoneStatus("placing");
+    lastConversation.current = null;
     setTransferred(false);
     setWithCardholder(Boolean(cardholderNumber));
     const result = await startPhoneCall({ brief, toNumber, voiceId, cardholderNumber });
@@ -265,6 +289,7 @@ export function useCallSession(input: {
     }
     setPhoneStatus("dialing");
     const following = { conversationId: result.data.conversationId, startedAtMs: Date.now() };
+    lastConversation.current = following.conversationId;
     phoneCall.current = following;
     void followPhone(following);
   }

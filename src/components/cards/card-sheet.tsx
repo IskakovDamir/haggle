@@ -8,9 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Clock, Trash2 } from "lucide-react";
 import { EASE } from "@/components/motion/reveal";
 import { GrowBar } from "@/components/plan/animated";
-import { isSampleCard } from "@/components/start/sample-cards";
 import { Button } from "@/components/ui/button";
-import { SampleBadge } from "@/components/ui/primitives";
 import { formatApr, formatDate, formatDuration } from "@/lib/format";
 import { formatCents, formatDollars, formatShort } from "@/lib/money";
 import type { CardAccount, CardAnalysis, Payoff } from "@/lib/types";
@@ -92,9 +90,6 @@ export function CardSheet({ card, analysis, onRemove }: { card: CardAccount; ana
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-[22px] leading-7 font-semibold tracking-[-0.025em] text-hg-ink">{card.issuerName || "Card"}</h3>
-            {isSampleCard(card) && (
-              <SampleBadge className="border-hg-blue-tint bg-hg-blue-soft text-hg-blue [&>span]:bg-hg-blue" />
-            )}
           </div>
           <p className="mt-1 text-sm font-medium text-muted">
             {card.cardName}

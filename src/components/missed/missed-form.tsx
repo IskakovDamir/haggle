@@ -8,7 +8,7 @@ import { ArrowRight, Check, Sparkles } from "lucide-react";
 import { callHref } from "@/components/call/resolve-call";
 import { EASE, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { Field } from "@/components/start/field";
-import { SURFACE, SampleTag, StepDot } from "@/components/start/surfaces";
+import { SURFACE, StepDot } from "@/components/start/surfaces";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/primitives";
 import { feeForWin, leversFor } from "@/lib/engine";
@@ -103,7 +103,6 @@ export function MissedForm() {
               <Sparkles className="size-3.5" aria-hidden />
               {copy.fillSample}
             </Button>
-            {sample && <SampleTag>{copy.sampleData}</SampleTag>}
           </StaggerItem>
 
           <StaggerItem>

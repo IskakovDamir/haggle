@@ -20,7 +20,7 @@ import {
 } from "./card-form";
 import { Field } from "./field";
 import { RevealField, RevealGroup, RevealSequence } from "./field-reveal";
-import { SURFACE, SampleTag, StepDot, onColor, type Surface } from "./surfaces";
+import { SURFACE, StepDot, onColor, type Surface } from "./surfaces";
 
 type FieldSpec = {
   field: CardFormField;
@@ -105,9 +105,9 @@ const TITLE: Record<Extraction["source"], React.ReactNode> = {
 };
 
 const LEAD: Record<Extraction["source"], string> = {
-  upload: "Compare these with your statement and fix anything that is off.",
-  sample: "This statement belongs to a made-up person. It was read the same way an upload is. Change any number to see what happens.",
-  manual: "Add anything else the statement shows. Blank fields are fine.",
+  upload: "Fix anything that doesn’t match your statement.",
+  sample: "Sample data. Change any number to see what happens.",
+  manual: "Add more if you have it. Blanks are fine.",
 };
 
 /**
@@ -177,7 +177,6 @@ export function ConfirmForm({
         </motion.div>
         <RevealGroup className="flex flex-wrap items-center gap-2">
           {position && <Badge tone="lime">{position}</Badge>}
-          {extraction.source === "sample" && <SampleTag />}
           <AnimatePresence initial={false}>
             {warningCount > 0 && (
               <motion.span
@@ -288,7 +287,7 @@ export function ConfirmForm({
             your plan.
           </p>
         )}
-        <p>Your numbers stay in this browser. There is no account and no bank login.</p>
+        <p>Stays in this browser. No account, no bank login.</p>
       </div>
     </form>
   );

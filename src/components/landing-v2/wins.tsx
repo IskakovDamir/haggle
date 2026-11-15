@@ -55,12 +55,12 @@ const COPY: Copy<WinsCopy> = {
 const FIGMA_CARD_WIDTH = 572;
 const ART_SIZE = 290;
 
-// The bell is moved right of where Figma has it (x 184.65), so it sits at the edge like the other art.
+// The bell is moved right of where Figma has it (x 184.65) and lifted, so the whole bell shows at the edge like the other art.
 const WINS: Win[] = [
   { tone: "blue", art: { src: "/landing/wins/3d-arrow-down.png", x: 267.2, y: 17.42, rotate: 5.58 } },
   { tone: "white", art: { src: "/landing/wins/3d-gauge.png", x: 268.41, y: 22.77, rotate: 8 } },
   { tone: "white", art: { src: "/landing/wins/3d-gift.png", x: 300.77, y: -17.59, rotate: -8 } },
-  { tone: "dark", art: { src: "/landing/wins/3d-bell.png", x: 302, y: 60.19, rotate: 33.85 } },
+  { tone: "dark", art: { src: "/landing/wins/3d-bell.png", x: 286, y: -14, rotate: 16 } },
 ];
 
 const TONES: Record<Tone, { card: string; title: string; soft: string; body: string; button: string; link: string; arrow: string }> = {
@@ -118,11 +118,11 @@ function WinCard({ win, text, more, index }: { win: Win; text: WinText; more: st
         </h3>
         <p className={cn("text-[14px] leading-5 font-medium tracking-[-0.005em]", t.body)}>{text.body}</p>
       </div>
-      <a href="#how" className="group relative z-10 flex w-fit items-center gap-3.5">
-        <span className={cn("flex size-10 items-center justify-center rounded-[20px] transition-transform group-hover:scale-105", t.button)}>
+      <a href="#how" className="group relative z-10 flex w-fit items-center gap-2.5">
+        <span className={cn("flex size-8 items-center justify-center rounded-full transition-transform group-hover:scale-105", t.button)}>
           <Image src={t.arrow} alt="" width={8.13333} height={8.13333} unoptimized />
         </span>
-        <span className={cn("text-[15px] leading-5 font-medium", t.link)}>{more}</span>
+        <span className={cn("text-[12px] leading-4 font-semibold tracking-[0.04em]", t.link)}>{more}</span>
       </a>
       <div
         aria-hidden

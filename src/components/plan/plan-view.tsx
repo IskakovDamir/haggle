@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
-import { isSampleCard } from "@/components/start/sample-cards";
 import { analyze } from "@/lib/engine";
 import { todayIso } from "@/lib/format";
 import type { CaseFile } from "@/lib/types";
@@ -55,7 +54,6 @@ export function PlanView({ caseFile, onRemoveCard }: { caseFile: CaseFile; onRem
         name={caseFile.holderFirstName}
         totals={analysis.totals}
         cardCount={caseFile.cards.length}
-        hasSampleCard={caseFile.cards.some(isSampleCard)}
         firstCall={firstCall}
         wins={wins}
       />

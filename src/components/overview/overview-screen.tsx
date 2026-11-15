@@ -14,7 +14,7 @@ import type { CaseFile, IsoDate } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { InterestChart } from "./interest-chart";
 import { overviewFor } from "./overview-model";
-import { KpiRow, NextStepsPanel, RecentCalls, SampleTag, SURFACE, YourCards } from "./overview-panels";
+import { KpiRow, NextStepsPanel, RecentCalls, SURFACE, YourCards } from "./overview-panels";
 
 /** Grey blocks in the shape of the overview, until the case and the clock are read in the browser. */
 function OverviewSkeleton() {
@@ -142,7 +142,6 @@ function FirstRun() {
                   <span className={cn("flex size-10 items-center justify-center rounded-2xl", tone.tile)}>
                     <way.icon className="size-[18px]" aria-hidden />
                   </span>
-                  {way.sample && <SampleTag tone="blue" />}
                 </span>
                 <span className={cn("relative mt-3.5 text-[17px] leading-6 font-semibold tracking-[-0.01em]", tone.title)}>
                   {way.title}
@@ -188,8 +187,7 @@ function OverviewBody({ caseFile, today }: { caseFile: CaseFile; today: IsoDate 
     <div className="flex flex-col gap-4">
       <h1 className="sr-only">Overview</h1>
       {overview.hasSample && (
-        <p className="flex flex-wrap items-center gap-2 text-sm font-medium text-hg-muted">
-          <SampleTag />
+        <p className="text-sm font-medium text-hg-muted">
           Some of these numbers come from a sample statement.
         </p>
       )}

@@ -145,7 +145,7 @@ export function ReadingPanel({
             <span aria-hidden className="tabular">
               {seconds} s.{" "}
             </span>
-            Reading can take up to a minute. Then you check every number before anything is calculated.
+            Up to a minute. Then you check the numbers.
           </p>
         </StaggerItem>
         <StaggerItem>

@@ -87,8 +87,7 @@ export function ManualPanel({ onEntry }: { onEntry: (extraction: Extraction) => 
         <RevealGroup>
           <div className={cn(SURFACE.white, "rounded-[28px] p-5 sm:p-7")}>
             <p className="text-sm font-medium text-muted">
-              Three numbers from your statement are enough. The balance is on the first page. The APR is often in the
-              interest table on the last one.
+              Three numbers are enough. The APR is usually on the statement’s last page.
             </p>
             <div className="mt-5 grid gap-x-4 gap-y-5 sm:grid-cols-2">
               <RevealField>

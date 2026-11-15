@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Phone } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import { SampleBadge } from "@/components/ui/primitives";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { formatDollars } from "@/lib/money";
 import type { Cents } from "@/lib/types";
@@ -10,7 +9,7 @@ import type { Analysis, PlanStep } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { GrowBar, WonCheck } from "./animated";
 import { CountUp } from "./count-up";
-import { BLUE_PANEL, CALM_PANEL, INK_PANEL, SAMPLE_BADGE_CLASS } from "./surfaces";
+import { BLUE_PANEL, CALM_PANEL, INK_PANEL } from "./surfaces";
 
 type StatTone = "glass" | "blue" | "light";
 
@@ -60,14 +59,12 @@ export function Headline({
   name,
   totals,
   cardCount,
-  hasSampleCard,
   firstCall,
   wins,
 }: {
   name: string;
   totals: Analysis["totals"];
   cardCount: number;
-  hasSampleCard: boolean;
   /** The first step in the plan that needs a call, if there is one. */
   firstCall: PlanStep | null;
   /** Calls already won, already reflected in the totals above. */
@@ -77,12 +74,6 @@ export function Headline({
 
   return (
     <header>
-      <div className="flex flex-wrap items-center gap-2">
-        <p className="inline-flex items-center rounded-full bg-hg-blue-soft px-3 py-1 text-[13px] font-semibold text-hg-blue">
-          Your plan
-        </p>
-        {hasSampleCard && <SampleBadge className={SAMPLE_BADGE_CLASS} />}
-      </div>
 
       <Reveal
         y={16}

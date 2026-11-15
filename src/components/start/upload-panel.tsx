@@ -65,8 +65,7 @@ export function UploadPanel({ onFiles }: { onFiles: (files: File[]) => void }) {
           Drop your statements here, or choose files
         </span>
         <span className="relative max-w-[44ch] text-sm leading-5 font-medium text-muted">
-          One card or all of them: Chase, Capital One, Citi, any bank. Each a PDF up to 4 MB, or a photo of the page with the balance and the rates. Photos are made smaller in your
-          browser before they are sent.
+          PDF up to 4 MB, or a photo of the page with your balance and rates.
         </span>
         <input
           type="file"
@@ -82,8 +81,7 @@ export function UploadPanel({ onFiles }: { onFiles: (files: File[]) => void }) {
         />
       </motion.label>
       <p className="mt-3 text-sm text-muted">
-        Each file is sent to an AI model to be read and is not stored on our server. Only the last four digits of the card
-        number are kept.
+        Not stored on our server. We keep only the card’s last four digits.
       </p>
     </div>
   );

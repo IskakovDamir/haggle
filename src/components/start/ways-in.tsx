@@ -50,15 +50,14 @@ export function WaysIn({
       </StaggerItem>
       <StaggerItem>
         <p className="mt-4 max-w-2xl text-[18px] leading-7 font-medium tracking-[-0.01em] text-muted">
-          One statement is enough to start. Add every card you have, from every bank, and Haggle builds one plan and one list of calls.
+          One is enough. Add more cards for one plan across banks.
         </p>
       </StaggerItem>
 
       {readingOff && (
         <StaggerItem>
           <p className="mt-6 rounded-[20px] border border-hg-blue-tint bg-hg-blue-soft p-4 text-sm text-hg-ink-2">
-            Statement reading is not set up on this server, so uploads and sample statements are switched off. Typing the
-            numbers works, and so does everything after it.
+            Uploads are off on this server. Type the numbers instead.
           </p>
         </StaggerItem>
       )}

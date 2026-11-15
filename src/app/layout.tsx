@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Manrope } from "next/font/google";
 import { TourGuide } from "@/components/judges/tour-guide";
 import { MotionRoot } from "@/components/motion/motion-root";
+import { Seen } from "@/components/site/seen";
 import "./globals.css";
 
 const manrope = Manrope({ variable: "--font-manrope-face", subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <MotionRoot>
           {children}
           <TourGuide />
+          <Seen />
         </MotionRoot>
       </body>
     </html>

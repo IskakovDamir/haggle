@@ -5,7 +5,6 @@ import { Headphones } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { MotionConfig } from "framer-motion";
 import { Stagger, StaggerItem } from "@/components/motion/reveal";
-import { Badge } from "@/components/ui/primitives";
 import type { Copy } from "@/lib/i18n/locale";
 import { useLocale } from "@/lib/i18n/use-locale";
 import { cleanRequest } from "@/lib/negotiator/own-request";
@@ -104,14 +103,9 @@ export function CallSession(props: { card: CardAccount; brief: NegotiationBrief;
   return (
     <MotionConfig reducedMotion="user">
       <Stagger as="header" onMount gap={0.08} className="mb-7 sm:mb-10">
-        <StaggerItem>
-          <Badge tone="lime" className="px-3 py-1">
-            {copy.practice}
-          </Badge>
-        </StaggerItem>
         <StaggerItem
           as="h1"
-          className="mt-4 text-[clamp(34px,5.5vw,56px)] leading-[1.05] font-semibold tracking-[-0.035em] text-hg-ink"
+          className="text-[clamp(34px,5.5vw,56px)] leading-[1.05] font-semibold tracking-[-0.035em] text-hg-ink"
         >
           {copy.calls} <em>{brief.issuerName}</em>
         </StaggerItem>

@@ -19,9 +19,9 @@ import type { CapabilitiesState } from "./use-capabilities";
 import type { CallMode } from "./use-call-session";
 
 const MODES: { mode: CallMode; Icon: typeof Mic }[] = [
+  { mode: "phone", Icon: Smartphone },
   { mode: "voice", Icon: Mic },
   { mode: "text", Icon: Keyboard },
-  { mode: "phone", Icon: Smartphone },
 ];
 
 type StartCopy = {
@@ -245,7 +245,8 @@ export function StartControls({
     phone: canRing,
   };
   // The demo starts on a real phone call when the server can place one, else on typing.
-  const fallback: CallMode = demo ? (canRing ? "phone" : canType ? "text" : "voice") : canSpeak ? "voice" : canType ? "text" : "phone";
+  // A real phone call comes first whenever the server can place one.
+  const fallback: CallMode = canRing ? "phone" : demo ? (canType ? "text" : "voice") : canSpeak ? "voice" : canType ? "text" : "phone";
   const mode: CallMode =
     picked && available[picked] ? picked : available[fallback] ? fallback : canSpeak ? "voice" : canType ? "text" : "phone";
   const openPrefixes = switchedOn?.phoneOpen ?? [];

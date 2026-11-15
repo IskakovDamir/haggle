@@ -59,11 +59,13 @@ export function TourGuide() {
     return (
       <Link
         href={resumeHref(step, tour.seen)}
-        className="fixed right-4 bottom-4 z-[60] flex h-11 items-center gap-2 rounded-full bg-hg-ink px-4 text-[13px] font-semibold text-white shadow-[0_16px_40px_-16px_rgb(11_18_32/0.6)] transition-transform duration-200 hover:-translate-y-px sm:right-5 sm:bottom-5"
+        className="fixed right-4 bottom-4 z-[60] flex h-10 cursor-pointer items-center gap-2 rounded-full border border-line bg-white pr-3 pl-4 text-[13px] font-semibold text-hg-ink shadow-[0_10px_30px_-14px_rgb(11_18_32/0.35)] transition-[translate,border-color] duration-200 hover:-translate-y-px hover:border-hg-blue-tint sm:right-5 sm:bottom-5"
       >
-        <span className="size-2 rounded-full bg-[#9df27c]" aria-hidden />
-        Judge tour paused · Resume step {tour.step + 1}
-        <ArrowRight className="size-4" aria-hidden />
+        Continue tour
+        <span className="text-hg-muted">
+          {tour.step + 1}/{TOTAL}
+        </span>
+        <ArrowRight className="size-3.5 text-hg-blue" aria-hidden />
       </Link>
     );
   }
@@ -85,10 +87,22 @@ function ActiveStep({ index, step, minimized, seen }: { index: number; step: Tou
     const startedAt = performance.now();
     const next = TOUR_STEPS[index + 1];
 
+    // Where the card sits now. It eases toward its spot beside the target, so it glides between steps
+    // and keeps up with scrolling.
+    let at: { x: number; y: number } | null = null;
+
     const tick = () => {
       const target = find(step.target);
       const shown = visible(target);
       setFound((was) => (was === shown ? was : shown));
+
+      if (card.current) {
+        const box = card.current.getBoundingClientRect();
+        const spot = spotBeside(shown ? target.getBoundingClientRect() : null, box.width, box.height);
+        at = at ? { x: at.x + (spot.x - at.x) * 0.3, y: at.y + (spot.y - at.y) * 0.3 } : spot;
+        card.current.style.left = `${Math.round(at.x)}px`;
+        card.current.style.top = `${Math.round(at.y)}px`;
+      }
 
       if (ring.current) {
         if (shown) {
@@ -121,25 +135,7 @@ function ActiveStep({ index, step, minimized, seen }: { index: number; step: Tou
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [index, step]);
-
-  // On a phone the card covers the bottom of the screen: give the page room to scroll out from under it.
-  useEffect(() => {
-    if (minimized) return;
-    const make = () => {
-      const height = card.current?.getBoundingClientRect().height ?? 0;
-      document.body.style.paddingBottom = window.innerWidth < 640 && height > 0 ? `${Math.ceil(height) + 24}px` : "";
-    };
-    make();
-    const observer = new ResizeObserver(make);
-    if (card.current) observer.observe(card.current);
-    window.addEventListener("resize", make);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", make);
-      document.body.style.paddingBottom = "";
-    };
-  }, [minimized, index]);
+  }, [index, step, minimized]);
 
   // A click on the highlighted element moves the tour on, after the page has handled the click.
   useEffect(() => {
@@ -161,7 +157,11 @@ function ActiveStep({ index, step, minimized, seen }: { index: number; step: Tou
       <div
         ref={ring}
         aria-hidden
-        className="pointer-events-none fixed top-0 left-0 z-[59] rounded-[22px] opacity-0 transition-opacity duration-300 ease-out"
+        className={cn(
+          "pointer-events-none fixed top-0 left-0 z-[59] rounded-[22px] opacity-0 transition-[opacity,box-shadow] duration-300 ease-out",
+          // Everything outside the highlighted element goes dark, so the eye lands on the one thing to do.
+          !minimized && "shadow-[0_0_0_200vmax_rgb(11_18_32/0.62)]",
+        )}
       >
         <motion.span
           className="absolute inset-0 rounded-[22px] border-2 border-hg-blue"
@@ -180,11 +180,13 @@ function ActiveStep({ index, step, minimized, seen }: { index: number; step: Tou
             exit={{ opacity: 0, y: 12 }}
             transition={{ duration: 0.25, ease: EASE }}
             onClick={() => updateTour((current) => ({ ...current, minimized: false }))}
-            className="fixed right-4 bottom-4 z-[60] flex h-11 cursor-pointer items-center gap-2 rounded-full bg-hg-ink px-4 text-[13px] font-semibold text-white shadow-[0_16px_40px_-16px_rgb(11_18_32/0.6)] sm:right-5 sm:bottom-5"
+            className="fixed right-4 bottom-4 z-[60] flex h-10 cursor-pointer items-center gap-2 rounded-full border border-line bg-white pr-3 pl-4 text-[13px] font-semibold text-hg-ink shadow-[0_10px_30px_-14px_rgb(11_18_32/0.35)] transition-[translate,border-color] duration-200 hover:-translate-y-px hover:border-hg-blue-tint sm:right-5 sm:bottom-5"
           >
-            <span className="size-2 rounded-full bg-[#9df27c]" aria-hidden />
-            Judge tour · {index + 1} of {TOTAL}
-            <ChevronUp className="size-4" aria-hidden />
+            Tour
+            <span className="text-hg-muted">
+              {index + 1}/{TOTAL}
+            </span>
+            <ChevronUp className="size-3.5 text-hg-blue" aria-hidden />
           </motion.button>
         ) : (
           <motion.aside
@@ -195,11 +197,13 @@ function ActiveStep({ index, step, minimized, seen }: { index: number; step: Tou
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 16 }}
             transition={{ duration: 0.3, ease: EASE }}
-            className="fixed inset-x-3 bottom-3 z-[60] rounded-[24px] border border-line bg-white p-5 shadow-[0_24px_60px_-20px_rgb(11_18_32/0.4)] sm:inset-x-auto sm:right-5 sm:bottom-5 sm:w-[360px]"
+            // left and top are set every frame, beside the highlighted element; it starts off screen.
+            style={{ left: -9999, top: 0 }}
+            className="fixed z-[60] w-[min(360px,calc(100vw-24px))] rounded-[24px] border border-line bg-white p-5 shadow-[0_24px_60px_-20px_rgb(11_18_32/0.5)]"
           >
             <div className="flex items-center gap-2">
-              <p className="flex-1 text-[12px] font-semibold tracking-[0.06em] text-hg-muted uppercase">
-                Judge tour · {index + 1} of {TOTAL}
+              <p className="flex-1 text-[13px] font-semibold text-hg-muted">
+                {index + 1} of {TOTAL}
               </p>
               <button
                 type="button"
@@ -282,9 +286,9 @@ function ActiveStep({ index, step, minimized, seen }: { index: number; step: Tou
 
 function ClosingLinks({ seen }: { seen: Record<string, string> }) {
   const links = [
-    { href: "/start", label: "Upload a statement and get a full plan" },
-    { href: seen["/call"] ?? "/demo", label: "Live coach: on the call screen, press Get live tips" },
-    { href: "/es", label: "The Spanish version" },
+    { href: "/start", label: "Upload a statement" },
+    { href: seen["/call"] ?? "/demo", label: "Live tips while you call" },
+    { href: "/es", label: "Spanish version" },
   ];
   return (
     <ul className="mt-3 flex flex-col gap-1.5">
@@ -304,15 +308,39 @@ function ClosingLinks({ seen }: { seen: Record<string, string> }) {
   );
 }
 
-/** Scrolls the element to the middle of the space the card leaves free, when it is not already in view. */
+const EDGE = 12;
+const GAP = RING_PAD + 14;
+
+/**
+ * Where the card goes for a highlighted box: to its right, else its left, else below, else above,
+ * kept on screen. With nothing highlighted it sits in the bottom-right corner.
+ */
+function spotBeside(rect: DOMRect | null, width: number, height: number): { x: number; y: number } {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const clampX = (x: number) => Math.min(Math.max(x, EDGE), vw - width - EDGE);
+  const clampY = (y: number) => Math.min(Math.max(y, EDGE), vh - height - EDGE);
+  if (!rect) return { x: vw - width - 20, y: vh - height - 20 };
+  const middleY = clampY(rect.top + rect.height / 2 - height / 2);
+  const middleX = clampX(rect.left + rect.width / 2 - width / 2);
+  if (rect.right + GAP + width <= vw - EDGE) return { x: rect.right + GAP, y: middleY };
+  if (rect.left - GAP - width >= EDGE) return { x: rect.left - GAP - width, y: middleY };
+  // Below or above, kept on screen even while the element itself is scrolled out of view.
+  if (rect.bottom + GAP + height <= vh - EDGE) return { x: middleX, y: clampY(rect.bottom + GAP) };
+  if (rect.top - GAP - height >= EDGE) return { x: middleX, y: clampY(rect.top - GAP - height) };
+  // No room around it (a big element on a phone): sit at the bottom, over the element's lower part.
+  return { x: middleX, y: vh - height - EDGE };
+}
+
+/** Scrolls the element into view, leaving room above or below it for the card, when it is not already in view. */
 function bringIntoView(target: HTMLElement, card: HTMLElement | null) {
   const rect = target.getBoundingClientRect();
-  const cardTop = card ? card.getBoundingClientRect().top : window.innerHeight;
-  // On a phone the card covers the bottom of the screen; on a wide screen it sits beside the content.
-  const covers = card ? card.getBoundingClientRect().left < rect.right : false;
-  const bottom = covers ? cardTop - 12 : window.innerHeight;
-  if (rect.top >= 8 && rect.bottom <= bottom) return;
-  const room = bottom;
-  const offset = rect.height < room ? (room - rect.height) / 2 : 16;
+  const vh = window.innerHeight;
+  // Beside the element there is room for the card when the screen is wide; on a phone the card goes below it.
+  const cardBelow = card !== null && rect.right + GAP + card.offsetWidth > window.innerWidth - EDGE && rect.left - GAP - card.offsetWidth < EDGE;
+  const need = cardBelow && card ? card.offsetHeight + GAP : 0;
+  if (rect.top >= EDGE && rect.bottom + need <= vh - EDGE) return;
+  const room = vh - need;
+  const offset = rect.height < room ? Math.max(EDGE, (room - rect.height) / 2) : EDGE;
   window.scrollTo({ top: window.scrollY + rect.top - offset, behavior: "smooth" });
 }
